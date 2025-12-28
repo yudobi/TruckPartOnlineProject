@@ -1,64 +1,39 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 :root {
-  --radius: 0.75rem;
-
-  /* 🎨 Tema Claro Profesional - Naranja, Gris y Blanco */
-
-  /* Fondos Base - Blancos y Grises Muy Claros */
-  --background: oklch(99% 0 0); /* Blanco casi puro */
-  --foreground: oklch(25% 0.01 270); /* Gris muy oscuro para texto */
-
-  /* Tarjetas y Superficies - Blanco Puro */
-  --card: oklch(100% 0 0); /* Blanco puro para tarjetas */
-  --card-foreground: oklch(25% 0.01 270);
-  --popover: oklch(100% 0 0);
-  --popover-foreground: oklch(25% 0.01 270);
-
-  /* Color Primario - Naranja Vibrante */
-  --primary: oklch(65.714% 0.16341 44.35); /* Naranja profesional y vibrante */
-  --primary-foreground: oklch(100% 0 0); /* Blanco para texto */
-
-  /* Color Secundario - Gris Medio */
-  --secondary: oklch(92% 0.005 270); /* Gris muy claro con tinte neutro */
-  --secondary-foreground: oklch(30% 0.01 270); /* Gris oscuro */
-
-  /* Elementos Silenciados - Grises Suaves */
-  --muted: oklch(95% 0.005 270); /* Gris muy claro */
-  --muted-foreground: oklch(50% 0.01 270); /* Gris medio para texto secundario */
-
-  /* Acentos - Naranja Claro */
-  --accent: oklch(88% 0.08 45); /* Naranja muy claro para fondos de hover */
-  --accent-foreground: oklch(43.128% 0.00005 271.152); /* Texto oscuro */
-
-  /* Destructivos - Rojo Coral Claro */
-  --destructive: oklch(58% 0.20 25); /* Rojo coral profesional */
-  --destructive-foreground: oklch(100% 0 0);
-
-  /* Bordes y Inputs - Grises Sutiles */
-  --border: oklch(87% 0.005 270); /* Borde gris claro */
-  --input: oklch(96% 0.005 270); /* Input gris muy claro */
-  --ring: oklch(62% 0.20 40); /* Ring naranja igual al primario */
-
-  /* Gráficos - Paleta Clara y Armoniosa */
-  --chart-1: oklch(62% 0.20 40); /* Naranja primario */
-  --chart-2: oklch(55% 0.18 30); /* Naranja oscuro */
-  --chart-3: oklch(70% 0.15 50); /* Naranja claro */
-  --chart-4: oklch(55% 0.01 270); /* Gris medio */
-  --chart-5: oklch(75% 0.12 60); /* Ámbar suave */
-
-  /* Sidebar - Combinación Elegante */
-  --sidebar: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsla(0, 0%, 41%, 0.679);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(31, 81%, 54%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(29, 95%, 64%);
-
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 @theme inline {
