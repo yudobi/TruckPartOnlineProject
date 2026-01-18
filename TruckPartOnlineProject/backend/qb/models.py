@@ -14,6 +14,12 @@ class QuickBooksToken(models.Model):
         return f"QB Token {self.realm_id}"
 
 
+
+
+
+
+
+# ======No se utiliza ya que los item son manejados en products/models.py de la aplicacion
 from django.db import models
 
 class QBItem(models.Model):
@@ -27,3 +33,4 @@ class QBItem(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+# ===========================================================================================

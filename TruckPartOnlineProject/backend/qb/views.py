@@ -10,11 +10,11 @@ from django.utils import timezone
 
 from .models import QuickBooksToken
 
-from django.http import JsonResponse
+#from django.http import JsonResponse
 import requests
 from django.conf import settings
-from .utils import get_valid_access_token
-from .models import QBItem, QuickBooksToken
+#from .services import get_valid_access_token
+from .models import  QuickBooksToken  #,QBItem
 
 def qb_login(request):
     state = uuid.uuid4().hex
@@ -27,7 +27,7 @@ def qb_login(request):
         f"&scope=com.intuit.quickbooks.accounting"
         f"&redirect_uri={settings.QB_REDIRECT_URI}"
         f"&state={state}"
-    )
+    )   
 
     return redirect(auth_url)
 
@@ -76,6 +76,7 @@ def qb_callback(request):
     return HttpResponse("QuickBooks connected successfully")
 
 
+"""
 #########Endpoint para traer Items de QuickBooks########################
 def sync_qb_items(request):
     token = QuickBooksToken.objects.first()
@@ -124,3 +125,4 @@ def sync_qb_items(request):
         "message": "Items sincronizados correctamente"
     })
 ################################################################################################
+"""
