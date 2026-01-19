@@ -7,3 +7,12 @@ from .models import Inventory
 def create_inventory_for_product(sender, instance, created, **kwargs):
     if created:
         Inventory.objects.create(product=instance)
+
+from .models import InventoryMovement
+
+@receiver(post_save, sender=InventoryMovement)
+def update_inventory_quantity(sender, instance, created, **kwargs):
+    if created:
+        inventory = instance.inventory
+        inventory.quantity += instance.change
+        inventory.save()

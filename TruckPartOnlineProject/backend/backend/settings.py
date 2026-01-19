@@ -163,3 +163,7 @@ QB_ENV = config("QB_ENV", "sandbox")
 
 print("QB_CLIENT_ID:", QB_CLIENT_ID)
 print("QB_REDIRECT_URI:", QB_REDIRECT_URI)
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
