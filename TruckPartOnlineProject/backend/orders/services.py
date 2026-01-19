@@ -1,4 +1,4 @@
-from qb.services import get_qb_item_quantity
+#from qb.services import get_qb_item_quantity
 from products.models import Product
 
 """

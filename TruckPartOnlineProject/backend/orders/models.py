@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from products.models import Product
+from django.conf import settings
 
 
 class Order(models.Model):
@@ -22,7 +23,13 @@ class Order(models.Model):
         ("failed", "Failed"),
     )
 
-    user = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders'
+    )
     guest_email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     shipping_address = models.TextField(null=True, blank=True)

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt',
     'rest_framework',
     'TPOP',
     'qb',
@@ -48,6 +49,25 @@ INSTALLED_APPS = [
     "inventory.apps.InventoryConfig",
   
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),   # duración del access token
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     # duración del refresh token
+    "ROTATE_REFRESH_TOKENS": True,                   # refresca tokens automáticamente
+    "BLACKLIST_AFTER_ROTATION": True,                # invalida tokens viejos
+    "ALGORITHM": "HS256",                            # algoritmo de encriptación
+    "AUTH_HEADER_TYPES": ("Bearer",),                # formato del header
+}
+
+
 
 AUTH_USER_MODEL = "users.User"
 
