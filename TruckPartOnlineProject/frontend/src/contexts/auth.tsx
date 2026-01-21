@@ -5,7 +5,7 @@ import {
   removeAuthInfo,
   storeAuthInfo,
   hasTokenExpired,
-} from "@/servises/auth"
+} from "@/lib/auth"
 
 import type { AuthContextType, LoginData, User } from "@/types/auth"
 import { refreshAccessToken } from "@/servises/auth/token/refres-access-token"

@@ -21,15 +21,13 @@ export interface PaginatedApiResponse<T = unknown> {
   results: T[];
 }
 
-// Tipos para formularios de autenticación
 export interface LoginCredentials {
   phone_number: string;
   password: string;
 }
 
 export interface AuthResponse {
-  // El backend puede devolver tokens con nombres distintos dependiendo de la versión
-  // Soportamos ambas formas para mantener compatibilidad: { access, refresh } y { access_token, refresh_token }
+
   refresh?: string;
   access?: string;
   user: User;
