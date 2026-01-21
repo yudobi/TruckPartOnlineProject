@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 
 import {
   getAuthInfo,
@@ -9,10 +9,9 @@ import {
 
 import type { AuthContextType, LoginData, User } from "@/types/auth"
 import { refreshAccessToken } from "@/servises/auth/token/refres-access-token"
+import { AuthContext } from "./AuthContext"
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -90,12 +89,4 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error("useLoginContext must be used within a LoginProvider")
-  }
-  return context
-}
 
-export default { AuthProvider, useAuth }
