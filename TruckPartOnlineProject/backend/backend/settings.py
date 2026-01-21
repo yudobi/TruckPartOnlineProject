@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,7 +39,37 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework_simplejwt',
+    'rest_framework',
+    'TPOP',
+    'qb',
+    'products',
+    'orders',
+    'users',
+    "inventory.apps.InventoryConfig",
+  
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),   # duración del access token
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     # duración del refresh token
+    "ROTATE_REFRESH_TOKENS": True,                   # refresca tokens automáticamente
+    "BLACKLIST_AFTER_ROTATION": True,                # invalida tokens viejos
+    "ALGORITHM": "HS256",                            # algoritmo de encriptación
+    "AUTH_HEADER_TYPES": ("Bearer",),                # formato del header
+}
+
+
+
+AUTH_USER_MODEL = "users.User"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -74,10 +106,9 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.parse(
+        config('DATABASE_URL')
+    )
 }
 
 
@@ -121,3 +152,18 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+import os
+
+QB_CLIENT_ID = config("QB_CLIENT_ID")
+QB_CLIENT_SECRET = config("QB_CLIENT_SECRET")
+QB_REDIRECT_URI = config("QB_REDIRECT_URI")
+QB_ENV = config("QB_ENV", "sandbox")
+
+print("QB_CLIENT_ID:", QB_CLIENT_ID)
+print("QB_REDIRECT_URI:", QB_REDIRECT_URI)
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

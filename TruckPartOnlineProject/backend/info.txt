@@ -1,0 +1,61 @@
+App	                     Responsabilidad
+orders--------------------------	Flujo de compra
+qb------------------------------	Integración externa
+products------------------------	Catálogo
+users-----------------------------	Clientes
+**************************************************************************
+-----------------------------------------------------------------------
+1️⃣ Endpoint /orders/checkout/
+2️⃣ Validar stock (YA HECHO ✅)
+3️⃣ Crear Order + OrderItem
+4️⃣ Crear SalesReceipt en QuickBooks
+5️⃣ Guardar qb_sales_id
+6️⃣ Confirmar orden
+---------------------------------------------------------------------
+Validar stock (YA HECHO ✅)
+Eje:
+POST /api/orders/checkout/
+{
+  "items": [
+    { "product_id": 3, "quantity": 2 },
+    { "product_id": 7, "quantity": 1 }
+  ]
+}
+
+6️⃣ RESPUESTAS POSIBLES
+❌ Stock insuficiente
+{
+  "error": "Stock insuficiente para Filtro de Aceite. Disponible: 1"
+}
+
+✅ Stock OK
+{
+  "message": "Stock validado, puedes continuar al pago"
+}  
+--------------------------------------------------------------------------------------------------------
+🧱 VISIÓN GENERAL DEL CHECKOUT
+Endpoint
+POST /api/orders/checkout/
+
+Flujo real
+Frontend
+ → Django (validaciones)
+ → QuickBooks (stock real)
+ → QuickBooks (SalesReceipt)
+ → Django (guardar Order)
+ → Respuesta OK
+
+ 1️⃣ QUÉ DATOS RECIBE EL CHECKOUT
+Ejemplo JSON (guest checkout)
+{
+  "items": [
+    { "product_id": 1, "quantity": 2 },
+    { "product_id": 5, "quantity": 1 }
+  ],
+  "customer": {
+    "email": "guest@email.com",
+    "name": "Cliente Invitado"
+  }
+}
+********************************************************************************
+

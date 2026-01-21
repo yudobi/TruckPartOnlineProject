@@ -1,0 +1,282 @@
+*******************************************************************************************************
+A. SISTEMAS MECÁNICOS PRINCIPALES
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   A1. SISTEMA MOTOR - PROPULSIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         A1.1.Bloque Motor y Componentes Fijos
+             -Bloque, culata, tapa de cilindros, cárter.
+
+         A1.2.Componentes Móviles Internos
+             -Pistones, anillos, bielas, pasadores.
+             -Cigüeñal, volante de inercia, amortiguador de vibraciones.
+             -Árbol de levas, taqués, varillas empujadoras, balancines.
+             -Válvulas (admisión/escape), guías, resortes, retenes.
+
+         A1.3.Sistema de Admisión y Escape
+             -Colector/tubo de admisión, intercooler.
+             -Turboalimentador: turbina, compresor, carcasas, actuadores.
+             -Sistema EGR (válvula, enfriador).
+             -Múltiple de escape, silenciador, catalizador.
+             -Sistema SCR/Postratamiento (AdBlue): Tanque, bomba, dosificador, inyector, sensor NOx, catalizador SCR.
+
+         A1.4.Sistema de Combustible (Diesel/Gas)
+             -Bomba de transferencia, filtros (primario/secundario).
+             -Bomba de inyección (lineal, rotativa), riel común (Common Rail).
+             -Inyectores (mecánicos, electrónicos), toberas.
+             -Tanques de combustible, tapones, tuberías, mangueras.
+
+         A1.5.Sistema de Lubricación
+             -Bomba de aceite, tuberías de lubricación.
+             -Enfriador de aceite (intercooler de aceite).
+             -Filtros de aceite (cartucho, centrífugo).
+
+         A1.6.Sistema de Refrigeración
+             -Radiador (aceite/agua), ventilador y embrague.
+             -Bomba de agua, termostato, válvula de calor.
+             -Mangueras, abrazaderas, depósito de expansión.
+
+----------------------------------------------------------------------------------------------------------------------------
+   A2. TRANSMISIÓN - TREN MOTRIZ
+-----------------------------------------------------------------------------------------------------------------------------
+         A2.1.Embrague
+             -Disco, plato (volante bimasa), collarín, rodamiento de empuje.
+
+         A2.2.Caja de Cambios (Manual/Automática/AMT)
+             -Cajas completas, sincronizadores, engranajes, ejes.
+             -Módulo de control (TCM), actuadores (para automatizadas).
+             -Lubricante específico para caja.
+
+         A2.3.Árbol de Transmisión (Cardán)
+             -Ejes, juntas universales (crucetas), yokes, soportes intermedios.
+
+         A2.4.Diferenciales y Ejes
+             -Diferencial delantero/trasero, portadiferencial, engranajes cónicos.
+             -Ejes completos: motrices, auxiliares (llevadores), direccionales.
+             -Componentes de eje: Cuerpo de eje, mangueta, buje de rueda, tuercas.
+             -Reductoras y Planetarios: Para ejes de gran tonelaje.
+
+         A2.5.Juntas Homocinéticas y Transversales
+             -Para sistemas de tracción delantera o integral en vehículos livianos.
+
+
+*******************************************************************************************************
+B. SISTEMAS DE CONTROL Y SEGURIDAD
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   B1. SISTEMA DE DIRECCIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         B1.1.Dirección Mecánica/Hidráulica
+             -Volante, columna, junta cardán.
+             -Caja de dirección (de tornillo sinfín, de bolas recirculantes).
+             -Bomba hidráulica, depósito, válvula distribuidora.
+             -Barras de dirección (axiales), rótulas, terminales, brazo Pitman.
+
+         B1.2.Dirección Asistida Electrónica (EPS)
+             -Motor eléctrico, sensor de par, módulo de control.
+
+----------------------------------------------------------------------------------------------------------------------------
+   B2. SISTEMA DE FRENOS
+----------------------------------------------------------------------------------------------------------------------------
+         B2.1.Frenos de Servicio (Neumáticos/Hidráulicos)
+             -Componentes de Rueda: Tambores, discos, zapatas, pastillas (balatas), cámaras de freno, ajustadores automáticos.
+             -Componentes de Control: Válvula pedalera, válvula de dosificación, válvulas relé (quick release), válvula de protección (double check).
+             -B2.2. Generación y Distribución de Aire
+             -Compresor de aire, secador de aire (cartucho desecante).
+             -Tanques de aire (depósitos), válvulas de drenaje.
+             -Tuberías de aire (nylon, cobre), conectores, fittings.
+
+         B2.3.Frenos Auxiliares y de Emergencia
+             -Freno motor (Jacob Brake), retardador hidrodinámico o eléctrico.
+             -Válvula de freno de estacionamiento (mano).
+
+         B2.4. Sistemas Electrónicos de Frenado
+             -Módulo ABS/EBS, sensores de velocidad de rueda, anillos fónicos.
+             -Válvulas moduladoras ABS.
+----------------------------------------------------------------------------------------------------------------------------
+   B3. SISTEMA DE SUSPENSIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         B3.1.Muelles y Ballestas
+             -Ballestas (hojas, maestra), pernos (centradores), abrazaderas.
+             -Muelles helicoidales, bloques de goma.
+
+         B3.2.Suspensión Neumática
+             -Bolsas de aire (fuelle), válvulas de nivelación, compresor auxiliar.
+             -Mangueras de aire para suspensión.
+
+         B3.3.Amortiguación y Estabilización
+             -Amortiguadores (hidráulicos, de gas), barras estabilizadoras, bujes de barra.
+
+         B3.4.Puntos de Anclaje y Guía
+             -Brazos (de reacción, tensor, arrastre), terminales de barra Panhard.
+             -Pivotes (king pin, bushings), platos de pivote, cojinetes.
+
+*******************************************************************************************************
+C. SISTEMAS ELÉCTRICOS Y ELECTRÓNICOS
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   C1. GENERACIÓN, ARRANQUE Y ALMACENAMIENTO
+----------------------------------------------------------------------------------------------------------------------------
+         -Alternador, regulador de voltaje.
+         -Motor de arranque, solenoide.
+         -Baterías (plomo-ácido, litio), cables de batería, soportes.
+
+---------------------------------------------------------------------------------------------------------------------------
+   C2. IGNICIÓN Y GESTIÓN DEL MOTOR (Para motores a gasolina/gas)
+----------------------------------------------------------------------------------------------------------------------------
+         -Bobinas de encendido, cables de bujía, distribuidor.
+         -Bujías (para gasolina/gas), sensores de picado.
+
+----------------------------------------------------------------------------------------------------------------------------
+   C3. RED ELÉCTRICA Y PROTECCIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         -Cableado (harnesses), cajas de fusibles y relés.
+         -Fusibles, disyuntores, interruptores.
+
+----------------------------------------------------------------------------------------------------------------------------
+   C4. ILUMINACIÓN Y SEÑALIZACIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         -Delantera: Faros (halógeno/LED/xenón), luces de cruce/carretera, intermitentes, luz de día (DRL).
+         -Trasera: Luces de freno, posición, retroceso, antiniebla.
+         -Lateral y Superior: Luces de giro, marcadoras (clearance lights), reflectores.
+         -Interior: Luces de cabina, tablero, caja de carga, instrumentos.
+         -Soportes y Lentes: Portalámparas, ópticas, cubiertas.
+
+----------------------------------------------------------------------------------------------------------------------------
+   C5. SENSORES Y MÓDULOS DE CONTROL
+----------------------------------------------------------------------------------------------------------------------------
+         -Sensores del Motor: RPM, posición del cigüeñal/árbol de levas, MAP/MAF, temperatura, presión de aceite/combustible.
+         -Sensores de Chasis: Presión de neumáticos (TPMS), temperatura de frenos, sensores de carga.
+         -Unidades de Control (ECU): ECM (motor), TCM (transmisión), BCM (carrocería).
+
+----------------------------------------------------------------------------------------------------------------------------
+   C6. CONECTIVIDAD Y TELECOMUNICACIONES
+----------------------------------------------------------------------------------------------------------------------------
+         -Antenas (radio, GPS, CB Radio).
+         -Radios, sistemas de navegación GPS, equipos de rastreo (telemática).
+         -Cámaras de marcha atrás y sistemas de visión periférica.
+
+*******************************************************************************************************
+D. ESTRUCTURA, CARROCERÍA Y CARGA
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   D1. CHASIS Y BASTIDOR
+----------------------------------------------------------------------------------------------------------------------------
+         -Largueros, travesaños, refuerzos.
+         -Suspensiones de cabina, mecanismo de volteo.
+         -Patines, ganchos de remolque, quinta rueda (para tractocamiones).
+
+----------------------------------------------------------------------------------------------------------------------------
+   D2. CABINA
+----------------------------------------------------------------------------------------------------------------------------
+         -Estructura: Puertas, ventanas, cerraduras, bisagras, parabrisas, lunas laterales/traseras.
+         -Aislamiento: Alfombras, revestimientos, sellos de puertas/ventanas.
+         -Accesorios Exteriores: Espejos retrovisores (planos/convexos, con calefacción), escalones, deflectores, capotas.
+
+----------------------------------------------------------------------------------------------------------------------------
+   D3. CARROCERÍA Y EQUIPO DE CARGA
+----------------------------------------------------------------------------------------------------------------------------
+         -Cajas de Carga: Piso, laterales, postes, cerraduras de portón.
+         -Cisternas: Bombas de descarga, mangueras, válvulas, indicadores de nivel.
+         -Plataformas y Remolques: Rampas hidráulicas, ganchos de amarre (cadenas, straps), barandillas.
+         -Sistemas de Descarga: Hidráulicos (bombas, cilindros), neumáticos (mangueras, difusores).
+
+*******************************************************************************************************
+E. NEUMÁTICOS, RUEDAS Y RODAMIENTOS
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   E1. NEUMÁTICOS
+----------------------------------------------------------------------------------------------------------------------------
+         -Nuevos (todas las medidas: 295/75R22.5, 11R22.5, etc.).
+         -Recauchados, reparación (parches, tapones).
+         -Cámaras (para ruedas con cámara).
+
+----------------------------------------------------------------------------------------------------------------------------
+   E2. RUEDAS Y COMPONENTES
+----------------------------------------------------------------------------------------------------------------------------
+         -Rines: De disco (steel wheels) y de aleación (aluminum wheels).
+         -Partes de Rueda: Anillos de seguridad (snap rings), anillos de base (base rings).
+         -Sistema de Inflado: Válvulas de aire (interna/externa), sistemas de inflado automático (CTIS).
+
+----------------------------------------------------------------------------------------------------------------------------
+   E3. RODAMIENTOS Y SELLOS
+----------------------------------------------------------------------------------------------------------------------------
+         -Rodamientos de rueda (tapered roller bearings), copas y conos.
+         -Retenes de aceite (oil seals) para ejes, caja, motor.
+
+*******************************************************************************************************
+F. CONFORT, CLIMATIZACIÓN Y ACCESORIOS
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   F1. CLIMATIZACIÓN DE LA CABINA (HVAC)
+----------------------------------------------------------------------------------------------------------------------------
+         -Aire Acondicionado: Compresor, condensador, evaporador, válvula de expansión, filtro deshidratador.
+         -Calefacción: Calefactor (heater core), ventiladores (blower motor), válvulas de control de calor.
+
+----------------------------------------------------------------------------------------------------------------------------
+  F2. ASIENTOS Y ERGONOMÍA
+----------------------------------------------------------------------------------------------------------------------------
+         -Asientos del conductor/pasajero (mecánicos, aire).
+         -Bases de asiento (suspensiones de aire), mecanismos de ajuste.
+
+----------------------------------------------------------------------------------------------------------------------------
+  F3. INSTRUMENTACIÓN Y CONTROLES
+----------------------------------------------------------------------------------------------------------------------------
+         -Cuadro de instrumentos (velocímetro, tacómetro), indicadores, odómetro.
+         -Pedales (acelerador, freno, embrague), levas (palancas) de control.
+
+----------------------------------------------------------------------------------------------------------------------------
+  F4. ACCESORIOS Y MEJORAS
+----------------------------------------------------------------------------------------------------------------------------
+         -Cortinas para ventanas, neveras portátiles, cocinas.
+         -Sistemas de sonido (bocinas, altavoces, amplificadores).
+         -Alarmas, cerraduras de seguridad.
+
+*******************************************************************************************************
+G. CONSUMIBLES, FLUIDOS Y MANTENIMIENTO
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   G1. FILTROS
+----------------------------------------------------------------------------------------------------------------------------
+        -Filtro de aceite, combustible (agua/sedimentos), aire (motor y cabina).
+        -Filtro de transmisión, hidráulico, de refrigerante.
+
+----------------------------------------------------------------------------------------------------------------------------
+   G2. FLUIDOS Y LUBRICANTES
+----------------------------------------------------------------------------------------------------------------------------
+         -Aceites: Motor (SAE 15W-40, etc.), transmisión (80W-90, ATF), diferenciales, hidráulico.
+         -Líquidos: Refrigerante (ETO, propilenglicol), Líquido de frenos (DOT 3/4), AdBlue (DEF), Parabrisas.
+         -Grasas: Multiuso, de litio, para rodamientos de rueda (high-temp).
+
+----------------------------------------------------------------------------------------------------------------------------
+   G3. PRODUCTOS QUÍMICOS Y ADHESIVOS
+----------------------------------------------------------------------------------------------------------------------------
+         -Limpiadores (frenos, carburador, inyectores), desengrasantes.
+         -Selladores (RTV silicona, anaeróbicos), adhesivos (epoxy, cianoacrilato).
+         -Anticongelante/concentrado, inhibidores de corrosión.
+----------------------------------------------------------------------------------------------------------------------------
+   G4. PINTURA Y PROTECCIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         -Pinturas (en aerosol, para retoques), primers, removedor.
+         -Materiales anticorrosivos (undercoating), cera, pulidores.
+
+*******************************************************************************************************
+H. HERRAMIENTAS, EQUIPAMIENTO Y SEGURIDAD
+*******************************************************************************************************
+----------------------------------------------------------------------------------------------------------------------------
+   H1. HERRAMIENTAS PARA CAMIÓN Y TALLER
+----------------------------------------------------------------------------------------------------------------------------
+         -Juegos de llaves (tubo, combinación), carracas, extensiones.
+         -Juegos de dados para tuercas de rueda (tamaños grandes: 33mm, 1 1/2").
+         -Gatos hidráulicos para camión, soportes (stands).
+
+----------------------------------------------------------------------------------------------------------------------------
+   H2. EQUIPO DE DIAGNÓSTICO Y PRECISIÓN
+----------------------------------------------------------------------------------------------------------------------------
+         -Escáneres pesados (para sistemas J1939, J1708).
+         -Multímetros, manómetros (para aceite, aire, combustible).
+         -Medidores de presión de neumáticos (de alta capacidad).
+         -H3. EQUIPO DE SEGURIDAD Y SEÑALIZACIÓN
+         -Triángulos reflectivos, chalecos de seguridad.
+         -Extintores de incendio (para vehículos).
+         -Cajas de herramientas de seguridad, guantes.
