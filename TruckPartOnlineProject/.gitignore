@@ -1,4 +1,7 @@
 backend/venv/
+backend/*.sqlite3/
+backend/*.sqlite3
+backend/db.sqlite3
 .VTPOP
 .venv
 __pycache__/
@@ -17,3 +20,4 @@ migrations/
 .env
 .env.*
 *.env
+db.*
