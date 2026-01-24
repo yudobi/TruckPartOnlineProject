@@ -1,6 +1,8 @@
 import { Link } from "react-router";
+import { useTranslation } from "react-i18next";
 
 export default function Footer() {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -16,16 +18,14 @@ export default function Footer() {
               TRUCK<span className="text-red-600">PART</span>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-              Líderes en distribución de partes para camiones. Ingeniería de
-              precisión y durabilidad garantizada para mantener tu flota en
-              movimiento.
+              {t("footer.desc")}
             </p>
           </div>
 
           {/* Links */}
           <div className="space-y-6">
             <h4 className="text-xs font-bold text-red-600 tracking-widest uppercase">
-              Explorar
+              {t("footer.explore")}
             </h4>
             <ul className="space-y-4 text-sm text-gray-400">
               <li>
@@ -33,7 +33,7 @@ export default function Footer() {
                   to="/products"
                   className="hover:text-white transition-colors"
                 >
-                  Catálogo Completo
+                  {t("footer.catalog")}
                 </Link>
               </li>
               <li>
@@ -41,7 +41,7 @@ export default function Footer() {
                   to="/about"
                   className="hover:text-white transition-colors"
                 >
-                  Nuestra Historia
+                  {t("footer.history")}
                 </Link>
               </li>
               <li>
@@ -49,7 +49,7 @@ export default function Footer() {
                   to="/contact"
                   className="hover:text-white transition-colors"
                 >
-                  Soporte Técnico
+                  {t("footer.support")}
                 </Link>
               </li>
             </ul>
@@ -58,7 +58,7 @@ export default function Footer() {
           {/* Contact */}
           <div className="space-y-6">
             <h4 className="text-xs font-bold text-red-600 tracking-widest uppercase">
-              Contacto
+              {t("footer.contact")}
             </h4>
             <ul className="space-y-4 text-sm text-gray-400">
               <li className="flex items-center gap-3">
@@ -80,14 +80,14 @@ export default function Footer() {
         {/* Copyright */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-600">
           <p>
-            © {currentYear} TruckPart Online. Todos los derechos reservados.
+            © {currentYear} TruckPart Online. {t("footer.rights")}
           </p>
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">
-              Privacidad
+              {t("footer.privacy")}
             </a>
             <a href="#" className="hover:text-white transition-colors">
-              Términos
+              {t("footer.terms")}
             </a>
           </div>
         </div>

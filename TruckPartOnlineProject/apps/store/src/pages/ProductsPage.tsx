@@ -1,44 +1,48 @@
+import { useTranslation } from "react-i18next";
+
 export default function ProductsPage() {
+  const { t } = useTranslation();
+
   const products = [
     {
       id: 1,
-      name: "FILTRO ACEITE PRO-X",
-      category: "MANTENIMIENTO",
+      name: t("catalog.products.p1"),
+      category: t("catalog.filters.maintenance"),
       price: "$24.99",
       code: "FLT-001",
     },
     {
       id: 2,
-      name: "SISTEMA DE FRENADO ABS",
-      category: "SEGURIDAD",
+      name: t("catalog.products.p2"),
+      category: t("catalog.filters.safety"),
       price: "$89.99",
       code: "BRK-992",
     },
     {
       id: 3,
-      name: "BUJÍAS IRIDIUM",
-      category: "ELÉCTRICO",
+      name: t("catalog.products.p3"),
+      category: t("catalog.filters.electric"),
       price: "$15.99",
       code: "ELC-334",
     },
     {
       id: 4,
-      name: "BATERÍA HEAVY DUTY",
-      category: "ELÉCTRICO",
+      name: t("catalog.products.p4"),
+      category: t("catalog.filters.electric"),
       price: "$159.99",
       code: "PWR-120",
     },
     {
       id: 5,
-      name: "SUSPENSIÓN AIRE",
-      category: "CHASIS",
+      name: t("catalog.products.p5"),
+      category: t("catalog.filters.chassis"),
       price: "$199.99",
       code: "SUS-550",
     },
     {
       id: 6,
-      name: "RADIADOR INDUSTRIAL",
-      category: "REFRIGERACIÓN",
+      name: t("catalog.products.p6"),
+      category: t("catalog.filters.cooling"),
       price: "$249.99",
       code: "COL-880",
     },
@@ -48,17 +52,17 @@ export default function ProductsPage() {
     <div className="container mx-auto px-6 py-20">
       <header className="mb-20">
         <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-6">
-          CATÁLOGO
+          {t("catalog.title")}
         </h1>
         <div className="h-1 w-20 bg-red-600"></div>
       </header>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-12 border-b border-white/10 pb-8">
-        <FilterButton active>TODOS</FilterButton>
-        <FilterButton>MANTENIMIENTO</FilterButton>
-        <FilterButton>ELÉCTRICO</FilterButton>
-        <FilterButton>CHASIS</FilterButton>
+        <FilterButton active>{t("catalog.filters.all")}</FilterButton>
+        <FilterButton>{t("catalog.filters.maintenance")}</FilterButton>
+        <FilterButton>{t("catalog.filters.electric")}</FilterButton>
+        <FilterButton>{t("catalog.filters.chassis")}</FilterButton>
       </div>
 
       {/* Grid */}

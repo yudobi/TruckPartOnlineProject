@@ -1,0 +1,92 @@
+{
+  "common": {
+    "welcome": "Bienvenido a TruckPartOnline",
+    "search": "Buscar repuestos...",
+    "cart": "Carrito de Compras",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "login": "Iniciar Sesión",
+    "categories": "Categorías",
+    "language": "Idioma",
+    "theme": "Tema",
+    "customer": "CLIENTE"
+  },
+  "user": {
+    "profile": "Mi Perfil",
+    "logout": "Cerrar Sesión"
+  },
+  "cart": {
+    "title": "Tu Carrito",
+    "empty": "Tu carrito está vacío",
+    "emptyDesc": "¡Agrega algunos productos para comenzar!",
+    "explore": "Explorar Productos",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "FINALIZAR COMPRA",
+    "taxNotice": "Impuestos y envío calculados al finalizar."
+  },
+  "nav": {
+    "home": "Inicio",
+    "catalog": "Catálogo",
+    "search": "Buscar",
+    "about": "Nosotros",
+    "contact": "Contacto",
+    "searchCategory": "Buscar por Categoría"
+  },
+  "home": {
+    "badge": "Calidad Premium Industrial",
+    "heroTitle": "POTENCIA TU <br /> CAMINO",
+    "heroDesc": "Componentes de alto rendimiento para la industria del transporte pesado. Sin compromisos.",
+    "viewCatalog": "VER CATÁLOGO",
+    "contactUs": "CONTACTAR",
+    "features": {
+        "f1Title": "STOCK GLOBAL",
+        "f1Desc": "Acceso inmediato a miles de referencias.",
+        "f2Title": "ENVÍO EXPRESS",
+        "f2Desc": "Logística optimizada para entregas en 24h.",
+        "f3Title": "GARANTÍA TOTAL",
+        "f3Desc": "Certificación de calidad en cada componente."
+    },
+    "engineeringTitle": "INGENIERÍA <br /> QUE <span class=\"text-red-600\">PERDURA.</span>",
+    "engineeringDesc": "Entendemos que cada minuto de inactividad cuesta dinero. Por eso, nuestro sistema de gestión de inventario predictivo asegura que tengas la pieza exacta, en el momento exacto.",
+    "listItems": {
+        "l1": "Componentes OEM certificados",
+        "l2": "Soporte técnico especializado 24/7",
+        "l3": "Rastreo de envíos en tiempo real"
+    },
+    "systems": "SISTEMAS",
+    "brandsBadge": "Potencia Americana",
+    "brandsTitleLeading": "Marcas",
+    "brandsTitleTrailing": "Líderes"
+  },
+  "footer": {
+    "desc": "Líderes en distribución de partes para camiones. Ingeniería de precisión y durabilidad garantizada para mantener tu flota en movimiento.",
+    "explore": "Explorar",
+    "catalog": "Catálogo Completo",
+    "history": "Nuestra Historia",
+    "support": "Soporte Técnico",
+    "contact": "Contacto",
+    "rights": "Todos los derechos reservados.",
+    "privacy": "Privacidad",
+    "terms": "Términos"
+  },
+  "catalog": {
+    "title": "CATÁLOGO",
+    "filters": {
+      "all": "TODOS",
+      "maintenance": "MANTENIMIENTO",
+      "safety": "SEGURIDAD",
+      "electric": "ELÉCTRICO",
+      "chassis": "CHASSIS",
+      "cooling": "REFRIGERACIÓN"
+    },
+    "products": {
+        "p1": "FILTRO ACEITE PRO-X",
+        "p2": "SISTEMA DE FRENADO ABS",
+        "p3": "BUJÍAS IRIDIUM",
+        "p4": "BATERÍA HEAVY DUTY",
+        "p5": "SUSPENSIÓN AIRE",
+        "p6": "RADIADOR INDUSTRIAL"
+    }
+  }
+}

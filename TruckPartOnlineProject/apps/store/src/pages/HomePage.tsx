@@ -1,7 +1,9 @@
 import { Link } from "react-router";
+import { useTranslation, Trans } from "react-i18next";
 import heroBg from "../assets/peterbilt-hero.png";
 
 export default function HomePage() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -22,30 +24,26 @@ export default function HomePage() {
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <span className="inline-block py-1 px-3 border border-red-600/30 rounded-full text-red-500 text-xs tracking-[0.2em] font-bold mb-8 uppercase">
-            Calidad Premium Industrial
+            {t("home.badge")}
           </span>
           <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white mb-8 leading-tight">
-            POTENCIA TU <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">
-              CAMINO
-            </span>
+            <Trans i18nKey="home.heroTitle" />
           </h1>
           <p className="text-xl md:text-2xl text-gray-400 max-w-2xl mx-auto mb-12 font-light">
-            Componentes de alto rendimiento para la industria del transporte
-            pesado. Sin compromisos.
+            {t("home.heroDesc")}
           </p>
           <div className="flex flex-col md:flex-row gap-6 justify-center">
             <Link
               to="/products"
               className="px-10 py-5 bg-red-600 hover:bg-red-700 text-white font-bold tracking-wider transition-all hover:scale-105"
             >
-              VER CATÁLOGO
+              {t("home.viewCatalog")}
             </Link>
             <Link
               to="/contact"
               className="px-10 py-5 border border-white/20 hover:border-white hover:bg-white/5 text-white font-bold tracking-wider transition-all"
             >
-              CONTACTAR
+              {t("home.contactUs")}
             </Link>
           </div>
         </div>
@@ -57,18 +55,18 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/10">
             <FeatureItem
               number="01"
-              title="STOCK GLOBAL"
-              desc="Acceso inmediato a miles de referencias."
+              title={t("home.features.f1Title")}
+              desc={t("home.features.f1Desc")}
             />
             <FeatureItem
               number="02"
-              title="ENVÍO EXPRESS"
-              desc="Logística optimizada para entregas en 24h."
+              title={t("home.features.f2Title")}
+              desc={t("home.features.f2Desc")}
             />
             <FeatureItem
               number="03"
-              title="GARANTÍA TOTAL"
-              desc="Certificación de calidad en cada componente."
+              title={t("home.features.f3Title")}
+              desc={t("home.features.f3Desc")}
             />
           </div>
         </div>
@@ -80,18 +78,15 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
               <h2 className="text-4xl md:text-5xl font-bold tracking-tighter leading-tight">
-                INGENIERÍA <br />
-                QUE <span className="text-red-600">PERDURA.</span>
+                <Trans i18nKey="home.engineeringTitle" />
               </h2>
               <p className="text-gray-400 text-lg leading-relaxed">
-                Entendemos que cada minuto de inactividad cuesta dinero. Por
-                eso, nuestro sistema de gestión de inventario predictivo asegura
-                que tengas la pieza exacta, en el momento exacto.
+                {t("home.engineeringDesc")}
               </p>
               <ul className="space-y-4">
-                <ListItem>Componentes OEM certificados</ListItem>
-                <ListItem>Soporte técnico especializado 24/7</ListItem>
-                <ListItem>Rastreo de envíos en tiempo real</ListItem>
+                <ListItem>{t("home.listItems.l1")}</ListItem>
+                <ListItem>{t("home.listItems.l2")}</ListItem>
+                <ListItem>{t("home.listItems.l3")}</ListItem>
               </ul>
             </div>
 
@@ -103,7 +98,7 @@ export default function HomePage() {
                     ⚙️
                   </div>
                   <div className="text-xl font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">
-                    SISTEMAS
+                    {t("home.systems")}
                   </div>
                 </div>
               </div>
@@ -117,10 +112,13 @@ export default function HomePage() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <span className="text-red-600 font-bold tracking-widest text-sm uppercase">
-              Potencia Americana
+              {t("home.brandsBadge")}
             </span>
             <h2 className="text-3xl md:text-5xl font-black mt-4 text-white uppercase tracking-tighter">
-              Marcas <span className="text-zinc-600">Líderes</span>
+              {t("home.brandsTitleLeading")}{" "}
+              <span className="text-zinc-600">
+                {t("home.brandsTitleTrailing")}
+              </span>
             </h2>
           </div>
 

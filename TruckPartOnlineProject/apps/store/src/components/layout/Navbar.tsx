@@ -1,11 +1,7 @@
 import { Link, NavLink } from "react-router";
-import {
-  ChevronDown,
-  User,
-  ShoppingCart,
-  LogOut,
-  Settings,
-} from "lucide-react";
+import { ChevronDown, User, LogOut, Settings } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +15,8 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
+import CartSidebar from "@/components/cart/CartSidebar";
 
 const CATEGORIES = [
   {
@@ -40,6 +38,8 @@ const CATEGORIES = [
 ];
 
 export default function Navbar() {
+  const { t } = useTranslation();
+
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
       <div className="container mx-auto px-6">
@@ -56,17 +56,17 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <NavItem to="/">INICIO</NavItem>
-            <NavItem to="/products">CATALOGO</NavItem>
+            <NavItem to="/">{t("nav.home").toUpperCase()}</NavItem>
+            <NavItem to="/products">{t("nav.catalog").toUpperCase()}</NavItem>
             <DropdownMenu>
               <DropdownMenuTrigger className="text-sm font-bold tracking-widest hover:text-red-600 transition-colors duration-300 text-white focus:outline-none flex items-center gap-1 cursor-pointer">
-                BUSCAR
+                {t("nav.search").toUpperCase()}
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48 bg-black/90 border-white/10 text-white backdrop-blur-xl">
                 <DropdownMenuGroup>
                   <DropdownMenuLabel className="text-gray-300">
-                    Buscar por Categoría
+                    {t("nav.searchCategory")}
                   </DropdownMenuLabel>
                   {CATEGORIES.map((category) => (
                     <DropdownMenuSub>
@@ -87,15 +87,23 @@ export default function Navbar() {
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
-            <NavItem to="/about">NOSOTROS</NavItem>
-            <NavItem to="/contact">CONTACTO</NavItem>
+            <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
+            <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
+
+            <div className="h-6 w-px bg-white/20 mx-2" />
+
+            <LanguageSwitcher />
+
+            <div className="h-6 w-px bg-white/20 mx-2" />
+
+            <CartSidebar />
 
             <div className="h-6 w-px bg-white/20 mx-2" />
 
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none cursor-pointer group">
                 <div className="relative">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-900/20 group-hover:shadow-red-900/40 transition-all duration-300 border border-white/10">
+                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-900/20 group-hover:shadow-red-900/40 transition-all duration-300 border border-white/10">
                     <User className="w-5 h-5" />
                   </div>
                   <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full"></span>
@@ -105,7 +113,7 @@ export default function Navbar() {
                     Jorge
                   </span>
                   <span className="text-[10px] text-gray-400 font-medium tracking-wider">
-                    CLIENTE
+                    {t("common.customer")}
                   </span>
                 </div>
                 <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-red-500 transition-colors duration-300" />
@@ -128,15 +136,8 @@ export default function Navbar() {
 
                 <DropdownMenuGroup className="space-y-1">
                   <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
-                    <ShoppingCart className="mr-3 h-4 w-4 text-red-500" />
-                    <span className="flex-1">Mi Carrito</span>
-                    <span className="bg-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white">
-                      3
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
                     <Settings className="mr-3 h-4 w-4 text-red-500" />
-                    <span>Mi Perfil</span>
+                    <span>{t("user.profile")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
 
@@ -144,28 +145,32 @@ export default function Navbar() {
 
                 <DropdownMenuItem className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-950/20 py-2.5">
                   <LogOut className="mr-3 h-4 w-4" />
-                  <span>Cerrar Sesión</span>
+                  <span>{t("user.logout")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden text-white hover:text-red-600 transition-colors">
-            <svg
-              className="w-8 h-8"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M4 6h16M4 12h16M4 18h16"
-              />
-            </svg>
-          </button>
+          <div className="md:hidden flex items-center gap-4">
+            <LanguageSwitcher />
+            <CartSidebar />
+            <button className="text-white hover:text-red-600 transition-colors">
+              <svg
+                className="w-8 h-8"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </nav>

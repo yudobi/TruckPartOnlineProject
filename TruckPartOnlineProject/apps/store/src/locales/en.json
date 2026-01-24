@@ -1,0 +1,92 @@
+{
+  "common": {
+    "welcome": "Welcome to TruckPartOnline",
+    "search": "Search for parts...",
+    "cart": "Shopping Cart",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "categories": "Categories",
+    "language": "Language",
+    "theme": "Theme",
+    "customer": "CUSTOMER"
+  },
+  "user": {
+    "profile": "My Profile",
+    "logout": "Logout"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "emptyDesc": "Add some products to get started!",
+    "explore": "Explore Products",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "CHECKOUT",
+    "taxNotice": "Taxes and shipping calculated at checkout."
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "search": "Search",
+    "about": "About Us",
+    "contact": "Contact",
+    "searchCategory": "Search by Category"
+  },
+  "home": {
+    "badge": "Premium Industrial Quality",
+    "heroTitle": "POWER YOUR <br /> ROAD",
+    "heroDesc": "High performance components for the heavy transport industry. No compromises.",
+    "viewCatalog": "VIEW CATALOG",
+    "contactUs": "CONTACT US",
+    "features": {
+        "f1Title": "GLOBAL STOCK",
+        "f1Desc": "Immediate access to thousands of parts.",
+        "f2Title": "EXPRESS SHIPPING",
+        "f2Desc": "Optimized logistics for 24h deliveries.",
+        "f3Title": "TOTAL WARRANTY",
+        "f3Desc": "Quality certification on every component."
+    },
+    "engineeringTitle": "ENGINEERING <br /> THAT <span class=\"text-red-600\">LASTS.</span>",
+    "engineeringDesc": "We understand that every minute of downtime costs money. That's why our predictive inventory management system ensures you have the exact part, at the exact time.",
+    "listItems": {
+        "l1": "Certified OEM components",
+        "l2": "Specialized 24/7 technical support",
+        "l3": "Real-time shipment tracking"
+    },
+    "systems": "SYSTEMS",
+    "brandsBadge": "American Power",
+    "brandsTitleLeading": "Leading",
+    "brandsTitleTrailing": "Brands"
+  },
+  "footer": {
+    "desc": "Leaders in truck parts distribution. Precision engineering and guaranteed durability to keep your fleet moving.",
+    "explore": "Explore",
+    "catalog": "Full Catalog",
+    "history": "Our History",
+    "support": "Technical Support",
+    "contact": "Contact",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "catalog": {
+    "title": "CATALOG",
+    "filters": {
+      "all": "ALL",
+      "maintenance": "MAINTENANCE",
+      "safety": "SAFETY",
+      "electric": "ELECTRIC",
+      "chassis": "CHASSIS",
+      "cooling": "COOLING"
+    },
+    "products": {
+        "p1": "OIL FILTER PRO-X",
+        "p2": "ABS BRAKING SYSTEM",
+        "p3": "IRIDIUM SPARK PLUGS",
+        "p4": "HEAVY DUTY BATTERY",
+        "p5": "AIR SUSPENSION",
+        "p6": "INDUSTRIAL RADIATOR"
+    }
+  }
+}
