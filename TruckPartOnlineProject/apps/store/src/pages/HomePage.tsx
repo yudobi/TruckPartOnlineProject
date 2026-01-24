@@ -111,6 +111,34 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Brands Section */}
+      <section className="py-24 bg-black border-t border-white/10">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-16">
+            <span className="text-red-600 font-bold tracking-widest text-sm uppercase">
+              Potencia Americana
+            </span>
+            <h2 className="text-3xl md:text-5xl font-black mt-4 text-white uppercase tracking-tighter">
+              Marcas <span className="text-zinc-600">Líderes</span>
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            <BrandCard name="Kenworth" logo="/logo/kenworth_logo.svg" />
+            <BrandCard name="Peterbilt" logo="/logo/peterbilt_logo.svg" />
+            <BrandCard name="Freightliner" logo="/logo/freightliner_logo.svg" />
+            <BrandCard name="Mack" logo="/logo/mack_logo.svg" />
+            <BrandCard
+              name="International"
+              logo="/logo/international_logo.svg"
+            />
+            <BrandCard name="Western Star" logo="/logo/western_logo.svg" />
+            <BrandCard name="Volvo" logo="/logo/volvo_logo.svg" />
+            <BrandCard name="Iveco" logo="/logo/iveco_logo.svg" />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -145,5 +173,18 @@ function ListItem({ children }: { children: React.ReactNode }) {
       <span className="w-2 h-2 bg-red-600"></span>
       <span>{children}</span>
     </li>
+  );
+}
+
+function BrandCard({ name, logo }: { name: string; logo: string }) {
+  return (
+    <div className="group relative h-32 md:h-40 bg-zinc-900/50 border border-white/5 hover:border-red-600/50 hover:bg-zinc-900 transition-all duration-300 flex items-center justify-center cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-red-900/10 p-8">
+      <div className="absolute inset-x-0 bottom-0 h-1 bg-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+      <img
+        src={logo}
+        alt={name}
+        className="w-full h-full object-contain filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
+      />
+    </div>
   );
 }
