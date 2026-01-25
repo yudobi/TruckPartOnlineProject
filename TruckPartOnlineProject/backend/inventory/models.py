@@ -29,4 +29,4 @@ class InventoryMovement(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.change} ({self.reason})"
+        return f"{self.change} ({self.reason})" 

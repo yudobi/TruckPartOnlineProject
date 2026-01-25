@@ -8,10 +8,12 @@ from .models import Product
 from products.serializers import ProductSerializer
 from rest_framework.response import Response
 
+from products.pagination import StandardResultsSetPagination
 
 
 class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
+    pagination_class = StandardResultsSetPagination
     permission_classes = [AllowAny]
 
     def get_queryset(self):
