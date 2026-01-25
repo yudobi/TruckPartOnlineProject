@@ -1,23 +1,80 @@
-backend/venv/
-backend/*.sqlite3/
-backend/*.sqlite3
-backend/db.sqlite3
-.VTPOP
-.venv
+# Python
 __pycache__/
-*.pyc
-instance/
-migrations/
-*.sqlite3
-.DS_Store
-*.log
-*.pot
-*.pyc
-*.pyo
-*.swp
-*.sqlite3
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv
+venv/
+ENV/
+backend/venv/
+
+# Database
+backend/db.sqlite3
+db.sqlite3
+*.sqlite3
+*.db
+*.sql
+*.sqlite
+*.sqlite3-journal
+*.db-journal
+*.sqlite3-shm
+*.sqlite3-wal
+*.db-shm
+*.db-wal
+*.db3
+*.s3db
+*.sl3
+*.sqlitedb
+*.db3
+
+# Environment variables
 .env
 .env.*
-*.env
-db.*
+!.env.example
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+build/
+dist/
+
+# Local development
+.VTPOP
+instance/
+migrations/
+
+# Misc
+*.pot
+*.pyo
+*.pyd
+__pycache__/

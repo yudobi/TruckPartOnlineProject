@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework_simplejwt',
     'rest_framework',
-    'drf_yasg',
     'TPOP',
     'qb',
     'products',
@@ -58,7 +57,6 @@ REST_FRAMEWORK = {
 }
 
 from datetime import timedelta
-from django.utils.translation import gettext_lazy as _
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=300),   # duración del access token
@@ -154,27 +152,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Configuración de Swagger/OpenAPI
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header'
-        }
-    },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
-    'DEFAULT_MODEL_RENDERING': 'example',
-    'DEFAULT_MODEL_DEPTH': -1,
-}
-
-# Configuración de Redoc
-REDOC_SETTINGS = {
-    'LAZY_RENDERING': True,
-    'HIDE_HOSTNAME': False,
-}
 
 
 import os
