@@ -116,7 +116,7 @@ class CustomOpenAPISchemaGenerator(OpenAPISchemaGenerator):
             {
                 "name": "Órdenes",
                 "description": "Creación, seguimiento y gestión de pedidos"
-            }
+            },
         ]
         
         # Agregar esquemas de respuesta comunes
