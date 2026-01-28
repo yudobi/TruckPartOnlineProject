@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="black3D" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#333333;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a1a1a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="red3D" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#e60000;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b30000;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="wheelMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#666666;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#999999;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#666666;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(50, 20)">
+    <path d="M10 0 L90 0 L90 20 L60 20 L60 100 L40 100 L40 20 L10 20 Z" fill="url(#black3D)" stroke="#000" stroke-width="1"/>
+    <path d="M10 0 L30 0 L30 80 L10 80 Z" fill="#b30000"/> <g transform="translate(110, 0)">
+      <circle cx="50" cy="50" r="50" fill="url(#black3D)" stroke="#000" stroke-width="1"/>
+      <circle cx="50" cy="50" r="35" fill="url(#wheelMetal)" stroke="#333" stroke-width="1"/>
+      <circle cx="50" cy="50" r="10" fill="#1a1a1a"/>
+      <path d="M50 15 L50 35 M50 85 L50 65 M15 50 L35 50 M85 50 L65 50" stroke="#1a1a1a" stroke-width="8"/>
+    </g>
+
+    <path d="M220 0 L250 0 L280 60 L280 0 L310 0 L310 100 L280 100 L250 40 L250 100 L220 100 Z" fill="url(#black3D)" stroke="#000" stroke-width="1"/>
+    <path d="M220 0 L250 0 L280 60 L250 100 L220 100 Z" fill="#b30000"/> <path d="M330 0 L360 0 L385 50 L410 0 L440 0 L400 70 L400 100 L370 100 L370 70 Z" fill="url(#black3D)" stroke="#000" stroke-width="1"/>
+    <path d="M410 0 L440 0 L400 70 L370 70 Z" fill="#b30000"/> </g>
+
+  <g transform="translate(50, 130)">
+    <path d="M10 0 L90 0 L90 20 L60 20 L60 70 L40 70 L40 20 L10 20 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M100 0 L160 0 C180 0 190 10 190 30 C190 50 180 60 160 60 L140 60 L160 70 L130 70 L110 60 L130 60 L130 20 L160 20 C170 20 170 40 160 40 L130 40 L130 70 L100 70 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M200 0 L230 0 L230 50 C230 70 240 70 260 70 C280 70 290 70 290 50 L290 0 L320 0 L320 50 C320 80 300 90 260 90 C220 90 200 80 200 50 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M380 20 C360 20 350 30 350 50 C350 70 360 80 380 80 L410 80 L410 100 L380 100 C340 100 320 80 320 50 C320 20 340 0 380 0 L410 0 L410 20 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M430 0 L460 0 L460 40 L500 0 L540 0 L490 50 L540 100 L500 100 L460 60 L460 100 L430 100 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    
+    <path d="M560 0 L620 0 C640 0 650 10 650 30 C650 50 640 60 620 60 L590 60 L590 100 L560 100 Z M590 20 L620 20 C630 20 630 40 620 40 L590 40 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M680 0 L720 0 L750 100 L720 100 L710 70 L690 70 L680 100 L650 100 Z M700 20 L695 50 L705 50 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M760 0 L820 0 C840 0 850 10 850 30 C850 50 840 60 820 60 L800 60 L820 70 L790 70 L770 60 L790 60 L790 20 L820 20 C830 20 830 40 820 40 L790 40 L790 70 L760 70 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M870 0 L950 0 L950 20 L920 20 L920 100 L890 100 L890 20 L870 20 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+    <path d="M970 20 C990 20 1000 30 1000 40 L1030 40 C1030 10 1010 0 980 0 C950 0 930 10 930 40 C930 70 950 80 970 80 C990 80 1000 70 1000 60 L1030 60 C1030 90 1010 100 980 100 C950 100 930 90 930 60 C930 30 950 20 970 20 Z" fill="url(#red3D)" stroke="#000" stroke-width="2"/>
+  </g>
+</svg>

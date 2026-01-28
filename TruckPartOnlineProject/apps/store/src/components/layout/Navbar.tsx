@@ -46,8 +46,8 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-red-600 rounded-sm flex items-center justify-center transform group-hover:rotate-3 transition-transform duration-300">
-              <span className="text-xl font-bold text-black">TP</span>
+            <div className="px-1 h-20 bg-red-600 flex items-center justify-center ">
+              <span className="text-xl font-bold text-black">TONY</span>
             </div>
             <span className="text-2xl font-bold tracking-tighter text-white">
               TRUCK<span className="text-red-600">PART</span>
