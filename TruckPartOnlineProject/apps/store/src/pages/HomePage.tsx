@@ -91,7 +91,7 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <div className="aspect-square bg-gradient-to-br from-zinc-800 to-black border border-white/10 rounded-2xl p-8 flex items-center justify-center relative overflow-hidden group">
+              <div className="aspect-square bg-linear-to-br from-zinc-800 to-black border border-white/10 rounded-2xl p-8 flex items-center justify-center relative overflow-hidden group">
                 <div className="absolute inset-0 bg-red-600/10 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 <div className="text-center relative z-10">
                   <div className="text-9xl mb-4 group-hover:scale-110 transition-transform duration-300">
@@ -127,13 +127,10 @@ export default function HomePage() {
             <BrandCard name="Peterbilt" logo="/logo/peterbilt_logo.svg" />
             <BrandCard name="Freightliner" logo="/logo/freightliner_logo.svg" />
             <BrandCard name="Mack" logo="/logo/mack_logo.svg" />
-            <BrandCard
-              name="International"
-              logo="/logo/international_logo.svg"
-            />
+            <BrandCard name="International" logo="/logo/international_logo.svg" />
             <BrandCard name="Western Star" logo="/logo/western_logo.svg" />
             <BrandCard name="Volvo" logo="/logo/volvo_logo.svg" />
-            <BrandCard name="Iveco" logo="/logo/iveco_logo.svg" />
+            <BrandCard name="Caterpillar" logo="/logo/caterpillar_logo.svg" />
           </div>
         </div>
       </section>

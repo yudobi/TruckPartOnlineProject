@@ -1,3 +1,4 @@
+import { Box, Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function ProductsPage() {
@@ -87,12 +88,10 @@ function ProductCard({
   code: string;
 }) {
   return (
-    <div className="group relative bg-zinc-900/30 border border-white/10 hover:border-red-600/50 transition-all duration-500 overflow-hidden">
+    <div className="cursor-pointer rounded-sm group relative bg-zinc-900/30 border border-white/10 hover:border-red-600/50 transition-all duration-500 overflow-hidden">
       {/* Image Placeholder */}
       <div className="aspect-[4/3] bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
-        <span className="text-4xl opacity-20 group-hover:opacity-40 transition-opacity">
-          IMG
-        </span>
+        <Package  width={65} height={65} className="opacity-20 group-hover:opacity-40 transition-opacity"/>
       </div>
 
       <div className="p-8">
