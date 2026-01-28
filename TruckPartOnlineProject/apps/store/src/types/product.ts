@@ -10,6 +10,13 @@ export interface Product {
   updatedAt?: string;
 }
 
+export interface ProductFilters {
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string; // Para buscar por nombre o descripción
+}
+
 export interface CartItem extends Product {
   quantity: number;
 }

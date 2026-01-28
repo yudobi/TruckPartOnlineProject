@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { CartContext } from "./CartHooks";
-import { type Product, type CartItem } from "@/types";
+import { type Product } from "../types/product";
+import { type CartItem } from "../types/product";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
@@ -33,11 +34,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = (id: number) => {
     setItems((prevItems) => prevItems.filter((item) => item.id !== id));
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: number, quantity: number) => {
     if (quantity < 1) return;
     setItems((prevItems) =>
       prevItems.map((item) => (item.id === id ? { ...item, quantity } : item)),

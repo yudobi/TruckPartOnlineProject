@@ -1,4 +1,4 @@
-import type { Product } from '@/types/product';
+import type { Product, ProductFilters } from '@/types/product';
 import apiClient from './apiClient';
 
 
@@ -6,9 +6,19 @@ class ProductService {
   private endpoint = '/products';
 
   // Obtener todos los productos
-  async getAllProducts(): Promise<Product[]> {
+  async getAllProducts(filters?: ProductFilters): Promise<Product[]> {
     try {
-      const response = await apiClient.get<{ data: Product[] }>(this.endpoint);
+      const params = new URLSearchParams();
+      if (filters) {
+        for (const key in filters) {
+          const value = filters[key as keyof ProductFilters];
+          if (value !== undefined) {
+            params.append(key, String(value));
+          }
+        }
+      }
+      const url = `${this.endpoint}?${params.toString()}`;
+      const response = await apiClient.get<{ data: Product[] }>(url);
       return response.data.data;
     } catch (error) {
       console.error('Error fetching products:', error);

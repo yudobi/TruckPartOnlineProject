@@ -4,11 +4,11 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10);
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   statusText: string;
-  headers: any;
+  headers: AxiosResponse['headers'];
   config: AxiosRequestConfig;
 }
 
@@ -16,7 +16,6 @@ class ApiClient {
   private client: AxiosInstance;
   
   constructor(baseURL: string = API_BASE_URL) {
-    baseURL = baseURL;
     this.client = axios.create({
       baseURL,
       timeout: API_TIMEOUT,
@@ -41,7 +40,7 @@ class ApiClient {
   }
 
   // Método genérico para peticiones GET
-  public async get<T = any>(
+  public async get<T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {
@@ -50,9 +49,9 @@ class ApiClient {
   }
 
   // Método genérico para peticiones POST
-  public async post<T = any>(
+  public async post<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {
     const response = await this.client.post<T>(url, data, config);
@@ -60,9 +59,9 @@ class ApiClient {
   }
 
   // Método genérico para peticiones PUT
-  public async put<T = any>(
+  public async put<T = unknown>(
     url: string,
-    data?: any,
+    data?: unknown,
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {
     const response = await this.client.put<T>(url, data, config);
@@ -70,7 +69,7 @@ class ApiClient {
   }
 
   // Método genérico para peticiones DELETE
-  public async delete<T = any>(
+  public async delete<T = unknown>(
     url: string,
     config?: AxiosRequestConfig
   ): Promise<ApiResponse<T>> {

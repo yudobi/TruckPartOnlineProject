@@ -1,5 +1,5 @@
 import { Link, NavLink } from "react-router";
-import { ChevronDown, User, LogOut, Settings } from "lucide-react";
+import { ChevronDown, User, LogOut, Settings, Wrench, Disc3, Car, BatteryCharging } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 import {
@@ -21,18 +21,22 @@ import CartSidebar from "@/components/cart/CartSidebar";
 const CATEGORIES = [
   {
     name: "Motor",
+    icon: Wrench,
     subcategories: ["Filtros", "Aceite", "Empacaduras", "Pistones"],
   },
   {
     name: "Frenos",
+    icon: Disc3,
     subcategories: ["Pastillas", "Discos", "Tambores", "Liquido de Freno"],
   },
   {
     name: "Suspensión",
+    icon: Car,
     subcategories: ["Amortiguadores", "Ballestas", "Bujes"],
   },
   {
     name: "Eléctrico",
+    icon: BatteryCharging,
     subcategories: ["Baterías", "Alternadores", "Faros", "Cables"],
   },
 ];
@@ -69,9 +73,10 @@ export default function Navbar() {
                     {t("nav.searchCategory")}
                   </DropdownMenuLabel>
                   {CATEGORIES.map((category) => (
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        {category.name}
+                    <DropdownMenuSub key={category.name}>
+                      <DropdownMenuSubTrigger className="flex items-center gap-2">
+                        <category.icon className="w-4 h-4" />
+                        <span>{category.name}</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuSubContent>
