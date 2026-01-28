@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'orders',
     'users',
     "inventory.apps.InventoryConfig",
+    "storages",
   
 ]
 
@@ -187,6 +188,27 @@ QB_ENV = config("QB_ENV", "sandbox")
 print("QB_CLIENT_ID:", QB_CLIENT_ID)
 print("QB_REDIRECT_URI:", QB_REDIRECT_URI)
 
+############### AWS S3 Settings ################
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+
+
+DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+
+AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = config("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", "us-east-1")
+
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
+
+# AL FINAL de settings.py agrega:
+from storages.backends.s3boto3 import S3Boto3Storage
+import django.core.files.storage
+
+# Sobrescribe el storage por defecto
+django.core.files.storage.default_storage = S3Boto3Storage()
+

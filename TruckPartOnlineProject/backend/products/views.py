@@ -7,6 +7,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Product, ProductImage
 from .serializers import ProductSerializer, ProductImageSerializer
+from products.pagination import StandardResultsSetPagination
+
 
 class ProductViewSet(ModelViewSet):
     """
@@ -16,6 +18,7 @@ class ProductViewSet(ModelViewSet):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]  # Temporal, ajustar según permisos reales
     parser_classes = [MultiPartParser, FormParser]
+    pagination_class = StandardResultsSetPagination
 
     def get_queryset(self):
         queryset = Product.objects.select_related("inventory")
