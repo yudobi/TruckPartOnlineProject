@@ -1,7 +1,18 @@
 import { Link, NavLink } from "react-router";
-import { ChevronDown, User, LogOut, Settings, Wrench, Disc3, Car, BatteryCharging } from "lucide-react";
+import {
+  ChevronDown,
+  User,
+  LogOut,
+  Settings,
+  Wrench,
+  Disc3,
+  Car,
+  BatteryCharging,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +54,13 @@ const CATEGORIES = [
 
 export default function Navbar() {
   const { t } = useTranslation();
+  const { user, logout, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
@@ -94,6 +112,9 @@ export default function Navbar() {
             </DropdownMenu>
             <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
             <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
+            {!isAuthenticated && (
+              <NavItem to="/auth">{t("common.login").toUpperCase()}</NavItem>
+            )}
 
             <div className="h-6 w-px bg-white/20 mx-2" />
 
@@ -105,55 +126,68 @@ export default function Navbar() {
 
             <div className="h-6 w-px bg-white/20 mx-2" />
 
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none cursor-pointer group">
-                <div className="relative">
-                  <div className="w-9 h-9 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-900/20 group-hover:shadow-red-900/40 transition-all duration-300 border border-white/10">
-                    <User className="w-5 h-5" />
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none cursor-pointer group">
+                  <div className="relative">
+                    <div className="w-9 h-9 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-900/20 group-hover:shadow-red-900/40 transition-all duration-300 border border-white/10">
+                      <User className="w-5 h-5" />
+                    </div>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full"></span>
                   </div>
-                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-black rounded-full"></span>
-                </div>
-                <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-sm font-bold text-white group-hover:text-red-500 transition-colors">
-                    Jorge
-                  </span>
-                  <span className="text-[10px] text-gray-400 font-medium tracking-wider">
-                    {t("common.customer")}
-                  </span>
-                </div>
-                <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-red-500 transition-colors duration-300" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-64 bg-black/95 border-white/10 text-white backdrop-blur-xl p-2 animate-in fade-in-0 zoom-in-95"
-                sideOffset={10}
-              >
-                <DropdownMenuLabel className="font-normal mb-2">
-                  <div className="flex flex-col space-y-1 p-2 rounded-md bg-white/5 border border-white/5">
-                    <p className="text-sm font-medium leading-none text-white">
-                      Jorge User
-                    </p>
-                    <p className="text-xs leading-none text-gray-400">
-                      jorge@example.com
-                    </p>
+                  <div className="hidden lg:flex flex-col text-left">
+                    <span className="text-sm font-bold text-white group-hover:text-red-500 transition-colors">
+                      {user?.name.split(" ")[0]}
+                    </span>
+                    <span className="text-[10px] text-gray-400 font-medium tracking-wider">
+                      {t("common.customer")}
+                    </span>
                   </div>
-                </DropdownMenuLabel>
+                  <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-red-500 transition-colors duration-300" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-64 bg-black/95 border-white/10 text-white backdrop-blur-xl p-2 animate-in fade-in-0 zoom-in-95"
+                  sideOffset={10}
+                >
+                  <DropdownMenuLabel className="font-normal mb-2">
+                    <div className="flex flex-col space-y-1 p-2 rounded-md bg-white/5 border border-white/5">
+                      <p className="text-sm font-medium leading-none text-white">
+                        {user?.name}
+                      </p>
+                      <p className="text-xs leading-none text-gray-400">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
 
-                <DropdownMenuGroup className="space-y-1">
-                  <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
-                    <Settings className="mr-3 h-4 w-4 text-red-500" />
-                    <span>{t("user.profile")}</span>
+                  <DropdownMenuGroup className="space-y-1">
+                    <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
+                      <Settings className="mr-3 h-4 w-4 text-red-500" />
+                      <span>{t("user.profile")}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator className="my-2 bg-white/10" />
+
+                  <DropdownMenuItem
+                    className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-950/20 py-2.5"
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="mr-3 h-4 w-4" />
+                    <span>{t("user.logout")}</span>
                   </DropdownMenuItem>
-                </DropdownMenuGroup>
-
-                <DropdownMenuSeparator className="my-2 bg-white/10" />
-
-                <DropdownMenuItem className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-950/20 py-2.5">
-                  <LogOut className="mr-3 h-4 w-4" />
-                  <span>{t("user.logout")}</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                to="/auth"
+                className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all text-xs font-bold tracking-widest text-white"
+              >
+                <User className="w-4 h-4 text-red-600" />
+                {t("common.login").toUpperCase()}
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -175,6 +209,14 @@ export default function Navbar() {
                 />
               </svg>
             </button>
+            {!isAuthenticated && (
+              <Link
+                to="/auth"
+                className="text-white hover:text-red-600 transition-colors"
+              >
+                <User className="w-6 h-6" />
+              </Link>
+            )}
           </div>
         </div>
       </div>

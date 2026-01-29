@@ -88,5 +88,27 @@
         "p5": "AIR SUSPENSION",
         "p6": "INDUSTRIAL RADIATOR"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "LOGIN",
+      "subtitle": "Sign in to your account to manage your orders",
+      "email": "Email Address",
+      "password": "Password",
+      "submit": "SIGN IN",
+      "noAccount": "Don't have an account?",
+      "register": "Register here"
+    },
+    "register": {
+      "title": "CREATE ACCOUNT",
+      "subtitle": "Join TruckPartOnline and optimize your fleet",
+      "name": "Full Name",
+      "email": "Email Address",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "submit": "REGISTER",
+      "haveAccount": "Already have an account?",
+      "login": "Sign in"
+    }
   }
 }

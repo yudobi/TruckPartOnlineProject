@@ -88,5 +88,27 @@
         "p5": "SUSPENSIÓN AIRE",
         "p6": "RADIADOR INDUSTRIAL"
     }
+  },
+  "auth": {
+    "login": {
+      "title": "INICIAR SESIÓN",
+      "subtitle": "Ingresa a tu cuenta para gestionar tus pedidos",
+      "email": "Correo Electrónico",
+      "password": "Contraseña",
+      "submit": "INGRESAR",
+      "noAccount": "¿No tienes una cuenta?",
+      "register": "Regístrate aquí"
+    },
+    "register": {
+      "title": "CREAR CUENTA",
+      "subtitle": "Únete a TruckPartOnline y optimiza tu flota",
+      "name": "Nombre Completo",
+      "email": "Correo Electrónico",
+      "password": "Contraseña",
+      "confirmPassword": "Confirmar Contraseña",
+      "submit": "REGISTRARSE",
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "login": "Inicia sesión"
+    }
   }
 }

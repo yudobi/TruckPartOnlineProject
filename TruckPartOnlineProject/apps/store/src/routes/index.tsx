@@ -4,6 +4,7 @@ import HomePage from "@/pages/HomePage";
 import ProductsPage from "@/pages/ProductsPage";
 import AboutPage from "@/pages/AboutPage";
 import ContactPage from "@/pages/ContactPage";
+import AuthPage from "@/pages/AuthPage";
 
 /**
  * Configuración declarativa de rutas usando React Router 7
@@ -36,6 +37,11 @@ export const routes: RouteObject[] = [
         // Página de contacto
         path: "contact",
         element: <ContactPage />,
+      },
+      {
+        // Página de auth (login/registro)
+        path: "auth",
+        element: <AuthPage />,
       },
       // Puedes agregar más rutas aquí fácilmente
       // {
