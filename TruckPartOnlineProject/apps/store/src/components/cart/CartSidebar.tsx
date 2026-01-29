@@ -9,6 +9,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { useCart } from "@/context/CartHooks";
 
@@ -51,15 +52,16 @@ export default function CartSidebar() {
                 <p className="text-sm text-gray-500">{t("cart.emptyDesc")}</p>
               </div>
               <div className="pt-4">
-                {/* Using SheetClose (if imported) creates issues sometimes if not careful, just a link closes if outside context usually doesn't work automatically without ref. For now just Link to products. */}
-                <Link to="/products">
-                  <Button
-                    variant="default"
-                    className="border-white/10 hover:bg-white/5 text-white"
-                  >
-                    {t("cart.explore")}
-                  </Button>
-                </Link>
+                <SheetClose asChild>
+                  <Link to="/products">
+                    <Button
+                      variant="default"
+                      className="border-white/10 hover:bg-white/5 text-white"
+                    >
+                      {t("cart.explore")}
+                    </Button>
+                  </Link>
+                </SheetClose>
               </div>
             </div>
           ) : (
@@ -68,7 +70,7 @@ export default function CartSidebar() {
                 <div key={item.id} className="flex gap-4 group">
                   <div className="w-20 h-20 bg-zinc-900 rounded-md overflow-hidden border border-white/10 flex-shrink-0">
                     <img
-                      src={item.image}
+                      src={item.imageUrl}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />

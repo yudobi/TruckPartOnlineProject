@@ -30,7 +30,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : item,
         );
       }
-      return [...prevItems, { ...product, quantity: 1 }];
+
+      const imageUrl =
+        product.images.find((img) => img.is_main)?.image ||
+        product.images[0]?.image;
+      const newItem: CartItem = {
+        ...product,
+        price: parseFloat(product.price),
+        imageUrl,
+        quantity: 1,
+      };
+
+      return [...prevItems, newItem];
     });
   };
 

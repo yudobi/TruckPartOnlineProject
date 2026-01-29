@@ -1,22 +1,47 @@
+export interface ProductImage {
+  id: number;
+  image: string;
+  is_main: boolean;
+}
+
+export interface ProductInventory {
+  id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  updated_at: string;
+}
+
 export interface Product {
   id: number;
   name: string;
   description: string;
-  price: number;
-  stock: number;
-  category: string;
-  imageUrl?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  price: string;
+  sku: string | null;
+  is_active: boolean;
+  inventory: ProductInventory;
+  images: ProductImage[];
+  created_at: string;
+  updated_at: string;
+  category?: string; // Mantener opcional para retrocompatibilidad
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
 }
 
 export interface ProductFilters {
   category?: string;
   minPrice?: number;
   maxPrice?: number;
-  search?: string; // Para buscar por nombre o descripción
+  search?: string;
 }
 
-export interface CartItem extends Product {
+export interface CartItem extends Omit<Product, 'price'> {
+  price: number; // En el carrito lo manejamos como número para cálculos
   quantity: number;
+  imageUrl?: string;
 }
