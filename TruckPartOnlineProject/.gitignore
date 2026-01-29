@@ -78,3 +78,9 @@ migrations/
 *.pyo
 *.pyd
 __pycache__/
+
+
+# Frontend (React)
+node_modules/
+apps/store/node_modules/
+TruckPartOnlineProject/frontend/node_modules/
