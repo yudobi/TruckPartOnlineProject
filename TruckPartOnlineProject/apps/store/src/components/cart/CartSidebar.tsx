@@ -11,7 +11,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
-import { useCart } from "@/context/CartHooks";
+import { useCart } from "@hooks/useCart";
 
 export default function CartSidebar() {
   const { t } = useTranslation();

@@ -1,8 +1,8 @@
 import { Package, ShoppingCart, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCart } from "@/context/CartHooks";
-import { type Product } from "@/types/product";
-import { useProducts } from "@/hooks/useProducts";
+import { useCart } from "@hooks/useCart";
+import { type Product } from "@app-types/product";
+import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import {

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Mail, Lock, ArrowRight } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 
 export default function AuthPage() {
@@ -19,6 +19,8 @@ export default function AuthPage() {
       id: "1",
       name: "Jorge User",
       email: "jorge@example.com",
+      username: "jorge@example.com",
+      role: "User",
     });
     navigate("/");
   };

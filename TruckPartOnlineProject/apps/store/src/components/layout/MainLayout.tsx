@@ -1,8 +1,8 @@
 import { Outlet } from "react-router";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import { CartProvider } from "@/context/CartContext";
-import { AuthProvider } from "@/context/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function MainLayout() {
   return (

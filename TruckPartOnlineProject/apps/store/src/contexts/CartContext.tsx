@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { CartContext } from "./CartHooks";
-import { type Product } from "../types/product";
-import { type CartItem } from "../types/product";
+import { CartContext } from "@hooks/useCart";
+import { type Product, type CartItem } from "@app-types/product";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {

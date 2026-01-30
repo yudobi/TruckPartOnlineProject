@@ -10,8 +10,8 @@ import {
   BatteryCharging,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
-import { useAuth } from "@/context/AuthContext";
+import { LanguageSwitcher } from "@components/layout/LanguageSwitcher";
+import { useAuth } from "@hooks/useAuth";
 import { useNavigate } from "react-router";
 import {
   DropdownMenu,
@@ -25,9 +25,9 @@ import {
   DropdownMenuPortal,
   DropdownMenuSubContent,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from "@components/ui/dropdown-menu";
 
-import CartSidebar from "@/components/cart/CartSidebar";
+import CartSidebar from "@components/cart/CartSidebar";
 
 const CATEGORIES = [
   {
