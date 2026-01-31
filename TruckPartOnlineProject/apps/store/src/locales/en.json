@@ -97,7 +97,8 @@
       "password": "Password",
       "submit": "SIGN IN",
       "noAccount": "Don't have an account?",
-      "register": "Register here"
+      "register": "Register here",
+      "badge": "Wellcome Back"
     },
     "register": {
       "title": "CREATE ACCOUNT",

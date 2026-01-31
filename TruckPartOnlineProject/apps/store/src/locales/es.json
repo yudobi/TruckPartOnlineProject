@@ -97,7 +97,8 @@
       "password": "Contraseña",
       "submit": "INGRESAR",
       "noAccount": "¿No tienes una cuenta?",
-      "register": "Regístrate aquí"
+      "register": "Regístrate aquí",
+      "badge": "Bienvenido"
     },
     "register": {
       "title": "CREAR CUENTA",

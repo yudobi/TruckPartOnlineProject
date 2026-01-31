@@ -21,6 +21,7 @@ export default function AuthPage() {
       email: "jorge@example.com",
       username: "jorge@example.com",
       role: "User",
+      accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Dummy token for persistence demo
     });
     navigate("/");
   };
@@ -30,7 +31,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="inline-block px-3 py-1 bg-red-600/10 border border-red-600/20 rounded-full mb-6 text-red-500 text-xs font-bold tracking-widest uppercase">
-            {isLogin ? "Welcome Back" : "Join the Elite"}
+            {isLogin ? t("auth.login.badge") : t("auth.register.badge")}
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white mb-4">
             {isLogin ? t("auth.login.title") : t("auth.register.title")}

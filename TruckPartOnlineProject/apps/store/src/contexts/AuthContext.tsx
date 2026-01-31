@@ -1,24 +1,52 @@
 import { useState, type ReactNode } from "react";
+import Cookies from "js-cookie";
 import { type UserLoginInfo } from "@app-types/auth";
 import { AuthContext, type AuthContextType } from "@hooks/useAuth";
+import apiClient from "@/services/apiClient";
+
+const AUTH_COOKIE_NAME = "auth_user_data";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  // Inicializamos con un usuario de prueba para propósitos de demostración
-  // En una app real, esto vendría de localStorage o una validación de token
-  const [user, setUser] = useState<UserLoginInfo | null>({
-    id: "1",
-    name: "Jorge User",
-    email: "jorge@example.com",
-    username: "jorge@example.com",
-    role: "Jorge User",
+  // Inicializamos el estado desde la cookie si existe
+  const [user, setUser] = useState<UserLoginInfo | null>(() => {
+    const savedUser = Cookies.get(AUTH_COOKIE_NAME);
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser) as UserLoginInfo;
+        // Si hay un token, lo configuramos en el apiClient
+        if (userData.accessToken) {
+          apiClient.setAuthToken(userData.accessToken);
+        }
+        return userData;
+      } catch (error) {
+        console.error("Error parsing user from cookie:", error);
+        Cookies.remove(AUTH_COOKIE_NAME);
+        return null;
+      }
+    }
+    return null;
   });
 
   const login = (userData: UserLoginInfo) => {
     setUser(userData);
+
+    // Configuramos el token en el apiClient
+    if (userData.accessToken) {
+      apiClient.setAuthToken(userData.accessToken);
+    }
+
+    // Guardamos en la cookie por 7 días
+    Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
+      expires: 7,
+      secure: window.location.protocol === "https:",
+      sameSite: "strict",
+    });
   };
 
   const logout = () => {
     setUser(null);
+    apiClient.setAuthToken(null);
+    Cookies.remove(AUTH_COOKIE_NAME);
   };
 
   const value: AuthContextType = {
