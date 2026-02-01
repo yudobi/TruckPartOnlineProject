@@ -11,18 +11,42 @@ export default function AuthPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    name: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulamos un login exitoso con datos de prueba
-    login({
-      id: "1",
-      username: "Jorge User",
-      email: "jorge@example.com",
-      role: "User",
-      accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Dummy token for persistence demo
-    });
-    navigate("/");
+    setError(null);
+    setLoading(true);
+
+    try {
+      if (isLogin) {
+        await login({
+          username: formData.username,
+          password: formData.password,
+        });
+        navigate("/");
+      } else {
+        // Lógica de registro (no implementada aún en el servicio)
+        console.log("Registering:", formData);
+        setIsLogin(true);
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("auth.login.error_message") || "Error al iniciar sesión",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,6 +83,10 @@ export default function AuthPage() {
                     className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
                     placeholder="John Doe"
                     required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -72,9 +100,13 @@ export default function AuthPage() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
                   className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
-                  type="email"
-                  placeholder="name@company.com"
+                  type="text"
+                  placeholder="Username or Email"
                   required
+                  value={formData.username}
+                  onChange={(e) =>
+                    setFormData({ ...formData, username: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -100,6 +132,10 @@ export default function AuthPage() {
                   type="password"
                   placeholder="••••••••"
                   required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -116,17 +152,37 @@ export default function AuthPage() {
                     type="password"
                     placeholder="••••••••"
                     required
+                    value={formData.confirmPassword}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
             )}
 
+            {error && (
+              <div className="p-3 bg-red-600/10 border border-red-600/20 rounded-sm text-red-500 text-xs font-bold text-center">
+                {error}
+              </div>
+            )}
+
             <Button
               type="submit"
-              className="w-full h-14 bg-white text-black hover:bg-red-600 hover:text-white text-sm font-black tracking-widest transition-all duration-300 group mt-4"
+              disabled={loading}
+              className="w-full h-14 bg-white text-black hover:bg-red-600 hover:text-white text-sm font-black tracking-widest transition-all duration-300 group mt-4 disabled:opacity-50"
             >
-              {isLogin ? t("auth.login.submit") : t("auth.register.submit")}
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              {loading
+                ? "..."
+                : isLogin
+                  ? t("auth.login.submit")
+                  : t("auth.register.submit")}
+              {!loading && (
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              )}
             </Button>
           </form>
         </div>
