@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import Cookies from "js-cookie";
-import { type UserLoginInfo } from "@app-types/auth";
+import { type UserInfo } from "@app-types/auth";
 import { AuthContext, type AuthContextType } from "@hooks/useAuth";
 import apiClient from "@/services/apiClient";
 
@@ -8,11 +8,11 @@ const AUTH_COOKIE_NAME = "auth_user_data";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Inicializamos el estado desde la cookie si existe
-  const [user, setUser] = useState<UserLoginInfo | null>(() => {
+  const [user, setUser] = useState<UserInfo | null>(() => {
     const savedUser = Cookies.get(AUTH_COOKIE_NAME);
     if (savedUser) {
       try {
-        const userData = JSON.parse(savedUser) as UserLoginInfo;
+        const userData = JSON.parse(savedUser) as UserInfo;
         // Si hay un token, lo configuramos en el apiClient
         if (userData.accessToken) {
           apiClient.setAuthToken(userData.accessToken);
@@ -27,7 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return null;
   });
 
-  const login = (userData: UserLoginInfo) => {
+  const login = (userData: UserInfo) => {
     setUser(userData);
 
     // Configuramos el token en el apiClient
