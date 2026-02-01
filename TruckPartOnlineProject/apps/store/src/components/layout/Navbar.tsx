@@ -8,6 +8,7 @@ import {
   Disc3,
   Car,
   BatteryCharging,
+  Menu,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@components/layout/LanguageSwitcher";
@@ -26,6 +27,13 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSeparator,
 } from "@components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@components/ui/sheet";
 
 import CartSidebar from "@components/cart/CartSidebar";
 
@@ -112,9 +120,6 @@ export default function Navbar() {
             </DropdownMenu>
             <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
             <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
-            {!isAuthenticated && (
-              <NavItem to="/auth">{t("common.login").toUpperCase()}</NavItem>
-            )}
 
             <div className="h-6 w-px bg-white/20 mx-2" />
 
@@ -192,31 +197,92 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
-            <LanguageSwitcher />
             <CartSidebar />
-            <button className="text-white hover:text-red-600 transition-colors">
-              <svg
-                className="w-8 h-8"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <Sheet>
+              <SheetTrigger asChild>
+                <button className="text-white hover:text-red-600 transition-colors p-2">
+                  <Menu className="w-8 h-8" />
+                </button>
+              </SheetTrigger>
+              <SheetContent
+                side="right"
+                className="w-75 bg-black/95 border-white/10 text-white backdrop-blur-xl p-0"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.5}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
-            {!isAuthenticated && (
-              <Link
-                to="/auth"
-                className="text-white hover:text-red-600 transition-colors"
-              >
-                <User className="w-6 h-6" />
-              </Link>
-            )}
+                <SheetHeader className="p-6 border-b border-white/10">
+                  <SheetTitle className="text-white flex items-center gap-2">
+                    <div className="px-1 h-8 bg-red-600 flex items-center justify-center ">
+                      <span className="text-sm font-bold text-black">TONY</span>
+                    </div>
+                    <span className="text-lg font-bold tracking-tighter text-white">
+                      TRUCK<span className="text-red-600">PART</span>
+                    </span>
+                  </SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col p-6 space-y-6">
+                  {/* Navigation Links */}
+                  <div className="flex flex-col space-y-4">
+                    <MobileNavItem to="/">{t("nav.home")}</MobileNavItem>
+                    <MobileNavItem to="/products">
+                      {t("nav.catalog")}
+                    </MobileNavItem>
+                    <MobileNavItem to="/about">{t("nav.about")}</MobileNavItem>
+                    <MobileNavItem to="/contact">
+                      {t("nav.contact")}
+                    </MobileNavItem>
+                  </div>
+
+                  <div className="h-px bg-white/10 w-full" />
+
+                  {/* Language Switcher Section */}
+                  <div className="flex flex-col space-y-4">
+                    <span className="text-xs font-bold tracking-widest text-gray-400 uppercase">
+                      {t("common.language")}
+                    </span>
+                    <div className="flex justify-start">
+                      <LanguageSwitcher />
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-white/10 w-full" />
+
+                  {/* Auth Section */}
+                  <div className="flex flex-col space-y-4">
+                    {isAuthenticated ? (
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center text-white border border-white/10">
+                            <User className="w-6 h-6" />
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-bold text-white">
+                              {user?.username}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {user?.email}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 text-red-500 font-bold text-sm hover:text-red-400 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          {t("user.logout").toUpperCase()}
+                        </button>
+                      </div>
+                    ) : (
+                      <Link
+                        to="/auth"
+                        className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all text-xs font-bold tracking-widest text-white uppercase justify-center"
+                      >
+                        <User className="w-4 h-4 text-red-600" />
+                        {t("common.login")}
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
@@ -230,6 +296,27 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
       to={to}
       className={({ isActive }) =>
         `text-sm font-bold tracking-widest hover:text-red-600 transition-colors duration-300 ${
+          isActive ? "text-red-600" : "text-white"
+        }`
+      }
+    >
+      {children}
+    </NavLink>
+  );
+}
+
+function MobileNavItem({
+  to,
+  children,
+}: {
+  to: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `text-lg font-bold tracking-widest hover:text-red-600 transition-colors duration-300 uppercase ${
           isActive ? "text-red-600" : "text-white"
         }`
       }
