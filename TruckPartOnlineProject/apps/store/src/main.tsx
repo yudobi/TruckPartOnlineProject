@@ -7,6 +7,7 @@ import routes from "./routes";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/query-client";
 
+
 // Crear el router usando la configuración declarativa de rutas
 const router = createBrowserRouter(routes);
 
