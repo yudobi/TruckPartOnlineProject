@@ -17,9 +17,8 @@ export default function AuthPage() {
     // Simulamos un login exitoso con datos de prueba
     login({
       id: "1",
-      name: "Jorge User",
+      username: "Jorge User",
       email: "jorge@example.com",
-      username: "jorge@example.com",
       role: "User",
       accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...", // Dummy token for persistence demo
     });

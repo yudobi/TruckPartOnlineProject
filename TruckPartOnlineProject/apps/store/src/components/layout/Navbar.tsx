@@ -137,7 +137,7 @@ export default function Navbar() {
                   </div>
                   <div className="hidden lg:flex flex-col text-left">
                     <span className="text-sm font-bold text-white group-hover:text-red-500 transition-colors">
-                      {user?.name.split(" ")[0]}
+                      {user?.username.split(" ")[0]}
                     </span>
                     <span className="text-[10px] text-gray-400 font-medium tracking-wider">
                       {t("common.customer")}
@@ -153,7 +153,7 @@ export default function Navbar() {
                   <DropdownMenuLabel className="font-normal mb-2">
                     <div className="flex flex-col space-y-1 p-2 rounded-md bg-white/5 border border-white/5">
                       <p className="text-sm font-medium leading-none text-white">
-                        {user?.name}
+                        {user?.username}
                       </p>
                       <p className="text-xs leading-none text-gray-400">
                         {user?.email}
