@@ -93,7 +93,7 @@
     "login": {
       "title": "INICIAR SESIÓN",
       "subtitle": "Ingresa a tu cuenta para gestionar tus pedidos",
-      "email": "Correo Electrónico",
+      "email": "Usuario o Correo",
       "password": "Contraseña",
       "submit": "INGRESAR",
       "noAccount": "¿No tienes una cuenta?",

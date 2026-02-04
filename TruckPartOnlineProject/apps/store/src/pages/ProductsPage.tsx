@@ -1,6 +1,7 @@
-import { Package, ShoppingCart, Plus } from "lucide-react";
+import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCart } from "@hooks/useCart";
+import { AddToCart } from "@/components/products/AddToCart";
+
 import { type Product } from "@app-types/product";
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +22,6 @@ export default function ProductsPage() {
   const { data: products, isLoading, isError } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const { addItem } = useCart();
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -184,16 +184,7 @@ export default function ProductsPage() {
               </div>
 
               <DrawerFooter className="border-t border-white/5 pt-6 flex-row gap-4 px-6 mb-4">
-                <Button
-                  className="flex-1 h-14 bg-white text-black hover:bg-red-600 hover:text-white text-lg font-bold transition-all duration-300"
-                  onClick={() => {
-                    addItem(selectedProduct);
-                  }}
-                  disabled={selectedProduct.inventory.quantity <= 0}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  AGREGAR AL CARRITO
-                </Button>
+                <AddToCart product={selectedProduct} variant="detail" />
                 <DrawerClose asChild>
                   <Button
                     variant="outline"
@@ -237,7 +228,6 @@ function ProductCard({
   product: Product;
   onSelect: () => void;
 }) {
-  const { addItem } = useCart();
   const { name, category, price, images } = product;
   const imageUrl = images.find((img) => img.is_main)?.image || images[0]?.image;
   const numericPrice = parseFloat(price);
@@ -282,20 +272,7 @@ function ProductCard({
           <span className="text-2xl font-light text-white">
             ${numericPrice.toLocaleString()}
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addItem(product);
-            }}
-            disabled={product.inventory.quantity <= 0}
-            className={`w-10 h-10 flex items-center justify-center transition-colors duration-300 ${
-              product.inventory.quantity > 0
-                ? "bg-white text-black hover:bg-red-600 hover:text-white"
-                : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
-            }`}
-          >
-            <Plus size={20} />
-          </button>
+          <AddToCart product={product} variant="card" />
         </div>
       </div>
     </div>

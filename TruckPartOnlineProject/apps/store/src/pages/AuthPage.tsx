@@ -101,7 +101,7 @@ export default function AuthPage() {
                 <Input
                   className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
                   type="text"
-                  placeholder="Username or Email"
+                  placeholder={t("auth.login.email")}
                   required
                   value={formData.username}
                   onChange={(e) =>

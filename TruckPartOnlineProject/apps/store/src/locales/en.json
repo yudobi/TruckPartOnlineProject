@@ -93,7 +93,7 @@
     "login": {
       "title": "LOGIN",
       "subtitle": "Sign in to your account to manage your orders",
-      "email": "Email Address",
+      "email": "Username or Email",
       "password": "Password",
       "submit": "SIGN IN",
       "noAccount": "Don't have an account?",
