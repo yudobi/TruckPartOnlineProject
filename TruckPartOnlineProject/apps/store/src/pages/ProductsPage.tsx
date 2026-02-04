@@ -187,8 +187,8 @@ export default function ProductsPage() {
                 <AddToCart product={selectedProduct} variant="detail" />
                 <DrawerClose asChild>
                   <Button
-                    variant="outline"
-                    className="h-14 px-8 border-white/10 hover:bg-white/5 text-white"
+                    variant="secondary"
+                    className="h-14 px-8 border-white/10 hover:bg-white/5 text-red-500 font-bold"
                   >
                     Cerrar
                   </Button>
@@ -238,7 +238,7 @@ function ProductCard({
       className="cursor-pointer rounded-sm group relative bg-zinc-900/30 border border-white/10 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
     >
       {/* Image Container */}
-      <div className="aspect-4/3 bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700 overflow-hidden">
+      <div className="aspect-4/3 bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700 overflow-hidden relative">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -251,6 +251,13 @@ function ProductCard({
             height={65}
             className="opacity-20 group-hover:opacity-40 transition-opacity"
           />
+        )}
+        {product.inventory.quantity <= 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] z-10">
+            <span className="px-4 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest border border-white/20 shadow-lg transform -rotate-12">
+              Agotado
+            </span>
+          </div>
         )}
       </div>
 
