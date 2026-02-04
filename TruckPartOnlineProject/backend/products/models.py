@@ -2,6 +2,7 @@ from django.db import models
 
 from django.db import models
 
+########################################################################################
 class Brand(models.Model):
     name = models.CharField(max_length=100, unique=True)
     qb_id = models.CharField(
@@ -18,8 +19,8 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.name
-
-
+########################################################################################
+"""
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     qb_id = models.CharField(
@@ -31,7 +32,50 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+"""  
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+    qb_id = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
 
+    parent = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        related_name="children",
+        on_delete=models.CASCADE
+    )
+
+    LEVEL_CHOICES = (
+        ("category", "Categoría"),
+        ("subcategory", "Subcategoría"),
+        ("system", "Sistema"),
+        ("piece", "Pieza"),
+    )
+
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+
+    class Meta:
+        unique_together = ("name", "parent")
+
+    def __str__(self):
+        return self.name
+    
+#--------------------------------------------------------------------------------#
+
+class CategoryImage(models.Model):
+    category = models.ForeignKey(
+        Category,
+        related_name="images",
+        on_delete=models.CASCADE
+    )
+    image = models.ImageField(upload_to="categories/")
+    is_main = models.BooleanField(default=False)
+
+########################################################################################
 class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -80,6 +124,7 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+#--------------------------------------------------------------------------------#
 
 class ProductImage(models.Model):
     product = models.ForeignKey(
@@ -89,4 +134,4 @@ class ProductImage(models.Model):
     )
     image = models.ImageField(upload_to="products/")
     is_main = models.BooleanField(default=False)
-
+########################################################################################
