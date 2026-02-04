@@ -1,6 +1,7 @@
-import { Package, ShoppingCart, Plus } from "lucide-react";
+import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useCart } from "@hooks/useCart";
+import { AddToCart } from "@/components/products/AddToCart";
+
 import { type Product } from "@app-types/product";
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,7 +22,6 @@ export default function ProductsPage() {
   const { data: products, isLoading, isError } = useProducts();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const { addItem } = useCart();
 
   return (
     <div className="container mx-auto px-6 py-20">
@@ -184,21 +184,11 @@ export default function ProductsPage() {
               </div>
 
               <DrawerFooter className="border-t border-white/5 pt-6 flex-row gap-4 px-6 mb-4">
-                <Button
-                  className="flex-1 h-14 bg-white text-black hover:bg-red-600 hover:text-white text-lg font-bold transition-all duration-300"
-                  onClick={() => {
-                    addItem(selectedProduct);
-                    setSelectedProduct(null);
-                  }}
-                  disabled={selectedProduct.inventory.quantity <= 0}
-                >
-                  <ShoppingCart className="mr-2 h-5 w-5" />
-                  AGREGAR AL CARRITO
-                </Button>
+                <AddToCart product={selectedProduct} variant="detail" />
                 <DrawerClose asChild>
                   <Button
-                    variant="outline"
-                    className="h-14 px-8 border-white/10 hover:bg-white/5 text-white"
+                    variant="secondary"
+                    className="h-14 px-8 border-white/10 hover:bg-white/5 text-red-500 font-bold"
                   >
                     Cerrar
                   </Button>
@@ -238,7 +228,6 @@ function ProductCard({
   product: Product;
   onSelect: () => void;
 }) {
-  const { addItem } = useCart();
   const { name, category, price, images } = product;
   const imageUrl = images.find((img) => img.is_main)?.image || images[0]?.image;
   const numericPrice = parseFloat(price);
@@ -249,7 +238,7 @@ function ProductCard({
       className="cursor-pointer rounded-sm group relative bg-zinc-900/30 border border-white/10 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
     >
       {/* Image Container */}
-      <div className="aspect-4/3 bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700 overflow-hidden">
+      <div className="aspect-4/3 bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700 overflow-hidden relative">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -262,6 +251,13 @@ function ProductCard({
             height={65}
             className="opacity-20 group-hover:opacity-40 transition-opacity"
           />
+        )}
+        {product.inventory.quantity <= 0 && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] z-10">
+            <span className="px-4 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest border border-white/20 shadow-lg transform -rotate-12">
+              Agotado
+            </span>
+          </div>
         )}
       </div>
 
@@ -283,15 +279,7 @@ function ProductCard({
           <span className="text-2xl font-light text-white">
             ${numericPrice.toLocaleString()}
           </span>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addItem(product);
-            }}
-            className="w-10 h-10 bg-white text-black flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors duration-300"
-          >
-            <Plus size={20} />
-          </button>
+          <AddToCart product={product} variant="card" />
         </div>
       </div>
     </div>

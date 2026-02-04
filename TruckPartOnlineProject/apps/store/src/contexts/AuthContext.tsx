@@ -1,8 +1,9 @@
 import { useState, type ReactNode } from "react";
 import Cookies from "js-cookie";
-import { type UserInfo } from "@app-types/auth";
+import { type UserInfo, type LoginCredentials } from "@app-types/auth";
 import { AuthContext, type AuthContextType } from "@hooks/useAuth";
 import apiClient from "@/services/apiClient";
+import authService from "@/services/auth";
 
 const AUTH_COOKIE_NAME = "auth_user_data";
 
@@ -27,20 +28,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return null;
   });
 
-  const login = (userData: UserInfo) => {
-    setUser(userData);
+  const login = async (credentials: LoginCredentials) => {
+    try {
+      const loginResponse = await authService.login(credentials);
+      // login method in authService already sets token, but we ensure it here too
+      apiClient.setAuthToken(loginResponse.access);
+      
+      const userInfo = await authService.userInfo();
+      const userData: UserInfo = {
+        ...userInfo,
+        accessToken: loginResponse.access,
+        refreshToken: loginResponse.refresh,
+      };
 
-    // Configuramos el token en el apiClient
-    if (userData.accessToken) {
-      apiClient.setAuthToken(userData.accessToken);
+      setUser(userData);
+
+      // Guardamos en la cookie por 7 días
+      Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
+        expires: 7,
+        secure: window.location.protocol === "https:",
+        sameSite: "strict",
+      });
+    } catch (error) {
+      console.error("Login Error:", error);
+      throw error;
     }
-
-    // Guardamos en la cookie por 7 días
-    Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
-      expires: 7,
-      secure: window.location.protocol === "https:",
-      sameSite: "strict",
-    });
   };
 
   const logout = () => {

@@ -8,7 +8,6 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       const response = await apiClient.post<LoginResponse>(`${this.endpoint}/login/`, credentials);
-      apiClient.setAuthToken(response.data.access);
       return response.data;
     } catch (error) {
       console.error(`Error fetching login`, error);
@@ -28,4 +27,5 @@ class AuthService {
   }
 }
 
-export default { AuthService }
+const authService = new AuthService();
+export default authService;

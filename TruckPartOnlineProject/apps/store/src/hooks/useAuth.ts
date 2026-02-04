@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react";
-import { type UserInfo } from "../types/auth";
+import { type UserInfo, type LoginCredentials } from "../types/auth";
 
 export interface AuthContextType {
   user: UserInfo | null;
   isAuthenticated: boolean;
-  login: (user: UserInfo) => void;
+  login: (credentials: LoginCredentials) => Promise<void>;
   logout: () => void;
 }
 
