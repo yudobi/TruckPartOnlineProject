@@ -188,7 +188,6 @@ export default function ProductsPage() {
                   className="flex-1 h-14 bg-white text-black hover:bg-red-600 hover:text-white text-lg font-bold transition-all duration-300"
                   onClick={() => {
                     addItem(selectedProduct);
-                    setSelectedProduct(null);
                   }}
                   disabled={selectedProduct.inventory.quantity <= 0}
                 >
@@ -288,7 +287,12 @@ function ProductCard({
               e.stopPropagation();
               addItem(product);
             }}
-            className="w-10 h-10 bg-white text-black flex items-center justify-center hover:bg-red-600 hover:text-white transition-colors duration-300"
+            disabled={product.inventory.quantity <= 0}
+            className={`w-10 h-10 flex items-center justify-center transition-colors duration-300 ${
+              product.inventory.quantity > 0
+                ? "bg-white text-black hover:bg-red-600 hover:text-white"
+                : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+            }`}
           >
             <Plus size={20} />
           </button>
