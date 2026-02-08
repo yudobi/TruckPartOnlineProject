@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductImage
+from .models import Product, ProductImage, Brand
 from inventory.serializers import InventorySerializer
 
 
@@ -39,3 +39,10 @@ class ProductSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ("id", "name")
+
+
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = ("id", "name", "logo")
