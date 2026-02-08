@@ -10,6 +10,9 @@ from .serializers import ProductSerializer, ProductImageSerializer, ProductSearc
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from products.pagination import StandardResultsSetPagination
 
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+
 
 class ProductViewSet(ModelViewSet):
     """
@@ -48,7 +51,7 @@ class ProductViewSet(ModelViewSet):
             brand_ids = params["brands"].split(",")
             queryset = queryset.filter(brand_id__in=brand_ids)
 
-            return queryset
+            
 
         # Filtro por Pieza
         if "piece" in params:
@@ -92,6 +95,21 @@ class ProductViewSet(ModelViewSet):
         ]:
             return [IsAdminUser()]
         return [AllowAny()]
+    
+
+    @swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            'q',
+            openapi.IN_QUERY,
+            description="Texto para autocomplete de productos",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
+    ],
+    responses={200: ProductSearchSerializer(many=True)},
+    tags=["Productos"],
+    )
     
     @action(detail=False, methods=["get"], url_path="search")
     def search(self, request):
@@ -145,6 +163,29 @@ class ProductViewSet(ModelViewSet):
                 {"detail": "Imagen no encontrada"},
                 status=404
             )
+        
+
+    @swagger_auto_schema(
+    manual_parameters=[
+        openapi.Parameter(
+            'brands',
+            openapi.IN_QUERY,
+            description="IDs de marcas separados por coma (ej: 1,3,5)",
+            type=openapi.TYPE_STRING,
+            required=False,
+        ),
+        openapi.Parameter(
+            'search',
+            openapi.IN_QUERY,
+            description="Buscar productos por nombre",
+            type=openapi.TYPE_STRING,
+            required=False,
+        ),
+   ]
+   )
+    def list(self, request, *args, **kwargs):
+       return super().list(request, *args, **kwargs)
+
 
 class BrandViewSet(ReadOnlyModelViewSet):
     queryset = Brand.objects.all().order_by("name")
