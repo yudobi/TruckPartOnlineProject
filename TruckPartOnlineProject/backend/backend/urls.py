@@ -80,10 +80,10 @@ urlpatterns = [
     
     # URLs de las aplicaciones (agrupadas por etiquetas)
     path('api/users/', include(users_urls)),
-    path('api/orders/', include(orders_urls)),
+    path('api/', include(orders_urls)),
     path('api/qb/', include(qb_urls)),
-    path('api/inventory/', include(inventory_urls)),
-    path('api/products/', include(products_urls)),
+    path('api/', include(inventory_urls)),
+    path('api/', include(products_urls)),
 ]
 
 # Servir archivos de medios en desarrollo
