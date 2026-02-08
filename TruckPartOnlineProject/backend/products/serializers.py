@@ -31,3 +31,11 @@ class ProductSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+
+
+class ProductSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ("id", "name")

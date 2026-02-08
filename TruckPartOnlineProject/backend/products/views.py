@@ -77,7 +77,7 @@ from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Product, ProductImage
-from .serializers import ProductSerializer, ProductImageSerializer
+from .serializers import ProductSerializer, ProductImageSerializer, ProductSearchSerializer
 from products.pagination import StandardResultsSetPagination
 
 
@@ -105,6 +105,13 @@ class ProductViewSet(ModelViewSet):
             queryset = queryset.filter(is_active=True)
 
         params = self.request.query_params
+        
+         # 🔍 BÚSQUEDA POR NOMBRE
+        if "search" in params:
+          queryset = queryset.filter(
+            name__icontains=params["search"]
+        )
+
 
         # Filtro por Pieza
         if "piece" in params:
@@ -148,6 +155,22 @@ class ProductViewSet(ModelViewSet):
         ]:
             return [IsAdminUser()]
         return [AllowAny()]
+    
+    @action(detail=False, methods=["get"], url_path="search")
+    def search(self, request):
+        query = request.query_params.get("q", "")
+        if not query:
+           return Response([])
+
+        products = Product.objects.filter(
+           is_active=True,
+            name__icontains=query
+        ).order_by("name")[:10]  # 🔥 limite para menú
+
+        serializer = ProductSearchSerializer(products, many=True)
+        return Response(serializer.data)
+
+
 
     @action(detail=True, methods=["post"], permission_classes=[IsAdminUser])
     def upload_image(self, request, pk=None):
