@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'users',
     "inventory.apps.InventoryConfig",
     "storages",
+    "clover",
     
   
 ]
@@ -229,6 +230,11 @@ AWS_S3_REGION_NAME = config("AWS_S3_REGION_NAME", "us-east-1")
 AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
+
+############################### CLOVER Settings ################################
+CLOVER_APP_ID = config("CLOVER_APP_ID")
+CLOVER_APP_SECRET = config("CLOVER_APP_SECRET")
+
 
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
 

@@ -55,6 +55,8 @@ from orders import urls as orders_urls
 from qb import urls as qb_urls
 from inventory import urls as inventory_urls
 from products import urls as products_urls
+from clover import urls as clover_urls
+
 
 # Aplicar etiquetas a los patrones de URL
 users_urls.urlpatterns = apply_tag('Usuarios', users_urls.urlpatterns)
@@ -84,6 +86,7 @@ urlpatterns = [
     path('api/qb/', include(qb_urls)),
     path('api/', include(inventory_urls)),
     path('api/', include(products_urls)),
+    path("api/clover/", include(clover_urls)),
 ]
 
 # Servir archivos de medios en desarrollo
