@@ -1,80 +1,483 @@
-import { Package } from "lucide-react";
+import {
+  Package,
+  Search,
+  Filter,
+  X,
+  ChevronRight,
+  SlidersHorizontal,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
 
 import { type Product } from "@app-types/product";
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router";
+import categories from "@lib/categories";
 import {
   Drawer,
   DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
   DrawerClose,
+  DrawerTitle,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function ProductsPage() {
   const { t } = useTranslation();
-  const { data: products, isLoading, isError } = useProducts();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const categoryParam = searchParams.get("category");
+  const subcategoryParam = searchParams.get("subcategory");
+  const manufacturerParam = searchParams.get("manufacturer");
+  const searchParam = searchParams.get("search");
+  const minPriceParam = searchParams.get("minPrice");
+  const maxPriceParam = searchParams.get("maxPrice");
+
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const MOCK_MANUFACTURERS = [
+    "Cummins",
+    "Caterpillar",
+    "Volvo",
+    "Kenworth",
+    "Freightliner",
+    "Paccar",
+    "Detroit Diesel",
+  ];
+
+  const filters = useMemo(
+    () => ({
+      category: categoryParam || undefined,
+      subcategory: subcategoryParam || undefined,
+      manufacturer: manufacturerParam || undefined,
+      search: searchParam || undefined,
+      minPrice: minPriceParam ? Number(minPriceParam) : undefined,
+      maxPrice: maxPriceParam ? Number(maxPriceParam) : undefined,
+    }),
+    [
+      categoryParam,
+      subcategoryParam,
+      manufacturerParam,
+      searchParam,
+      minPriceParam,
+      maxPriceParam,
+    ],
+  );
+
+  const { data: productsData, isLoading, isError } = useProducts(filters);
+
+  // Refinamiento de filtros en el cliente (para asegurar que búsqueda incluya descripción y fabricante)
+  const filteredProducts = useMemo(() => {
+    if (!productsData?.results) return [];
+
+    return productsData.results.filter((product) => {
+      // Búsqueda en nombre y descripción
+      const matchesSearch =
+        !searchParam ||
+        product.name.toLowerCase().includes(searchParam.toLowerCase()) ||
+        (product.description || "")
+          .toLowerCase()
+          .includes(searchParam.toLowerCase());
+
+      // Filtro de fabricante
+      const matchesManufacturer =
+        !manufacturerParam || product.manufacturer === manufacturerParam;
+
+      // Filtro de precio
+      const productPrice = parseFloat(product.price);
+      const matchesMinPrice =
+        !minPriceParam || productPrice >= parseFloat(minPriceParam);
+      const matchesMaxPrice =
+        !maxPriceParam || productPrice <= parseFloat(maxPriceParam);
+
+      return (
+        matchesSearch &&
+        matchesManufacturer &&
+        matchesMinPrice &&
+        matchesMaxPrice
+      );
+    });
+  }, [
+    productsData,
+    searchParam,
+    manufacturerParam,
+    minPriceParam,
+    maxPriceParam,
+  ]);
+
+  const handleFilterChange = (key: string, value: string | undefined) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (value) {
+      newParams.set(key, value);
+    } else {
+      newParams.delete(key);
+    }
+    // Si cambiamos categoria, reseteamos subcategoria
+    if (key === "category") {
+      newParams.delete("subcategory");
+    }
+    setSearchParams(newParams);
+  };
+
+  const clearFilters = () => {
+    setSearchParams(new URLSearchParams());
+  };
 
   return (
-    <div className="container mx-auto px-6 py-20">
-      <header className="mb-20">
-        <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-6">
-          {t("catalog.title")}
-        </h1>
-        <div className="h-1 w-20 bg-red-600"></div>
-      </header>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-4 mb-12 border-b border-white/10 pb-8">
-        <FilterButton active>{t("catalog.filters.all")}</FilterButton>
-        <FilterButton>{t("catalog.filters.maintenance")}</FilterButton>
-        <FilterButton>{t("catalog.filters.electric")}</FilterButton>
-        <FilterButton>{t("catalog.filters.chassis")}</FilterButton>
-      </div>
-
-      {/* Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <ProductSkeleton key={i} />)
-        ) : isError ? (
-          <div className="col-span-full py-20 text-center">
-            <p className="text-red-500 font-bold mb-4">
-              Ocurrió un error al cargar los productos.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-white text-black font-bold hover:bg-red-600 hover:text-white transition-colors"
+    <div className="min-h-screen bg-black pt-20">
+      <div className="container mx-auto px-6 py-12">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden flex items-center justify-between mb-8">
+            <h1 className="text-3xl font-black tracking-tighter text-white">
+              {t("catalog.title")}
+            </h1>
+            <Button
+              variant="outline"
+              className="border-white/10 text-white"
+              onClick={() => setIsSidebarOpen(true)}
             >
-              Reintentar
-            </button>
+              <Filter className="w-4 h-4 mr-2" />
+              {t("catalog.filters.title") || "Filtros"}
+            </Button>
           </div>
-        ) : products?.results.length === 0 ? (
-          <div className="col-span-full py-20 text-center text-gray-500">
-            No se encontraron productos disponibles.
-          </div>
-        ) : (
-          products?.results.map((product: Product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onSelect={() => {
-                setSelectedProduct(product);
-                const mainImg =
-                  product.images.find((img) => img.is_main)?.image ||
-                  product.images[0]?.image;
-                setActiveImage(mainImg);
-              }}
+
+          {/* Desktop Sidebar / Mobile Drawer */}
+          <aside
+            className={`
+            fixed inset-0 z-50 lg:relative lg:z-0 lg:block
+            ${isSidebarOpen ? "block" : "hidden"}
+            lg:w-80 transition-all duration-300
+          `}
+          >
+            {/* Mobile Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm lg:hidden"
+              onClick={() => setIsSidebarOpen(false)}
             />
-          ))
-        )}
+
+            {/* Sidebar Content */}
+            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:static overflow-y-auto max-h-screen lg:max-h-none">
+              <div className="flex items-center justify-between mb-8 lg:hidden">
+                <span className="text-xl font-bold text-white">
+                  {t("catalog.filters.title")}
+                </span>
+                <X
+                  className="w-6 h-6 text-white cursor-pointer"
+                  onClick={() => setIsSidebarOpen(false)}
+                />
+              </div>
+
+              <div className="space-y-10">
+                {/* Search */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
+                    {t("catalog.filters.search")}
+                  </h3>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <Input
+                      placeholder={t("catalog.filters.searchPlaceholder")}
+                      className="bg-white/5 border-white/10 text-white pl-10 h-12 focus:border-red-600 transition-colors"
+                      value={searchParam || ""}
+                      onChange={(e) =>
+                        handleFilterChange("search", e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Categories */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
+                      {t("catalog.filters.categories")}
+                    </h3>
+                    {categoryParam && (
+                      <button
+                        onClick={() =>
+                          handleFilterChange("category", undefined)
+                        }
+                        className="text-[10px] font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter"
+                      >
+                        {t("catalog.filters.clear")}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {categories.map((cat) => (
+                      <div key={cat.code} className="space-y-1">
+                        <button
+                          onClick={() =>
+                            handleFilterChange("category", cat.shortName)
+                          }
+                          className={`
+                            w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
+                            ${
+                              categoryParam === cat.shortName
+                                ? "bg-red-600 text-white font-bold"
+                                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                            }
+                          `}
+                        >
+                          <span>{cat.shortName}</span>
+                          <ChevronRight
+                            className={`w-4 h-4 transition-transform ${categoryParam === cat.shortName ? "rotate-90" : ""}`}
+                          />
+                        </button>
+
+                        {/* Subcategories (only if category is selected) */}
+                        {categoryParam === cat.shortName && (
+                          <div className="pl-6 flex flex-col gap-1 mt-1 animate-in slide-in-from-top-2 duration-300">
+                            {cat.subcategories.map((sub) => (
+                              <button
+                                key={sub.code}
+                                onClick={() =>
+                                  handleFilterChange(
+                                    "subcategory",
+                                    sub.shortName,
+                                  )
+                                }
+                                className={`
+                                  text-left px-4 py-2 text-xs rounded-sm transition-all
+                                  ${
+                                    subcategoryParam === sub.shortName
+                                      ? "text-red-500 font-bold bg-red-500/5"
+                                      : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                                  }
+                                `}
+                              >
+                                {sub.shortName}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Manufacturers */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
+                      {t("catalog.filters.manufacturers")}
+                    </h3>
+                    {manufacturerParam && (
+                      <button
+                        onClick={() =>
+                          handleFilterChange("manufacturer", undefined)
+                        }
+                        className="text-[10px] font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter"
+                      >
+                        {t("catalog.filters.clear")}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {MOCK_MANUFACTURERS.map((m) => (
+                      <button
+                        key={m}
+                        onClick={() => handleFilterChange("manufacturer", m)}
+                        className={`
+                          px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase border rounded-xs transition-all
+                          ${
+                            manufacturerParam === m
+                              ? "bg-red-600 border-red-600 text-white"
+                              : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+                          }
+                        `}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Price Range */}
+                <div className="space-y-4">
+                  <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
+                    {t("catalog.filters.price")}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      placeholder="Min"
+                      type="number"
+                      className="bg-white/5 border-white/10 text-white h-10 text-sm"
+                      value={minPriceParam || ""}
+                      onChange={(e) =>
+                        handleFilterChange("minPrice", e.target.value)
+                      }
+                    />
+                    <Input
+                      placeholder="Max"
+                      type="number"
+                      className="bg-white/5 border-white/10 text-white h-10 text-sm"
+                      value={maxPriceParam || ""}
+                      onChange={(e) =>
+                        handleFilterChange("maxPrice", e.target.value)
+                      }
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  variant="outline"
+                  className="w-full border-red-600/20 text-gray-400 hover:bg-red-600 hover:text-white transition-all text-xs font-bold tracking-widest uppercase"
+                  onClick={clearFilters}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  {t("catalog.filters.clear")}
+                </Button>
+              </div>
+            </div>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1">
+            <header className="hidden lg:block mb-12">
+              <div className="flex items-center gap-4 mb-4">
+                <span className="h-px w-12 bg-red-600"></span>
+                <span className="text-xs font-bold tracking-[0.3em] text-red-600 uppercase">
+                  {t("catalog.subtitle")}
+                </span>
+              </div>
+              <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-none">
+                {t("catalog.title")}
+              </h1>
+
+              {/* Breadcrumbs / Active Filters */}
+              {(categoryParam ||
+                subcategoryParam ||
+                manufacturerParam ||
+                minPriceParam ||
+                maxPriceParam ||
+                searchParam) && (
+                <div className="flex flex-wrap gap-2 mt-8">
+                  {categoryParam && (
+                    <ActiveFilter
+                      label={categoryParam}
+                      onClear={() => handleFilterChange("category", undefined)}
+                    />
+                  )}
+                  {subcategoryParam && (
+                    <ActiveFilter
+                      label={subcategoryParam}
+                      onClear={() =>
+                        handleFilterChange("subcategory", undefined)
+                      }
+                    />
+                  )}
+                  {manufacturerParam && (
+                    <ActiveFilter
+                      label={manufacturerParam}
+                      onClear={() =>
+                        handleFilterChange("manufacturer", undefined)
+                      }
+                    />
+                  )}
+                  {minPriceParam && (
+                    <ActiveFilter
+                      label={`>${minPriceParam}`}
+                      onClear={() => handleFilterChange("minPrice", undefined)}
+                    />
+                  )}
+                  {maxPriceParam && (
+                    <ActiveFilter
+                      label={`<${maxPriceParam}`}
+                      onClear={() => handleFilterChange("maxPrice", undefined)}
+                    />
+                  )}
+                  {searchParam && (
+                    <ActiveFilter
+                      label={`"${searchParam}"`}
+                      onClear={() => handleFilterChange("search", undefined)}
+                    />
+                  )}
+                </div>
+              )}
+            </header>
+
+            {/* Results Info */}
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+              <div className="text-gray-500 text-sm">
+                {isLoading ? (
+                  t("catalog.loading")
+                ) : (
+                  <>
+                    {t("catalog.showing")}{" "}
+                    <span className="text-white font-bold">
+                      {filteredProducts.length}
+                    </span>{" "}
+                    {t("catalog.productsCount")}
+                  </>
+                )}
+              </div>
+              <div className="flex items-center gap-2 text-gray-400 text-sm cursor-pointer hover:text-white transition-colors">
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>
+                  {t("catalog.sortBy")}: {t("catalog.recent")}
+                </span>
+              </div>
+            </div>
+
+            {/* Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <ProductSkeleton key={i} />
+                ))
+              ) : isError ? (
+                <div className="col-span-full py-20 text-center bg-zinc-900/50 border border-white/10 rounded-sm">
+                  <p className="text-red-500 font-bold mb-4">
+                    {t("catalog.error")}
+                  </p>
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className="bg-white text-black hover:bg-red-600 hover:text-white"
+                  >
+                    {t("catalog.retry")}
+                  </Button>
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div className="col-span-full py-32 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-sm">
+                  <Package size={48} className="mx-auto text-gray-700 mb-4" />
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {t("catalog.noProducts")}
+                  </h3>
+                  <p className="text-gray-500 max-w-xs mx-auto">
+                    {t("catalog.noProductsDesc")}
+                  </p>
+                  <Button
+                    variant="link"
+                    className="mt-4 text-red-500 font-bold"
+                    onClick={clearFilters}
+                  >
+                    {t("catalog.clearAll")}
+                  </Button>
+                </div>
+              ) : (
+                filteredProducts.map((product: Product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onSelect={() => {
+                      setSelectedProduct(product);
+                      const mainImg =
+                        product.images.find((img) => img.is_main)?.image ||
+                        product.images[0]?.image;
+                      setActiveImage(mainImg);
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          </main>
+        </div>
       </div>
 
       <Drawer
@@ -86,118 +489,146 @@ export default function ProductsPage() {
           }
         }}
       >
-        <DrawerContent className="bg-zinc-950 border-white/10 text-white max-h-[90vh]">
+        <DrawerContent className="bg-neutral-950 border-white/10 text-white max-h-[95vh]">
           {selectedProduct && (
-            <div className="mx-auto w-full max-w-4xl overflow-y-auto">
-              <DrawerHeader className="text-left border-b border-white/5 pb-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-xs font-bold text-red-600 tracking-widest uppercase mb-2 block">
-                      {selectedProduct.category || "General"}
-                    </span>
-                    <DrawerTitle className="text-3xl font-black tracking-tight text-white mb-2">
-                      {selectedProduct.name}
-                    </DrawerTitle>
-                    <DrawerDescription className="text-gray-400 text-base">
-                      SKU: {selectedProduct.sku || "N/A"}
-                    </DrawerDescription>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-3xl font-light text-white block">
-                      ${parseFloat(selectedProduct.price).toLocaleString()}
-                    </span>
-                    <span className="text-sm text-green-500 font-medium">
-                      {selectedProduct.inventory.quantity > 0
-                        ? `${selectedProduct.inventory.quantity} en stock`
-                        : "Sin stock"}
-                    </span>
-                  </div>
-                </div>
-              </DrawerHeader>
-
-              <div className="p-6 grid md:grid-cols-2 gap-8">
-                {/* Image Gallery */}
-                <div className="space-y-4">
-                  <div className="aspect-square bg-zinc-900 border border-white/5 flex items-center justify-center overflow-hidden">
-                    {activeImage ? (
-                      <img
-                        src={activeImage}
-                        alt={selectedProduct.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Package size={80} className="text-white/10" />
-                    )}
-                  </div>
-                  <div className="grid grid-cols-4 gap-2">
-                    {selectedProduct.images.map((img) => (
-                      <div
-                        key={img.id}
-                        onClick={() => setActiveImage(img.image)}
-                        className={`aspect-square bg-zinc-900 border overflow-hidden transition-all cursor-pointer ${
-                          activeImage === img.image
-                            ? "border-red-600 opacity-100"
-                            : "border-white/5 opacity-50 hover:opacity-100"
-                        }`}
-                      >
+            <div className="mx-auto w-full max-w-5xl overflow-y-auto">
+              <div className="p-8 lg:p-12">
+                <div className="grid lg:grid-cols-2 gap-12">
+                  {/* Image Gallery */}
+                  <div className="space-y-6">
+                    <div className="aspect-square bg-zinc-900 border border-white/5 flex items-center justify-center overflow-hidden rounded-sm group relative">
+                      {activeImage ? (
                         <img
-                          src={img.image}
-                          alt=""
-                          className="w-full h-full object-cover"
+                          src={activeImage}
+                          alt={selectedProduct.name}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
+                      ) : (
+                        <Package size={100} className="text-white/5" />
+                      )}
+                      <div className="absolute top-4 right-4 px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-black tracking-widest text-white uppercase">
+                        {selectedProduct.sku || "PRO-TRUCK"}
                       </div>
-                    ))}
+                    </div>
+                    <div className="grid grid-cols-4 gap-4">
+                      {selectedProduct.images.map((img) => (
+                        <div
+                          key={img.id}
+                          onClick={() => setActiveImage(img.image)}
+                          className={`aspect-square bg-zinc-900 border rounded-sm overflow-hidden transition-all cursor-pointer ${
+                            activeImage === img.image
+                              ? "border-red-600 ring-2 ring-red-600/20"
+                              : "border-white/5 opacity-40 hover:opacity-100 hover:border-white/20"
+                          }`}
+                        >
+                          <img
+                            src={img.image}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* Details */}
-                <div className="flex flex-col h-full">
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">
-                      Descripción
-                    </h4>
-                    <p className="text-gray-300 leading-relaxed text-lg mb-8">
-                      {selectedProduct.description ||
-                        "No hay descripción disponible para este producto."}
-                    </p>
+                  {/* Details */}
+                  <div className="flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <span className="px-2 py-0.5 bg-red-600 text-[10px] font-black text-white uppercase tracking-tighter rounded-xs">
+                          {selectedProduct.category || "General"}
+                        </span>
+                        <div className="h-px flex-1 bg-white/10"></div>
+                      </div>
 
-                    <div className="space-y-4 border-t border-white/5 pt-6">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">ID de Producto</span>
-                        <span className="text-white font-mono">
-                          #{selectedProduct.id}
+                      <DrawerTitle className="text-4xl lg:text-5xl font-black tracking-tighter text-white mb-6 leading-[0.9]">
+                        {selectedProduct.name}
+                      </DrawerTitle>
+
+                      <div className="flex items-baseline gap-4 mb-8">
+                        <span className="text-5xl font-light text-white">
+                          ${parseFloat(selectedProduct.price).toLocaleString()}
+                        </span>
+                        <span
+                          className={`text-sm font-bold uppercase tracking-widest ${
+                            selectedProduct.inventory.quantity > 0
+                              ? "text-green-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {selectedProduct.inventory.quantity > 0
+                            ? `✓ ${selectedProduct.inventory.quantity} ${t("catalog.details.stock")}`
+                            : `✕ ${t("catalog.details.noStock")}`}
                         </span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">
-                          Última actualización
-                        </span>
-                        <span className="text-white">
-                          {new Date(
-                            selectedProduct.updated_at,
-                          ).toLocaleDateString()}
-                        </span>
+
+                      <div className="space-y-6 mb-12">
+                        <div className="prose prose-invert max-w-none">
+                          <p className="text-gray-400 leading-relaxed text-lg">
+                            {selectedProduct.description ||
+                              t("catalog.details.descriptionDefault")}
+                          </p>
+                        </div>
                       </div>
+
+                      <div className="grid grid-cols-2 gap-4 pb-8 border-b border-white/5">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            {t("catalog.details.id")}
+                          </span>
+                          <p className="text-sm font-mono text-white">
+                            #{selectedProduct.id.toString().padStart(6, "0")}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            {t("catalog.details.category")}
+                          </span>
+                          <p className="text-sm text-white">
+                            {selectedProduct.category || "N/A"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-8 flex gap-4">
+                      <div className="flex-1">
+                        <AddToCart product={selectedProduct} variant="detail" />
+                      </div>
+                      <DrawerClose asChild>
+                        <Button
+                          variant="outline"
+                          className="h-14 px-8 border-white/10 hover:bg-white/5 text-gray-400 font-bold uppercase tracking-widest text-xs"
+                        >
+                          {t("catalog.details.close")}
+                        </Button>
+                      </DrawerClose>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <DrawerFooter className="border-t border-white/5 pt-6 flex-row gap-4 px-6 mb-4">
-                <AddToCart product={selectedProduct} variant="detail" />
-                <DrawerClose asChild>
-                  <Button
-                    variant="secondary"
-                    className="h-14 px-8 border-white/10 hover:bg-white/5 text-red-500 font-bold"
-                  >
-                    Cerrar
-                  </Button>
-                </DrawerClose>
-              </DrawerFooter>
             </div>
           )}
         </DrawerContent>
       </Drawer>
+    </div>
+  );
+}
+
+function ActiveFilter({
+  label,
+  onClear,
+}: {
+  label: string;
+  onClear: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/10 border border-red-600/30 rounded-full text-xs font-bold text-red-500">
+      <span>{label}</span>
+      <X
+        className="w-3 h-3 cursor-pointer hover:text-red-400"
+        onClick={onClear}
+      />
     </div>
   );
 }
@@ -228,6 +659,7 @@ function ProductCard({
   product: Product;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const { name, category, price, images } = product;
   const imageUrl = images.find((img) => img.is_main)?.image || images[0]?.image;
   const numericPrice = parseFloat(price);
@@ -235,73 +667,61 @@ function ProductCard({
   return (
     <div
       onClick={onSelect}
-      className="cursor-pointer rounded-sm group relative bg-zinc-900/30 border border-white/10 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
+      className="cursor-pointer rounded-sm group relative bg-zinc-900/40 border border-white/5 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
     >
       {/* Image Container */}
-      <div className="aspect-4/3 bg-zinc-800 flex items-center justify-center group-hover:scale-105 transition-transform duration-700 overflow-hidden relative">
+      <div className="aspect-square bg-zinc-900 flex items-center justify-center transition-transform duration-700 overflow-hidden relative">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
           <Package
             width={65}
             height={65}
-            className="opacity-20 group-hover:opacity-40 transition-opacity"
+            className="opacity-10 group-hover:opacity-30 transition-opacity"
           />
         )}
+
+        {/* Overlay info */}
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
+          <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+            {t("catalog.viewDetails")}
+          </span>
+        </div>
+
         {product.inventory.quantity <= 0 && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px] z-10">
-            <span className="px-4 py-2 bg-red-600 text-white text-xs font-black uppercase tracking-widest border border-white/20 shadow-lg transform -rotate-12">
-              Agotado
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] z-10">
+            <span className="px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest border border-white/20 shadow-xl transform -rotate-12">
+              {t("catalog.details.noStock")}
             </span>
           </div>
         )}
       </div>
 
-      <div className="p-8">
-        <div className="flex justify-between items-start mb-4">
-          <span className="text-xs font-bold text-red-600 tracking-widest uppercase">
+      <div className="p-6">
+        <div className="flex justify-between items-start mb-3">
+          <span className="text-[10px] font-bold text-red-600 tracking-widest uppercase bg-red-600/10 px-2 py-0.5 rounded-xs">
             {category || "General"}
           </span>
-          <span className="text-xs text-gray-600 font-mono">
+          <span className="text-[10px] text-gray-600 font-mono">
             #{product.id.toString().padStart(3, "0")}
           </span>
         </div>
 
-        <h3 className="text-xl font-bold text-white mb-6 group-hover:text-red-500 transition-colors line-clamp-2 min-h-14">
+        <h3 className="text-lg font-bold text-white mb-6 group-hover:text-red-500 transition-colors line-clamp-2 min-h-14 leading-snug">
           {name}
         </h3>
 
-        <div className="flex justify-between items-end border-t border-white/5 pt-6">
-          <span className="text-2xl font-light text-white">
+        <div className="flex justify-between items-center pt-4 border-t border-white/5">
+          <span className="text-xl font-light text-white">
             ${numericPrice.toLocaleString()}
           </span>
           <AddToCart product={product} variant="card" />
         </div>
       </div>
     </div>
-  );
-}
-
-function FilterButton({
-  children,
-  active = false,
-}: {
-  children: React.ReactNode;
-  active?: boolean;
-}) {
-  return (
-    <button
-      className={`px-6 py-2 text-sm font-bold tracking-wider transition-all border ${
-        active
-          ? "bg-white text-black border-white"
-          : "bg-transparent text-gray-400 border-transparent hover:border-white/20 hover:text-white"
-      }`}
-    >
-      {children}
-    </button>
   );
 }

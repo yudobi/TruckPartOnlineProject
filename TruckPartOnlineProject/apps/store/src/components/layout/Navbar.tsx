@@ -5,9 +5,6 @@ import {
   LogOut,
   Settings,
   Wrench,
-  Disc3,
-  Car,
-  BatteryCharging,
   Menu,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -37,28 +34,7 @@ import {
 
 import CartSidebar from "@components/cart/CartSidebar";
 
-const CATEGORIES = [
-  {
-    name: "Motor",
-    icon: Wrench,
-    subcategories: ["Filtros", "Aceite", "Empacaduras", "Pistones"],
-  },
-  {
-    name: "Frenos",
-    icon: Disc3,
-    subcategories: ["Pastillas", "Discos", "Tambores", "Liquido de Freno"],
-  },
-  {
-    name: "Suspensión",
-    icon: Car,
-    subcategories: ["Amortiguadores", "Ballestas", "Bujes"],
-  },
-  {
-    name: "Eléctrico",
-    icon: BatteryCharging,
-    subcategories: ["Baterías", "Alternadores", "Faros", "Cables"],
-  },
-];
+import categories from "@lib/categories";
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -68,6 +44,13 @@ export default function Navbar() {
   const handleLogout = () => {
     logout();
     navigate("/auth");
+  };
+
+  const handleCategorySearch = (category: string, subcategory?: string) => {
+    const params = new URLSearchParams();
+    if (category) params.append("category", category);
+    if (subcategory) params.append("subcategory", subcategory);
+    navigate(`/products?${params.toString()}`);
   };
 
   return (
@@ -93,22 +76,34 @@ export default function Navbar() {
                 {t("nav.search").toUpperCase()}
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 bg-black/90 border-white/10 text-white backdrop-blur-xl">
+              <DropdownMenuContent className="w-56 bg-black/95 border-white/10 text-white backdrop-blur-xl p-2 animate-in fade-in-0 zoom-in-95">
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel className="text-gray-300">
+                  <DropdownMenuLabel className="text-xs font-bold tracking-widest text-gray-500 uppercase px-2 mb-2">
                     {t("nav.searchCategory")}
                   </DropdownMenuLabel>
-                  {CATEGORIES.map((category) => (
-                    <DropdownMenuSub key={category.name}>
-                      <DropdownMenuSubTrigger className="flex items-center gap-2">
-                        <category.icon className="w-4 h-4" />
-                        <span>{category.name}</span>
+                  {categories.map((category) => (
+                    <DropdownMenuSub key={category.code}>
+                      <DropdownMenuSubTrigger
+                        className="flex items-center gap-2 py-2.5 cursor-pointer focus:bg-white/10"
+                        onClick={() => handleCategorySearch(category.shortName)}
+                      >
+                        <Wrench className="w-4 h-4 text-red-500" />
+                        <span className="text-sm">{category.shortName}</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
+                        <DropdownMenuSubContent className="bg-black/95 border-white/10 text-white backdrop-blur-xl p-2">
                           {category.subcategories.map((subcategory) => (
-                            <DropdownMenuItem key={subcategory}>
-                              {subcategory}
+                            <DropdownMenuItem
+                              key={subcategory.code}
+                              className="cursor-pointer py-2.5 text-sm focus:bg-white/10"
+                              onClick={() =>
+                                handleCategorySearch(
+                                  category.shortName,
+                                  subcategory.shortName,
+                                )
+                              }
+                            >
+                              {subcategory.shortName}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuSubContent>

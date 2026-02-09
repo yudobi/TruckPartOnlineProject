@@ -23,7 +23,8 @@ export interface Product {
   images: ProductImage[];
   created_at: string;
   updated_at: string;
-  category?: string; // Mantener opcional para retrocompatibilidad
+  category?: string; 
+  manufacturer?: string; // Nuevo campo para filtros
 }
 
 export interface PaginatedResponse<T> {
@@ -35,6 +36,8 @@ export interface PaginatedResponse<T> {
 
 export interface ProductFilters {
   category?: string;
+  subcategory?: string;
+  manufacturer?: string;
   minPrice?: number;
   maxPrice?: number;
   search?: string;
