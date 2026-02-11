@@ -23,6 +23,20 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function ProductsPage() {
   const { t } = useTranslation();
@@ -34,10 +48,14 @@ export default function ProductsPage() {
   const searchParam = searchParams.get("search");
   const minPriceParam = searchParams.get("minPrice");
   const maxPriceParam = searchParams.get("maxPrice");
+  const pageParam = searchParams.get("page");
+  const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
 
   const MOCK_MANUFACTURERS = [
     "Cummins",
@@ -51,24 +69,56 @@ export default function ProductsPage() {
 
   const filters = useMemo(
     () => ({
-      category: categoryParam || undefined,
+      // category: categoryParam || undefined, // Comentado - filtrado solo en cliente
       subcategory: subcategoryParam || undefined,
       manufacturer: manufacturerParam || undefined,
       search: searchParam || undefined,
       minPrice: minPriceParam ? Number(minPriceParam) : undefined,
       maxPrice: maxPriceParam ? Number(maxPriceParam) : undefined,
+      page: currentPage,
+      page_size: 12, // Definir tamaño de página para la API
     }),
     [
-      categoryParam,
+      // categoryParam, // Comentado - filtrado solo en cliente
       subcategoryParam,
       manufacturerParam,
       searchParam,
       minPriceParam,
       maxPriceParam,
+      currentPage,
     ],
   );
 
   const { data: productsData, isLoading, isError } = useProducts(filters);
+
+  // Obtener categorías disponibles desde los productos
+  const availableCategories = useMemo(() => {
+    if (!productsData?.results) return [];
+    
+    const categoryMap = new Map<string, { count: number; name: string }>();
+    
+    productsData.results.forEach(product => {
+      if (product.category) {
+        const existing = categoryMap.get(product.category);
+        if (existing) {
+          existing.count++;
+        } else {
+          categoryMap.set(product.category, { count: 1, name: product.category });
+        }
+      }
+    });
+    
+    return Array.from(categoryMap.entries()).map(([name, data]) => ({
+      name,
+      count: data.count,
+      // Intentar mapear con categorías predefinidas
+      mappedCategory: categories.find(cat => 
+        cat.shortName === name || 
+        cat.code === name ||
+        cat.shortName.toLowerCase() === name.toLowerCase()
+      )
+    }));
+  }, [productsData, categories]);
 
   // Refinamiento de filtros en el cliente (para asegurar que búsqueda incluya descripción y fabricante)
   const filteredProducts = useMemo(() => {
@@ -87,6 +137,38 @@ export default function ProductsPage() {
       const matchesManufacturer =
         !manufacturerParam || product.manufacturer === manufacturerParam;
 
+      // Filtro de categoría - mapeo con categorías predefinidas
+      let matchesCategory = true;
+      if (categoryParam) {
+        // Buscar categoría por shortName
+        const category = categories.find(cat => cat.shortName === categoryParam);
+        if (category) {
+          // Verificar si el producto pertenece a esta categoría
+          matchesCategory = product.category === category.shortName || 
+                           product.category === category.code ||
+                           product.category?.toLowerCase() === category.shortName.toLowerCase();
+        } else {
+          // Si no se encuentra la categoría, verificar coincidencia directa
+          matchesCategory = product.category === categoryParam;
+        }
+      }
+
+      // Filtro de subcategoría
+      let matchesSubcategory = true;
+      if (subcategoryParam && categoryParam) {
+        const category = categories.find(cat => cat.shortName === categoryParam);
+        if (category) {
+          const subcategory = category.subcategories.find(sub => sub.shortName === subcategoryParam);
+          if (subcategory) {
+            matchesSubcategory = product.category === subcategory.shortName ||
+                                product.category === subcategory.code ||
+                                product.category?.toLowerCase() === subcategory.shortName.toLowerCase();
+          } else {
+            matchesSubcategory = product.category === subcategoryParam;
+          }
+        }
+      }
+
       // Filtro de precio
       const productPrice = parseFloat(product.price);
       const matchesMinPrice =
@@ -97,6 +179,8 @@ export default function ProductsPage() {
       return (
         matchesSearch &&
         matchesManufacturer &&
+        matchesCategory &&
+        matchesSubcategory &&
         matchesMinPrice &&
         matchesMaxPrice
       );
@@ -105,8 +189,11 @@ export default function ProductsPage() {
     productsData,
     searchParam,
     manufacturerParam,
+    categoryParam,
+    subcategoryParam,
     minPriceParam,
     maxPriceParam,
+    categories,
   ]);
 
   const handleFilterChange = (key: string, value: string | undefined) => {
@@ -120,11 +207,36 @@ export default function ProductsPage() {
     if (key === "category") {
       newParams.delete("subcategory");
     }
+    // Reset page to 1 when changing filters
+    if (key !== "page") {
+      newParams.delete("page");
+    }
     setSearchParams(newParams);
+  };
+
+  const handlePageChange = (page: number) => {
+    handleFilterChange("page", page.toString());
   };
 
   const clearFilters = () => {
     setSearchParams(new URLSearchParams());
+  };
+
+  const toggleCategory = (categoryCode: string, isOpen: boolean) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (isOpen) {
+        newSet.add(categoryCode);
+      } else {
+        newSet.delete(categoryCode);
+        // Limpiar filtro cuando se cierra la categoría
+        const category = categories.find(cat => cat.code === categoryCode);
+        if (category && categoryParam === category.shortName) {
+          handleFilterChange("category", undefined);
+        }
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -192,11 +304,14 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Categories */}
-                <div className="space-y-4">
+                <Collapsible open={isCategoriesOpen} onOpenChange={setIsCategoriesOpen}>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
-                      {t("catalog.filters.categories")}
-                    </h3>
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase hover:text-white transition-colors">
+                        {t("catalog.filters.categories")}
+                        <ChevronRight className={`w-4 h-4 transition-transform ${isCategoriesOpen ? "rotate-90" : ""}`} />
+                      </button>
+                    </CollapsibleTrigger>
                     {categoryParam && (
                       <button
                         onClick={() =>
@@ -208,58 +323,116 @@ export default function ProductsPage() {
                       </button>
                     )}
                   </div>
-                  <div className="flex flex-col gap-1">
-                    {categories.map((cat) => (
-                      <div key={cat.code} className="space-y-1">
+                  <CollapsibleContent className="space-y-1 mt-4">
+                    {/* Mostrar categorías predefinidas que tienen productos */}
+                    {categories.map((cat) => {
+                      const availableCategory = availableCategories.find(ac => 
+                        ac.mappedCategory?.code === cat.code || 
+                        ac.name === cat.shortName
+                      );
+                      const hasProducts = availableCategory && availableCategory.count > 0;
+                      
+                      if (!hasProducts) return null;
+                      
+                      return (
+                        <Collapsible
+                          key={cat.code}
+                          open={expandedCategories.has(cat.code) || categoryParam === cat.shortName}
+                          onOpenChange={(isOpen) => toggleCategory(cat.code, isOpen)}
+                        >
+                          <CollapsibleTrigger asChild>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleFilterChange("category", cat.shortName);
+                              }}
+                              className={`
+                                w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
+                                ${
+                                  categoryParam === cat.shortName
+                                    ? "bg-red-600 text-white font-bold"
+                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                }
+                              `}
+                            >
+                              <span className="flex items-center gap-2">
+                                {cat.shortName}
+                                <span className="text-xs text-gray-500">
+                                  ({availableCategory?.count || 0})
+                                </span>
+                              </span>
+                              <ChevronRight
+                                className={`w-4 h-4 transition-transform ${
+                                  expandedCategories.has(cat.code) || categoryParam === cat.shortName ? "rotate-90" : ""
+                                }`}
+                              />
+                            </button>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent className="pl-6 space-y-1 mt-1">
+                            {cat.subcategories.map((sub) => {
+                              const subCategoryCount = availableCategories.find(ac => 
+                                ac.name === sub.shortName
+                              );
+                              const hasSubProducts = subCategoryCount && subCategoryCount.count > 0;
+                              
+                              if (!hasSubProducts) return null;
+                              
+                              return (
+                                <button
+                                  key={sub.code}
+                                  onClick={() =>
+                                    handleFilterChange(
+                                      "subcategory",
+                                      sub.shortName,
+                                    )
+                                  }
+                                  className={`
+                                    text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
+                                    ${
+                                      subcategoryParam === sub.shortName
+                                        ? "text-red-500 font-bold bg-red-500/5"
+                                        : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                                    }
+                                  `}
+                                >
+                                  <span>{sub.shortName}</span>
+                                  <span className="text-xs text-gray-600">
+                                    ({subCategoryCount?.count || 0})
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                    })}
+                    
+                    {/* Mostrar categorías no mapeadas que existen en productos */}
+                    {availableCategories
+                      .filter(ac => !ac.mappedCategory)
+                      .map((ac) => (
                         <button
-                          onClick={() =>
-                            handleFilterChange("category", cat.shortName)
-                          }
+                          key={ac.name}
+                          onClick={() => handleFilterChange("category", ac.name)}
                           className={`
                             w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
                             ${
-                              categoryParam === cat.shortName
+                              categoryParam === ac.name
                                 ? "bg-red-600 text-white font-bold"
                                 : "text-gray-400 hover:bg-white/5 hover:text-white"
                             }
                           `}
                         >
-                          <span>{cat.shortName}</span>
-                          <ChevronRight
-                            className={`w-4 h-4 transition-transform ${categoryParam === cat.shortName ? "rotate-90" : ""}`}
-                          />
+                          <span className="flex items-center gap-2">
+                            {ac.name}
+                            <span className="text-xs text-gray-500">
+                              ({ac.count})
+                            </span>
+                          </span>
                         </button>
-
-                        {/* Subcategories (only if category is selected) */}
-                        {categoryParam === cat.shortName && (
-                          <div className="pl-6 flex flex-col gap-1 mt-1 animate-in slide-in-from-top-2 duration-300">
-                            {cat.subcategories.map((sub) => (
-                              <button
-                                key={sub.code}
-                                onClick={() =>
-                                  handleFilterChange(
-                                    "subcategory",
-                                    sub.shortName,
-                                  )
-                                }
-                                className={`
-                                  text-left px-4 py-2 text-xs rounded-sm transition-all
-                                  ${
-                                    subcategoryParam === sub.shortName
-                                      ? "text-red-500 font-bold bg-red-500/5"
-                                      : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                                  }
-                                `}
-                              >
-                                {sub.shortName}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                      ))}
+                  </CollapsibleContent>
+                </Collapsible>
 
                 {/* Manufacturers */}
                 <div className="space-y-4">
@@ -476,6 +649,20 @@ export default function ProductsPage() {
                 ))
               )}
             </div>
+
+            {/* Pagination */}
+            {productsData && productsData.count > 0 && (
+              <div className="mt-12 flex justify-center">
+                <PaginationComponent
+                  currentPage={currentPage}
+                  totalCount={productsData.count}
+                  totalPages={productsData.total_pages}
+                  hasNext={productsData.has_next}
+                  hasPrevious={productsData.has_previous}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            )}
           </main>
         </div>
       </div>
@@ -723,5 +910,89 @@ function ProductCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function PaginationComponent({
+  currentPage,
+  totalCount,
+  totalPages,
+  hasNext,
+  hasPrevious,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalCount: number;
+  totalPages?: number;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
+  onPageChange: (page: number) => void;
+}) {
+  // Usar totalPages de la API si está disponible, sino calcularlo
+  const calculatedTotalPages = totalPages || Math.ceil(totalCount / 12);
+  
+  if (calculatedTotalPages <= 1) return null;
+
+  const getVisiblePages = () => {
+    const delta = 2;
+    const range: number[] = [];
+    const rangeWithDots: (number | string)[] = [];
+    let l: number | undefined;
+
+    for (let i = 1; i <= calculatedTotalPages; i++) {
+      if (i === 1 || i === calculatedTotalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+        range.push(i);
+      }
+    }
+
+    range.forEach((i) => {
+      if (l) {
+        if (i - l === 2) {
+          rangeWithDots.push(l + 1);
+        } else if (i - l !== 1) {
+          rangeWithDots.push('...');
+        }
+      }
+      rangeWithDots.push(i);
+      l = i;
+    });
+
+    return rangeWithDots;
+  };
+
+  return (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious 
+            onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
+            className={!hasPrevious && currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
+        
+        {getVisiblePages().map((page, index) => (
+          <PaginationItem key={index}>
+            {page === '...' ? (
+              <PaginationEllipsis />
+            ) : (
+              <PaginationLink
+                onClick={() => onPageChange(page as number)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            )}
+          </PaginationItem>
+        ))}
+        
+        <PaginationItem>
+          <PaginationNext 
+            onClick={() => currentPage < calculatedTotalPages && onPageChange(currentPage + 1)}
+            className={!hasNext && currentPage === calculatedTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }
