@@ -519,7 +519,7 @@ export default function ProductsPage() {
                   {t("catalog.subtitle")}
                 </span>
               </div>
-              <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-none">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-white leading-none">
                 {t("catalog.title")}
               </h1>
 
@@ -963,7 +963,7 @@ function PaginationComponent({
   return (
     <Pagination>
       <PaginationContent>
-        <PaginationItem>
+        <PaginationItem className="text-red-500">
           <PaginationPrevious 
             onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
             className={!hasPrevious && currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
@@ -971,7 +971,7 @@ function PaginationComponent({
         </PaginationItem>
         
         {getVisiblePages().map((page, index) => (
-          <PaginationItem key={index}>
+          <PaginationItem className="text-red-500" key={index}>
             {page === '...' ? (
               <PaginationEllipsis />
             ) : (
@@ -986,7 +986,7 @@ function PaginationComponent({
           </PaginationItem>
         ))}
         
-        <PaginationItem>
+        <PaginationItem className="text-red-500">
           <PaginationNext 
             onClick={() => currentPage < calculatedTotalPages && onPageChange(currentPage + 1)}
             className={!hasNext && currentPage === calculatedTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
