@@ -2,7 +2,7 @@ import type { Product, ProductFilters, PaginatedResponse } from '@/types/product
 import apiClient from './apiClient';
 
 class ProductService {
-  private endpoint = '/products/';
+  private endpoint = '/products';
 
   // Obtener todos los productos (Paginados)
   async getAllProducts(filters?: ProductFilters): Promise<PaginatedResponse<Product>> {
