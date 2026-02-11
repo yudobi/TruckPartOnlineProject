@@ -497,10 +497,12 @@ export default function ProductsPage() {
                   {/* Image Gallery */}
                   <div className="space-y-6">
                     <div className="aspect-square bg-zinc-900 border border-white/5 flex items-center justify-center overflow-hidden rounded-sm group relative">
-                      {activeImage ? (
+        {activeImage ? (
                         <img
                           src={activeImage}
                           alt={selectedProduct.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
                       ) : (
@@ -510,7 +512,7 @@ export default function ProductsPage() {
                         {selectedProduct.sku || "PRO-TRUCK"}
                       </div>
                     </div>
-                    <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-4 gap-4">
                       {selectedProduct.images.map((img) => (
                         <div
                           key={img.id}
@@ -524,6 +526,8 @@ export default function ProductsPage() {
                           <img
                             src={img.image}
                             alt=""
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover"
                           />
                         </div>
@@ -675,6 +679,8 @@ function ProductCard({
           <img
             src={imageUrl}
             alt={name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
           />
         ) : (
