@@ -78,6 +78,7 @@ INSTALLED_APPS = [
     'users',
     "inventory.apps.InventoryConfig",
     "storages",
+    'clover',
     
   
 ]
@@ -230,7 +231,18 @@ AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 
+
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
+
+############################### Clover  Settings ################################
+CLOVER_APP_ID = config("CLOVER_APP_ID")
+CLOVER_APP_SECRET = config("CLOVER_APP_SECRET")
+CLOVER_REDIRECT_URI = config("CLOVER_REDIRECT_URI")
+
+#CLOVER_MERCHANT_ID = config("CLOVER_MERCHANT_ID")
+#CLOVER_ACCESS_TOKEN = config("CLOVER_ACCESS_TOKEN")
+
+
 
 # AL FINAL de settings.py agrega:
 from storages.backends.s3boto3 import S3Boto3Storage
