@@ -190,3 +190,5 @@ class ProductViewSet(ModelViewSet):
 class BrandViewSet(ReadOnlyModelViewSet):
     queryset = Brand.objects.all().order_by("name")
     serializer_class = BrandSerializer
+
+######################################################################################################

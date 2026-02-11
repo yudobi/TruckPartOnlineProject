@@ -1,6 +1,5 @@
 from django.db import models
 
-from django.db import models
 
 ########################################################################################
 class Brand(models.Model):
@@ -98,12 +97,12 @@ class Product(models.Model):
     )
 
     clover_item_id = models.CharField(
-        max_length=64,
-        null=True,
-        blank=True,
-        unique=True,
-        help_text="ID del producto en Clover"
-    )
+    max_length=50,
+    null=True,
+    blank=True,
+    unique=True,
+    help_text="ID del Item en Clover"
+ )
 
     sku = models.CharField(
         max_length=100,
