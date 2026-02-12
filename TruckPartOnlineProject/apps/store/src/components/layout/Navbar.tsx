@@ -60,7 +60,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="px-1 h-20 bg-red-600 flex items-center justify-center ">
-              <span className="text-xl font-bold text-black">TONY</span>
+              <img src="/logo/black-logo.svg" height={50} width={100} alt="logo tony truck part" />
             </div>
             <span className="text-2xl font-bold tracking-tighter text-white">
               TRUCK<span className="text-red-600">PART</span>
