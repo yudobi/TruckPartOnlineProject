@@ -14,7 +14,7 @@ import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router";
-import categories from "@lib/categories";
+import { useCategoriesWithSubcategories } from "@hooks/useCategories";
 import {
   Drawer,
   DrawerContent,
@@ -56,6 +56,7 @@ export default function ProductsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [isChangingPage, setIsChangingPage] = useState(false);
 
   const MOCK_MANUFACTURERS = [
     "Cummins",
@@ -69,17 +70,17 @@ export default function ProductsPage() {
 
   const filters = useMemo(
     () => ({
-      // category: categoryParam || undefined, // Comentado - filtrado solo en cliente
+      category: categoryParam || undefined,
       subcategory: subcategoryParam || undefined,
       manufacturer: manufacturerParam || undefined,
       search: searchParam || undefined,
       minPrice: minPriceParam ? Number(minPriceParam) : undefined,
       maxPrice: maxPriceParam ? Number(maxPriceParam) : undefined,
       page: currentPage,
-      page_size: 12, // Definir tamaño de página para la API
+      page_size: 12,
     }),
     [
-      // categoryParam, // Comentado - filtrado solo en cliente
+      categoryParam,
       subcategoryParam,
       manufacturerParam,
       searchParam,
@@ -90,10 +91,15 @@ export default function ProductsPage() {
   );
 
   const { data: productsData, isLoading, isError } = useProducts(filters);
+  const { 
+    data: apiCategories, 
+    isLoading: isCategoriesLoading, 
+    isError: isCategoriesError 
+  } = useCategoriesWithSubcategories();
 
   // Obtener categorías disponibles desde los productos
   const availableCategories = useMemo(() => {
-    if (!productsData?.results) return [];
+    if (!productsData?.results || !apiCategories) return [];
     
     const categoryMap = new Map<string, { count: number; name: string }>();
     
@@ -111,90 +117,19 @@ export default function ProductsPage() {
     return Array.from(categoryMap.entries()).map(([name, data]) => ({
       name,
       count: data.count,
-      // Intentar mapear con categorías predefinidas
-      mappedCategory: categories.find(cat => 
-        cat.shortName === name || 
+      // Intentar mapear con categorías desde la API
+      mappedCategory: apiCategories.find(cat => 
+        cat.short_name === name || 
         cat.code === name ||
-        cat.shortName.toLowerCase() === name.toLowerCase()
+        cat.short_name.toLowerCase() === name.toLowerCase()
       )
     }));
-  }, [productsData, categories]);
+  }, [productsData, apiCategories]);
 
-  // Refinamiento de filtros en el cliente (para asegurar que búsqueda incluya descripción y fabricante)
+  // Usar directamente los productos filtrados del backend
   const filteredProducts = useMemo(() => {
-    if (!productsData?.results) return [];
-
-    return productsData.results.filter((product) => {
-      // Búsqueda en nombre y descripción
-      const matchesSearch =
-        !searchParam ||
-        product.name.toLowerCase().includes(searchParam.toLowerCase()) ||
-        (product.description || "")
-          .toLowerCase()
-          .includes(searchParam.toLowerCase());
-
-      // Filtro de fabricante
-      const matchesManufacturer =
-        !manufacturerParam || product.manufacturer === manufacturerParam;
-
-      // Filtro de categoría - mapeo con categorías predefinidas
-      let matchesCategory = true;
-      if (categoryParam) {
-        // Buscar categoría por shortName
-        const category = categories.find(cat => cat.shortName === categoryParam);
-        if (category) {
-          // Verificar si el producto pertenece a esta categoría
-          matchesCategory = product.category === category.shortName || 
-                           product.category === category.code ||
-                           product.category?.toLowerCase() === category.shortName.toLowerCase();
-        } else {
-          // Si no se encuentra la categoría, verificar coincidencia directa
-          matchesCategory = product.category === categoryParam;
-        }
-      }
-
-      // Filtro de subcategoría
-      let matchesSubcategory = true;
-      if (subcategoryParam && categoryParam) {
-        const category = categories.find(cat => cat.shortName === categoryParam);
-        if (category) {
-          const subcategory = category.subcategories.find(sub => sub.shortName === subcategoryParam);
-          if (subcategory) {
-            matchesSubcategory = product.category === subcategory.shortName ||
-                                product.category === subcategory.code ||
-                                product.category?.toLowerCase() === subcategory.shortName.toLowerCase();
-          } else {
-            matchesSubcategory = product.category === subcategoryParam;
-          }
-        }
-      }
-
-      // Filtro de precio
-      const productPrice = parseFloat(product.price);
-      const matchesMinPrice =
-        !minPriceParam || productPrice >= parseFloat(minPriceParam);
-      const matchesMaxPrice =
-        !maxPriceParam || productPrice <= parseFloat(maxPriceParam);
-
-      return (
-        matchesSearch &&
-        matchesManufacturer &&
-        matchesCategory &&
-        matchesSubcategory &&
-        matchesMinPrice &&
-        matchesMaxPrice
-      );
-    });
-  }, [
-    productsData,
-    searchParam,
-    manufacturerParam,
-    categoryParam,
-    subcategoryParam,
-    minPriceParam,
-    maxPriceParam,
-    categories,
-  ]);
+    return productsData?.results || [];
+  }, [productsData]);
 
   const handleFilterChange = (key: string, value: string | undefined) => {
     const newParams = new URLSearchParams(searchParams);
@@ -215,7 +150,10 @@ export default function ProductsPage() {
   };
 
   const handlePageChange = (page: number) => {
+    setIsChangingPage(true);
     handleFilterChange("page", page.toString());
+    // Reset loading state after a short delay to allow for smooth transition
+    setTimeout(() => setIsChangingPage(false), 500);
   };
 
   const clearFilters = () => {
@@ -230,8 +168,8 @@ export default function ProductsPage() {
       } else {
         newSet.delete(categoryCode);
         // Limpiar filtro cuando se cierra la categoría
-        const category = categories.find(cat => cat.code === categoryCode);
-        if (category && categoryParam === category.shortName) {
+        const category = apiCategories?.find(cat => cat.code === categoryCode);
+        if (category && categoryParam === category.short_name) {
           handleFilterChange("category", undefined);
         }
       }
@@ -240,7 +178,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black pt-20">
+    <div className="min-h-screen bg-black pt-20 scroll-smooth">
       <div className="container mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Mobile Filter Toggle */}
@@ -324,11 +262,27 @@ export default function ProductsPage() {
                     )}
                   </div>
                   <CollapsibleContent className="space-y-1 mt-4">
-                    {/* Mostrar categorías predefinidas que tienen productos */}
-                    {categories.map((cat) => {
+                    {/* Mostrar estado de carga */}
+                    {isCategoriesLoading && (
+                      <div className="space-y-3">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Skeleton key={i} className="h-12 w-full" />
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* Mostrar error */}
+                    {isCategoriesError && (
+                      <div className="text-red-500 text-sm py-2">
+                        Error al cargar categorías
+                      </div>
+                    )}
+                    
+                    {/* Mostrar categorías desde la API que tienen productos */}
+                    {!isCategoriesLoading && !isCategoriesError && apiCategories?.map((cat) => {
                       const availableCategory = availableCategories.find(ac => 
                         ac.mappedCategory?.code === cat.code || 
-                        ac.name === cat.shortName
+                        ac.name === cat.short_name
                       );
                       const hasProducts = availableCategory && availableCategory.count > 0;
                       
@@ -337,41 +291,41 @@ export default function ProductsPage() {
                       return (
                         <Collapsible
                           key={cat.code}
-                          open={expandedCategories.has(cat.code) || categoryParam === cat.shortName}
+                          open={expandedCategories.has(cat.code) || categoryParam === cat.short_name}
                           onOpenChange={(isOpen) => toggleCategory(cat.code, isOpen)}
                         >
                           <CollapsibleTrigger asChild>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleFilterChange("category", cat.shortName);
+                                handleFilterChange("category", cat.short_name);
                               }}
                               className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
                                 ${
-                                  categoryParam === cat.shortName
+                                  categoryParam === cat.short_name
                                     ? "bg-red-600 text-white font-bold"
                                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }
                               `}
                             >
                               <span className="flex items-center gap-2">
-                                {cat.shortName}
+                                {cat.short_name}
                                 <span className="text-xs text-gray-500">
                                   ({availableCategory?.count || 0})
                                 </span>
                               </span>
                               <ChevronRight
                                 className={`w-4 h-4 transition-transform ${
-                                  expandedCategories.has(cat.code) || categoryParam === cat.shortName ? "rotate-90" : ""
+                                  expandedCategories.has(cat.code) || categoryParam === cat.short_name ? "rotate-90" : ""
                                 }`}
                               />
                             </button>
                           </CollapsibleTrigger>
                           <CollapsibleContent className="pl-6 space-y-1 mt-1">
-                            {cat.subcategories.map((sub) => {
+                            {cat.subcategories?.map((sub) => {
                               const subCategoryCount = availableCategories.find(ac => 
-                                ac.name === sub.shortName
+                                ac.name === sub.short_name
                               );
                               const hasSubProducts = subCategoryCount && subCategoryCount.count > 0;
                               
@@ -383,19 +337,19 @@ export default function ProductsPage() {
                                   onClick={() =>
                                     handleFilterChange(
                                       "subcategory",
-                                      sub.shortName,
+                                      sub.short_name,
                                     )
                                   }
                                   className={`
                                     text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
                                     ${
-                                      subcategoryParam === sub.shortName
+                                      subcategoryParam === sub.short_name
                                         ? "text-red-500 font-bold bg-red-500/5"
                                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
                                     }
                                   `}
                                 >
-                                  <span>{sub.shortName}</span>
+                                  <span>{sub.short_name}</span>
                                   <span className="text-xs text-gray-600">
                                     ({subCategoryCount?.count || 0})
                                   </span>
@@ -584,7 +538,7 @@ export default function ProductsPage() {
                   <>
                     {t("catalog.showing")}{" "}
                     <span className="text-white font-bold">
-                      {filteredProducts.length}
+                      {productsData?.count || 0}
                     </span>{" "}
                     {t("catalog.productsCount")}
                   </>
@@ -599,8 +553,8 @@ export default function ProductsPage() {
             </div>
 
             {/* Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {isLoading ? (
+            <div className={`grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-300 ${isChangingPage ? 'opacity-50' : ''}`} style={{ contain: 'layout style paint' }}>
+              {isLoading || isChangingPage ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))
@@ -859,28 +813,36 @@ function ProductCard({
     <div
       onClick={onSelect}
       className="cursor-pointer rounded-sm group relative bg-zinc-900/40 border border-white/5 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
+      style={{ contain: 'layout style paint' }}
     >
       {/* Image Container */}
-      <div className="aspect-square bg-zinc-900 flex items-center justify-center transition-transform duration-700 overflow-hidden relative">
+      <div className="aspect-square bg-zinc-900 flex items-center justify-center transition-transform duration-700 overflow-hidden relative" style={{ contain: 'layout' }}>
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={name}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform"
+            style={{
+              aspectRatio: '1/1',
+              backgroundColor: '#18181b',
+              backgroundImage: `url(data:image/svg+xml;base64,${btoa(
+                '<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#18181b"/></svg>'
+              )})`,
+            }}
           />
         ) : (
           <Package
             width={65}
             height={65}
-            className="opacity-10 group-hover:opacity-30 transition-opacity"
+            className="opacity-10 group-hover:opacity-30 transition-opacity will-change-opacity"
           />
         )}
 
         {/* Overlay info */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6">
-          <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-6 will-change-opacity">
+          <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] will-change-transform">
             {t("catalog.viewDetails")}
           </span>
         </div>
@@ -894,9 +856,9 @@ function ProductCard({
         )}
       </div>
 
-      <div className="p-6">
+      <div className="p-6 contain-layout">
         <div className="flex justify-between items-start mb-3">
-          <span className="text-[10px] font-bold text-red-600 tracking-widest uppercase bg-red-600/10 px-2 py-0.5 rounded-xs">
+          <span className="text-[10px] font-bold text-red-600 tracking-widest uppercase bg-red-600/10 px-2 py-0.5 rounded-xs will-change-transform">
             {category || "General"}
           </span>
           <span className="text-[10px] text-gray-600 font-mono">
@@ -904,12 +866,12 @@ function ProductCard({
           </span>
         </div>
 
-        <h3 className="text-lg font-bold text-white mb-6 group-hover:text-red-500 transition-colors line-clamp-2 min-h-14 leading-snug">
+        <h3 className="text-lg font-bold text-white mb-6 group-hover:text-red-500 transition-colors line-clamp-2 min-h-14 leading-snug will-change-colors">
           {name}
         </h3>
 
         <div className="flex justify-between items-center pt-4 border-t border-white/5">
-          <span className="text-xl font-light text-white">
+          <span className="text-xl font-light text-white will-change-transform">
             ${numericPrice.toLocaleString()}
           </span>
           <AddToCart product={product} variant="card" />
