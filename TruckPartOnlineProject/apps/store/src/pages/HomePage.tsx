@@ -178,6 +178,8 @@ function BrandCard({ name, logo }: { name: string; logo: string }) {
       <img
         src={logo}
         alt={name}
+        loading="lazy"
+        decoding="async"
         className="w-full h-full object-contain filter grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300"
       />
     </div>

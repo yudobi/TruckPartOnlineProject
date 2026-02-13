@@ -32,6 +32,12 @@ export interface PaginatedResponse<T> {
   next: string | null;
   previous: string | null;
   results: T[];
+  // Campos adicionales para paginación
+  page_size?: number;
+  current_page?: number;
+  total_pages?: number;
+  has_next?: boolean;
+  has_previous?: boolean;
 }
 
 export interface ProductFilters {
@@ -41,6 +47,9 @@ export interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   search?: string;
+  page?: number;
+  page_size?: number;
+  ordering?: string;
 }
 
 export interface CartItem extends Omit<Product, 'price'> {

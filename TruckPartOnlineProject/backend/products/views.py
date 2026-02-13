@@ -5,8 +5,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from .models import Product, ProductImage, Brand
-from .serializers import ProductSerializer, ProductImageSerializer, ProductSearchSerializer, BrandSerializer
+from .models import Product, ProductImage, Brand, Category
+from .serializers import ProductSerializer, ProductImageSerializer, ProductSearchSerializer, BrandSerializer, CategorySerializer
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from products.pagination import StandardResultsSetPagination
 
@@ -190,5 +190,40 @@ class ProductViewSet(ModelViewSet):
 class BrandViewSet(ReadOnlyModelViewSet):
     queryset = Brand.objects.all().order_by("name")
     serializer_class = BrandSerializer
+
+
+class CategoryViewSet(ModelViewSet):
+    """
+    API endpoint para gestionar categorías.
+    """
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUser]
+    
+    def get_queryset(self):
+        return Category.objects.select_related(
+            "parent",
+            "parent__parent",
+            "parent__parent__parent"
+        ).order_by("level", "name")
+    
+    def get_permissions(self):
+        """
+        - Lectura: cualquiera
+        - Escritura: solo administradores
+        """
+        if self.action in ["create", "update", "partial_update", "destroy"]:
+            return [IsAdminUser()]
+        return [AllowAny()]
+    
+    @action(detail=False, methods=["get"])
+    def tree(self, request):
+        """
+        Retorna la estructura de categorías en formato de árbol.
+        """
+        categories = Category.objects.filter(parent=None).prefetch_related(
+            "children__children__children"
+        )
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)
 
 ######################################################################################################

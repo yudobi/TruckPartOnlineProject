@@ -19,19 +19,7 @@ class Brand(models.Model):
     def __str__(self):
         return self.name
 ########################################################################################
-"""
-class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    qb_id = models.CharField(
-        max_length=50,
-        null=True,
-        blank=True,
-        help_text="ID de la categoría en QuickBooks"
-    )
-
-    def __str__(self):
-        return self.name
-"""  
+ 
 class Category(models.Model):
     name = models.CharField(max_length=100)
     qb_id = models.CharField(

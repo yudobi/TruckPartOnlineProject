@@ -78,7 +78,7 @@ INSTALLED_APPS = [
     'users',
     "inventory.apps.InventoryConfig",
     "storages",
-    'clover',
+    "clover",
     
   
 ]
