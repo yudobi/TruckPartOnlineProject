@@ -2,27 +2,111 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Mail, Lock, ArrowRight } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Phone, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 
+interface ValidationErrors {
+  username?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 export default function AuthPage() {
   const { t } = useTranslation();
-  const { login } = useAuth();
+  const { login, register } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
-    name: "",
+    email: "",
+    phone: "",
+    address: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    const phoneRegex = /^\+?[\d\s-()]{10,}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
+
+    if (!isLogin) {
+      // Validar username
+      if (!formData.username.trim()) {
+        newErrors.username = t("auth.register.validation.username_required");
+      } else if (formData.username.length < 3) {
+        newErrors.username = t("auth.register.validation.username_min");
+      }
+
+      // Validar email
+      if (!formData.email.trim()) {
+        newErrors.email = t("auth.register.validation.email_required");
+      } else if (!validateEmail(formData.email)) {
+        newErrors.email = t("auth.register.validation.email_invalid");
+      }
+
+      // Validar teléfono
+      if (!formData.phone.trim()) {
+        newErrors.phone = t("auth.register.validation.phone_required");
+      } else if (!validatePhone(formData.phone)) {
+        newErrors.phone = t("auth.register.validation.phone_invalid");
+      }
+
+      // Validar dirección
+      if (!formData.address.trim()) {
+        newErrors.address = t("auth.register.validation.address_required");
+      } else if (formData.address.length < 5) {
+        newErrors.address = t("auth.register.validation.address_min");
+      }
+
+      // Validar contraseña
+      if (!formData.password) {
+        newErrors.password = t("auth.register.validation.password_required");
+      } else if (formData.password.length < 8) {
+        newErrors.password = t("auth.register.validation.password_min");
+      }
+
+      // Validar confirmación de contraseña
+      if (formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = t("auth.register.validation.passwords_match");
+      }
+    } else {
+      // Validar login
+      if (!formData.username.trim()) {
+        newErrors.username = t("auth.login.error_message");
+      }
+      if (!formData.password) {
+        newErrors.password = t("auth.login.error_message");
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -33,20 +117,44 @@ export default function AuthPage() {
         });
         navigate("/");
       } else {
-        // Lógica de registro (no implementada aún en el servicio)
-        console.log("Registering:", formData);
-        setIsLogin(true);
+        await register({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          phone_number: formData.phone,
+          address: formData.address,
+        });
+        navigate("/");
       }
     } catch (err: unknown) {
       console.error(err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : t("auth.login.error_message") || "Error al iniciar sesión",
-      );
+      let errorMessage = isLogin
+        ? t("auth.login.error_message")
+        : t("auth.register.error_message");
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setIsLogin(!isLogin);
+    setError(null);
+    setErrors({});
+    setFormData({
+      username: "",
+      password: "",
+      email: "",
+      phone: "",
+      address: "",
+      confirmPassword: "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -73,85 +181,175 @@ export default function AuthPage() {
             onSubmit={handleSubmit}
           >
             {!isLogin && (
+              <>
+                {/* Username */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
+                    {t("auth.register.username")} *
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                        errors.username ? "border-red-500" : ""
+                      }`}
+                      placeholder="johndoe"
+                      value={formData.username}
+                      onChange={(e) =>
+                        setFormData({ ...formData, username: e.target.value })
+                      }
+                    />
+                  </div>
+                  {errors.username && (
+                    <p className="text-red-500 text-xs">{errors.username}</p>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
+                    {t("auth.register.email")} *
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                        errors.email ? "border-red-500" : ""
+                      }`}
+                      type="email"
+                      placeholder="john@example.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                    />
+                  </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-xs">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* Teléfono */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
+                    {t("auth.register.phone")} *
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                        errors.phone ? "border-red-500" : ""
+                      }`}
+                      type="tel"
+                      placeholder="+1 234 567 8900"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                  {errors.phone && (
+                    <p className="text-red-500 text-xs">{errors.phone}</p>
+                  )}
+                </div>
+
+                {/* Dirección */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
+                    {t("auth.register.address")} *
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                    <Input
+                      className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                        errors.address ? "border-red-500" : ""
+                      }`}
+                      placeholder="123 Main St, City"
+                      value={formData.address}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
+                    />
+                  </div>
+                  {errors.address && (
+                    <p className="text-red-500 text-xs">{errors.address}</p>
+                  )}
+                </div>
+              </>
+            )}
+
+            {isLogin && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
-                  {t("auth.register.name")}
+                  {t("auth.login.username")} *
                 </label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
-                    className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
-                    placeholder="John Doe"
-                    required
-                    value={formData.name}
+                    className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                      errors.username ? "border-red-500" : ""
+                    }`}
+                    type="text"
+                    placeholder={t("auth.login.username")}
+                    value={formData.username}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, username: e.target.value })
                     }
                   />
                 </div>
+                {errors.username && (
+                  <p className="text-red-500 text-xs">{errors.username}</p>
+                )}
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
-                {t("auth.login.email")}
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                <Input
-                  className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
-                  type="text"
-                  placeholder={t("auth.login.email")}
-                  required
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData({ ...formData, username: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
+            {/* Contraseña */}
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
-                  {t("auth.login.password")}
+                  {t("auth.login.password")} *
                 </label>
                 {isLogin && (
                   <button
                     type="button"
                     className="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-white transition-colors"
                   >
-                    Forgot?
+                    {t("auth.login.forgot")}
                   </button>
                 )}
               </div>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
-                  className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
+                  className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
                   type="password"
                   placeholder="••••••••"
-                  required
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
                 />
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs">{errors.password}</p>
+              )}
             </div>
 
             {!isLogin && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
-                  {t("auth.register.confirmPassword")}
+                  {t("auth.register.confirmPassword")} *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
-                    className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
+                    className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
+                      errors.confirmPassword ? "border-red-500" : ""
+                    }`}
                     type="password"
                     placeholder="••••••••"
-                    required
                     value={formData.confirmPassword}
                     onChange={(e) =>
                       setFormData({
@@ -161,6 +359,9 @@ export default function AuthPage() {
                     }
                   />
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs">{errors.confirmPassword}</p>
+                )}
               </div>
             )}
 
@@ -193,10 +394,7 @@ export default function AuthPage() {
               ? t("auth.login.noAccount")
               : t("auth.register.haveAccount")}{" "}
             <button
-              onClick={() => {
-                setIsLogin(!isLogin);
-                window.scrollTo({ top: 0, behavior: "smooth" });
-              }}
+              onClick={toggleMode}
               className="text-white font-bold hover:text-red-600 transition-colors border-b border-white/10 hover:border-red-600 pb-0.5 ml-1"
             >
               {isLogin ? t("auth.login.register") : t("auth.register.login")}

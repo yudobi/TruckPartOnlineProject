@@ -12,7 +12,7 @@
     "customer": "CLIENTE"
   },
   "user": {
-    "profile": "Mi Perfil",
+    "profile": "Perfil",
     "logout": "Cerrar Sesión"
   },
   "cart": {
@@ -22,7 +22,7 @@
     "explore": "Explorar Productos",
     "subtotal": "Subtotal",
     "total": "Total",
-    "checkout": "FINALIZAR COMPRA",
+    "checkout": "REALIZAR COMPRA",
     "taxNotice": "Impuestos y envío calculados al finalizar."
   },
   "nav": {
@@ -121,23 +121,81 @@
     "login": {
       "title": "INICIAR SESIÓN",
       "subtitle": "Ingresa a tu cuenta para gestionar tus pedidos",
+      "username": "Usuario",
       "email": "Usuario o Correo",
       "password": "Contraseña",
       "submit": "INGRESAR",
       "noAccount": "¿No tienes una cuenta?",
       "register": "Regístrate aquí",
-      "badge": "Bienvenido"
+      "badge": "Bienvenido",
+      "forgot": "¿Olvidaste?",
+      "error_message": "Error al iniciar sesión. Verifica tus credenciales."
     },
     "register": {
       "title": "CREAR CUENTA",
       "subtitle": "Únete a TruckPartOnline y optimiza tu flota",
-      "name": "Nombre Completo",
+      "username": "Nombre de Usuario",
       "email": "Correo Electrónico",
       "password": "Contraseña",
       "confirmPassword": "Confirmar Contraseña",
+      "phone": "Teléfono",
+      "address": "Dirección",
       "submit": "REGISTRARSE",
       "haveAccount": "¿Ya tienes una cuenta?",
-      "login": "Inicia sesión"
+      "login": "Inicia sesión",
+      "error_message": "Error al registrarse. Verifica los datos ingresados.",
+      "validation": {
+        "username_required": "El nombre de usuario es requerido",
+        "username_min": "El usuario debe tener al menos 3 caracteres",
+        "email_required": "El correo electrónico es requerido",
+        "email_invalid": "Ingresa un correo electrónico válido",
+        "phone_required": "El teléfono es requerido",
+        "phone_invalid": "Ingresa un número de teléfono válido",
+        "address_required": "La dirección es requerida",
+        "address_min": "La dirección debe tener al menos 5 caracteres",
+        "password_required": "La contraseña es requerida",
+        "password_min": "La contraseña debe tener al menos 8 caracteres",
+        "passwords_match": "Las contraseñas no coinciden"
+      }
+    }
+  },
+  "orders": {
+    "title": "Pedidos",
+    "subtitle": "Historial de tus compras",
+    "orderNumber": "Pedido #",
+    "date": "Fecha",
+    "status": "Estado",
+    "total": "Total",
+    "items": "Productos",
+    "viewDetails": "Ver detalles",
+    "noOrders": "No tienes pedidos aún",
+    "noOrdersDesc": "Cuando realices una compra, aparecerá aquí",
+    "backToOrders": "Volver a pedidos",
+    "orderDetails": "Detalles del Pedido",
+    "paymentMethod": "Método de pago",
+    "paymentStatus": "Estado de pago",
+    "shippingAddress": "Dirección de envío",
+    "product": "Producto",
+    "quantity": "Cantidad",
+    "price": "Precio",
+    "subtotal": "Subtotal",
+    "loading": "Cargando pedidos...",
+    "error": "Error al cargar los pedidos",
+    "retry": "Reintentar",
+    "status": {
+      "pending": "Pendiente",
+      "invoiced": "Facturado",
+      "completed": "Completado",
+      "failed": "Fallido"
+    },
+    "paymentStatus": {
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "failed": "Fallido"
+    },
+    "paymentMethods": {
+      "cod": "Contra entrega",
+      "card": "Tarjeta"
     }
   }
 }
