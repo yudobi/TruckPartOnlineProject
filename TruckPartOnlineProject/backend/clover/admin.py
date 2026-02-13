@@ -1,38 +1,78 @@
-# clover/admin.py
 from django.contrib import admin
 from django.utils.html import format_html
 from django.conf import settings
+from django.contrib import messages
+
 from .models import CloverMerchant
 from .services.clover_sync import sync_clover_prices
 
+
 @admin.register(CloverMerchant)
 class CloverMerchantAdmin(admin.ModelAdmin):
-    list_display = ("merchant_id", "name", "created_at", "connect_button")
+    list_display = (
+        "merchant_id",
+        "name",
+        "created_at",
+        "connect_button",
+    )
+
     readonly_fields = ("created_at",)
-    exclude = ("access_token", "refresh_token")  # ocultar tokens
+    exclude = ("access_token", "refresh_token")
     search_fields = ("merchant_id", "name")
-    actions = ["sync_prices"]
+    actions = ["sync_prices_action"]
 
-    def sync_prices(self, request, queryset):
+    # 🔄 Acción manual desde dropdown
+    def sync_prices_action(self, request, queryset):
+        success_count = 0
+        error_count = 0
+
         for merchant in queryset:
-            sync_clover_prices(merchant)
-        self.message_user(request, "Precios sincronizados correctamente")
-    sync_prices.short_description = "Sincronizar precios desde Clover"
+            try:
+                sync_clover_prices(merchant)
+                success_count += 1
+            except Exception as e:
+                error_count += 1
+                self.message_user(
+                    request,
+                    f"Error sincronizando {merchant.merchant_id}: {str(e)}",
+                    level=messages.ERROR
+                )
 
+        if success_count:
+            self.message_user(
+                request,
+                f"{success_count} merchant(s) sincronizado(s) correctamente.",
+                level=messages.SUCCESS
+            )
+
+        if error_count:
+            self.message_user(
+                request,
+                f"{error_count} merchant(s) tuvieron errores.",
+                level=messages.WARNING
+            )
+
+    sync_prices_action.short_description = "Sincronizar precios desde Clover"
+
+    # 🔗 Botón OAuth
     def connect_button(self, obj=None):
-        """
-        Botón para agregar un nuevo merchant vía OAuth
-        """
         redirect_uri = getattr(settings, "CLOVER_REDIRECT_URI", None)
+
         if not redirect_uri:
-            return "CLOVER_REDIRECT_URI no configurado en settings"
-        
+            return "CLOVER_REDIRECT_URI no configurado"
+
         oauth_url = (
-            f"https://sandbox.dev.clover.com/oauth/authorize?"
+            "https://sandbox.dev.clover.com/oauth/authorize?"
             f"client_id={settings.CLOVER_APP_ID}&"
-            f"response_type=code&"
+            "response_type=code&"
             f"redirect_uri={redirect_uri}"
         )
-        return format_html(f'<a class="button" href="{oauth_url}" target="_blank">Agregar Merchant</a>')
+
+        return format_html(
+            '<a class="button" style="padding:4px 8px; background:#28a745; '
+            'color:white; border-radius:4px;" '
+            'href="{}" target="_blank">Conectar Clover</a>',
+            oauth_url
+        )
 
     connect_button.short_description = "Conectar Clover"
