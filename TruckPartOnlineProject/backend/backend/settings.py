@@ -235,9 +235,23 @@ AWS_DEFAULT_ACL = None
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
 
 ############################### Clover  Settings ################################
-CLOVER_APP_ID = config("CLOVER_APP_ID")
-CLOVER_APP_SECRET = config("CLOVER_APP_SECRET")
-CLOVER_REDIRECT_URI = config("CLOVER_REDIRECT_URI")
+CLOVER_ENV = config("CLOVER_ENV", "sandbox")  # "sandbox" o "production"
+
+if CLOVER_ENV == "sandbox":
+    CLOVER_APP_ID = config("CLOVER_APP_ID_SANDBOX")
+    CLOVER_APP_SECRET = config("CLOVER_APP_SECRET_SANDBOX")
+    CLOVER_REDIRECT_URI = config("CLOVER_REDIRECT_URI_SANDBOX")
+
+    CLOVER_BASE_URL = "https://sandbox.dev.clover.com"
+else:
+    CLOVER_APP_ID = config("CLOVER_APP_ID")
+    CLOVER_APP_SECRET = config("CLOVER_APP_SECRET")
+    CLOVER_REDIRECT_URI = config("CLOVER_REDIRECT_URI")
+    
+    CLOVER_BASE_URL = "https://api.clover.com"
+
+
+
 
 #CLOVER_MERCHANT_ID = config("CLOVER_MERCHANT_ID")
 #CLOVER_ACCESS_TOKEN = config("CLOVER_ACCESS_TOKEN")
