@@ -6,6 +6,7 @@ import {
   Settings,
   Wrench,
   Menu,
+  Package,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@components/layout/LanguageSwitcher";
@@ -116,15 +117,9 @@ export default function Navbar() {
             <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
             <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
 
-            <div className="h-6 w-px bg-white/20 mx-2" />
-
             <LanguageSwitcher />
 
-            <div className="h-6 w-px bg-white/20 mx-2" />
-
             <CartSidebar />
-
-            <div className="h-6 w-px bg-white/20 mx-2" />
 
             {isAuthenticated ? (
               <DropdownMenu>
@@ -162,6 +157,12 @@ export default function Navbar() {
                   </DropdownMenuLabel>
 
                   <DropdownMenuGroup className="space-y-1">
+                    <Link to="/orders" className="w-full">
+                      <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
+                        <Package className="mr-3 h-4 w-4 text-red-500" />
+                        <span>{t("orders.title")}</span>
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
                       <Settings className="mr-3 h-4 w-4 text-red-500" />
                       <span>{t("user.profile")}</span>
@@ -257,6 +258,9 @@ export default function Navbar() {
                             </span>
                           </div>
                         </div>
+                        <MobileNavItem to="/orders">
+                          {t("orders.title")}
+                        </MobileNavItem>
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-2 text-red-500 font-bold text-sm hover:text-red-400 transition-colors"

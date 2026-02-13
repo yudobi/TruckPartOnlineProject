@@ -1,4 +1,4 @@
-import { Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
@@ -34,11 +34,19 @@ export default function CartSidebar() {
         </button>
       </SheetTrigger>
       <SheetContent className="w-full sm:max-w-md bg-zinc-950 border-l border-white/10 p-0 flex flex-col">
-        <SheetHeader className="p-6 border-b border-white/10">
+        <SheetHeader className="p-6 border-b border-white/10 flex flex-row items-center justify-between">
           <SheetTitle className="text-white flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-red-600" />
             {t("cart.title")} ({itemCount})
           </SheetTitle>
+          <SheetClose asChild>
+            <button 
+              className="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
+              aria-label={t("cart.close") || "Cerrar carrito"}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </SheetClose>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">

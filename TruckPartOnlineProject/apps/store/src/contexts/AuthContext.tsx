@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import Cookies from "js-cookie";
-import { type UserInfo, type LoginCredentials } from "@app-types/auth";
+import { type UserInfo, type LoginCredentials, type RegisterCredentials } from "@app-types/auth";
 import { AuthContext, type AuthContextType } from "@hooks/useAuth";
 import apiClient from "@/services/apiClient";
 import authService from "@/services/auth";
@@ -55,6 +55,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const register = async (credentials: RegisterCredentials) => {
+    try {
+      const registerResponse = await authService.register(credentials);
+      
+      // Después del registro, configuramos el token y el usuario
+      apiClient.setAuthToken(registerResponse.access);
+      
+      const userData: UserInfo = {
+        ...registerResponse.user,
+        accessToken: registerResponse.access,
+        refreshToken: registerResponse.refresh,
+      };
+
+      setUser(userData);
+
+      // Guardamos en la cookie por 7 días
+      Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
+        expires: 7,
+        secure: window.location.protocol === "https:",
+        sameSite: "strict",
+      });
+    } catch (error) {
+      console.error("Register Error:", error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     apiClient.setAuthToken(null);
@@ -65,6 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     isAuthenticated: !!user,
     login,
+    register,
     logout,
   };
 

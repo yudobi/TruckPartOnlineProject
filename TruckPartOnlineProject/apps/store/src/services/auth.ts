@@ -1,4 +1,4 @@
-import type { LoginCredentials, LoginResponse, UserInfo } from '@/types/auth';
+import type { LoginCredentials, LoginResponse, UserInfo, RegisterCredentials, RegisterResponse } from '@/types/auth';
 import apiClient from './apiClient';
 
 class AuthService {
@@ -11,6 +11,17 @@ class AuthService {
       return response.data;
     } catch (error) {
       console.error(`Error fetching login`, error);
+      throw error;
+    }
+  }
+
+  // Register
+  async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
+    try {
+      const response = await apiClient.post<RegisterResponse>(`${this.endpoint}/register/`, credentials);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching register`, error);
       throw error;
     }
   }

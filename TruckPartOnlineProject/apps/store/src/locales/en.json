@@ -12,7 +12,7 @@
     "customer": "CUSTOMER"
   },
   "user": {
-    "profile": "My Profile",
+    "profile": "Profile",
     "logout": "Logout"
   },
   "cart": {
@@ -121,23 +121,82 @@
     "login": {
       "title": "LOGIN",
       "subtitle": "Sign in to your account to manage your orders",
+      "username": "Username",
       "email": "Username or Email",
       "password": "Password",
       "submit": "SIGN IN",
       "noAccount": "Don't have an account?",
       "register": "Register here",
-      "badge": "Wellcome Back"
+      "badge": "Welcome Back",
+      "forgot": "Forgot?",
+      "error_message": "Login failed. Please check your credentials."
     },
     "register": {
+      "badge": "Create Account",
       "title": "CREATE ACCOUNT",
       "subtitle": "Join TruckPartOnline and optimize your fleet",
-      "name": "Full Name",
+      "username": "Username",
       "email": "Email Address",
       "password": "Password",
       "confirmPassword": "Confirm Password",
+      "phone": "Phone Number",
+      "address": "Address",
       "submit": "REGISTER",
       "haveAccount": "Already have an account?",
-      "login": "Sign in"
+      "login": "Sign in",
+      "error_message": "Registration failed. Please check your information.",
+      "validation": {
+        "username_required": "Username is required",
+        "username_min": "Username must be at least 3 characters",
+        "email_required": "Email is required",
+        "email_invalid": "Please enter a valid email",
+        "phone_required": "Phone number is required",
+        "phone_invalid": "Please enter a valid phone number",
+        "address_required": "Address is required",
+        "address_min": "Address must be at least 5 characters",
+        "password_required": "Password is required",
+        "password_min": "Password must be at least 8 characters",
+        "passwords_match": "Passwords do not match"
+      }
+    }
+  },
+  "orders": {
+    "title": "Orders",
+    "subtitle": "Your purchase history",
+    "orderNumber": "Order #",
+    "date": "Date",
+    "status": "Status",
+    "total": "Total",
+    "items": "Items",
+    "viewDetails": "View details",
+    "noOrders": "You don't have any orders yet",
+    "noOrdersDesc": "When you make a purchase, it will appear here",
+    "backToOrders": "Back to orders",
+    "orderDetails": "Order Details",
+    "paymentMethod": "Payment method",
+    "paymentStatus": "Payment status",
+    "shippingAddress": "Shipping address",
+    "product": "Product",
+    "quantity": "Quantity",
+    "price": "Price",
+    "subtotal": "Subtotal",
+    "loading": "Loading orders...",
+    "error": "Error loading orders",
+    "retry": "Retry",
+    "status": {
+      "pending": "Pending",
+      "invoiced": "Invoiced",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "paymentStatus": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed"
+    },
+    "paymentMethods": {
+      "cod": "Cash on Delivery",
+      "card": "Card"
     }
   }
 }
