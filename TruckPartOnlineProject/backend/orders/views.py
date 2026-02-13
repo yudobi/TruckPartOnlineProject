@@ -171,4 +171,57 @@ def order_detail(request, order_id):
         "items": items,
         "created_at": order.created_at
     })
+
+
+#############################LISTAR ORDENES DEL USUARIO############################
+@api_view(["GET"])
+def my_orders(request):
+    """
+    GET /orders/my-orders/
+    Lista todas las órdenes del usuario autenticado
+    """
+    if not request.user.is_authenticated:
+        return Response(
+            {"error": "Authentication required"},
+            status=status.HTTP_401_UNAUTHORIZED
+        )
+    
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    data = []
+    for order in orders:
+        items = []
+        for i in order.items.all():
+            items.append({
+                "id": i.id,
+                "product": {
+                    "id": i.product.id,
+                    "name": i.product.name,
+                    "sku": i.product.sku,
+                    "images": [{"id": img.id, "image": img.image.url, "is_main": img.is_main} 
+                              for img in i.product.images.all()]
+                },
+                "quantity": i.quantity,
+                "price": float(i.price)
+            })
+        
+        data.append({
+            "id": order.id,
+            "status": order.status,
+            "payment_method": order.payment_method,
+            "payment_status": order.payment_status,
+            "total": float(order.total),
+            "shipping_address": order.shipping_address,
+            "city": order.city,
+            "state": order.state,
+            "country": order.country,
+            "postal_code": order.postal_code,
+            "created_at": order.created_at,
+            "items": items
+        })
+    
+    return Response({
+        "count": len(data),
+        "results": data
+    })
 ####################################################################################
