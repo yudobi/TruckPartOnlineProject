@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { categoryService } from '../services/categoryService';
 import { 
   type Category, 
+  type CategoryTree,
   type Subcategory, 
-  type CategoryWithSubcategories,
   type CategoryFilters, 
   type SubcategoryFilters,
   type PaginatedResponse 
@@ -19,10 +19,10 @@ export const useCategories = (filters?: CategoryFilters) => {
   });
 };
 
-// Hook para obtener categorías con subcategorías
+// Hook para obtener categorías con subcategorías (estructura de árbol)
 export const useCategoriesWithSubcategories = () => {
-  return useQuery<CategoryWithSubcategories[], Error>({
-    queryKey: ['categories', 'with-subcategories'],
+  return useQuery<CategoryTree[], Error>({
+    queryKey: ['categories', 'tree'],
     queryFn: () => categoryService.getAllCategoriesWithSubcategories(),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos

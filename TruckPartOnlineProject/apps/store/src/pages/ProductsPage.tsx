@@ -9,7 +9,14 @@ import {
 import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
 
-import { type Product } from "@app-types/product";
+import { type Product, type ProductCategory } from "@app-types/product";
+
+// Helper para obtener el nombre de la categoría de forma segura
+const getCategoryName = (category: ProductCategory | string | undefined): string => {
+  if (!category) return "";
+  if (typeof category === "string") return category;
+  return category.name || "";
+};
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
@@ -104,12 +111,16 @@ export default function ProductsPage() {
     const categoryMap = new Map<string, { count: number; name: string }>();
     
     productsData.results.forEach(product => {
-      if (product.category) {
-        const existing = categoryMap.get(product.category);
+      const categoryName = typeof product.category === 'string' 
+        ? product.category 
+        : product.category?.name;
+      
+      if (categoryName) {
+        const existing = categoryMap.get(categoryName);
         if (existing) {
           existing.count++;
         } else {
-          categoryMap.set(product.category, { count: 1, name: product.category });
+          categoryMap.set(categoryName, { count: 1, name: categoryName });
         }
       }
     });
@@ -119,9 +130,8 @@ export default function ProductsPage() {
       count: data.count,
       // Intentar mapear con categorías desde la API
       mappedCategory: apiCategories.find(cat => 
-        cat.short_name === name || 
-        cat.code === name ||
-        cat.short_name.toLowerCase() === name.toLowerCase()
+        cat.name === name || 
+        cat.name.toLowerCase() === name.toLowerCase()
       )
     }));
   }, [productsData, apiCategories]);
@@ -160,16 +170,16 @@ export default function ProductsPage() {
     setSearchParams(new URLSearchParams());
   };
 
-  const toggleCategory = (categoryCode: string, isOpen: boolean) => {
+  const toggleCategory = (categoryId: number, isOpen: boolean) => {
     setExpandedCategories((prev) => {
       const newSet = new Set(prev);
       if (isOpen) {
-        newSet.add(categoryCode);
+        newSet.add(categoryId.toString());
       } else {
-        newSet.delete(categoryCode);
+        newSet.delete(categoryId.toString());
         // Limpiar filtro cuando se cierra la categoría
-        const category = apiCategories?.find(cat => cat.code === categoryCode);
-        if (category && categoryParam === category.short_name) {
+        const category = apiCategories?.find(cat => cat.id === categoryId);
+        if (category && categoryParam === category.name) {
           handleFilterChange("category", undefined);
         }
       }
@@ -281,8 +291,8 @@ export default function ProductsPage() {
                     {/* Mostrar categorías desde la API que tienen productos */}
                     {!isCategoriesLoading && !isCategoriesError && apiCategories?.map((cat) => {
                       const availableCategory = availableCategories.find(ac => 
-                        ac.mappedCategory?.code === cat.code || 
-                        ac.name === cat.short_name
+                        ac.mappedCategory?.id === cat.id || 
+                        ac.name === cat.name
                       );
                       const hasProducts = availableCategory && availableCategory.count > 0;
                       
@@ -290,42 +300,42 @@ export default function ProductsPage() {
                       
                       return (
                         <Collapsible
-                          key={cat.code}
-                          open={expandedCategories.has(cat.code) || categoryParam === cat.short_name}
-                          onOpenChange={(isOpen) => toggleCategory(cat.code, isOpen)}
+                          key={cat.id}
+                          open={expandedCategories.has(cat.id.toString()) || categoryParam === cat.name}
+                          onOpenChange={(isOpen) => toggleCategory(cat.id, isOpen)}
                         >
                           <CollapsibleTrigger asChild>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleFilterChange("category", cat.short_name);
+                                handleFilterChange("category", cat.name);
                               }}
                               className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
                                 ${
-                                  categoryParam === cat.short_name
+                                  categoryParam === cat.name
                                     ? "bg-red-600 text-white font-bold"
                                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }
                               `}
                             >
                               <span className="flex items-center gap-2">
-                                {cat.short_name}
+                                {cat.name}
                                 <span className="text-xs text-gray-500">
                                   ({availableCategory?.count || 0})
                                 </span>
                               </span>
                               <ChevronRight
                                 className={`w-4 h-4 transition-transform ${
-                                  expandedCategories.has(cat.code) || categoryParam === cat.short_name ? "rotate-90" : ""
+                                  expandedCategories.has(cat.id.toString()) || categoryParam === cat.name ? "rotate-90" : ""
                                 }`}
                               />
                             </button>
                           </CollapsibleTrigger>
                           <CollapsibleContent className="pl-6 space-y-1 mt-1">
-                            {cat.subcategories?.map((sub) => {
+                            {cat.children?.map((sub) => {
                               const subCategoryCount = availableCategories.find(ac => 
-                                ac.name === sub.short_name
+                                ac.name === sub.name
                               );
                               const hasSubProducts = subCategoryCount && subCategoryCount.count > 0;
                               
@@ -333,23 +343,23 @@ export default function ProductsPage() {
                               
                               return (
                                 <button
-                                  key={sub.code}
+                                  key={sub.id}
                                   onClick={() =>
                                     handleFilterChange(
                                       "subcategory",
-                                      sub.short_name,
+                                      sub.name,
                                     )
                                   }
                                   className={`
                                     text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
                                     ${
-                                      subcategoryParam === sub.short_name
+                                      subcategoryParam === sub.name
                                         ? "text-red-500 font-bold bg-red-500/5"
                                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
                                     }
                                   `}
                                 >
-                                  <span>{sub.short_name}</span>
+                                  <span>{sub.name}</span>
                                   <span className="text-xs text-gray-600">
                                     ({subCategoryCount?.count || 0})
                                   </span>
@@ -681,8 +691,8 @@ export default function ProductsPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-0.5 bg-red-600 text-[10px] font-black text-white uppercase tracking-tighter rounded-xs">
-                          {selectedProduct.category || "General"}
-                        </span>
+                           {getCategoryName(selectedProduct.category) || "General"}
+                         </span>
                         <div className="h-px flex-1 bg-white/10"></div>
                       </div>
 
@@ -730,8 +740,8 @@ export default function ProductsPage() {
                             {t("catalog.details.category")}
                           </span>
                           <p className="text-sm text-white">
-                            {selectedProduct.category || "N/A"}
-                          </p>
+                             {getCategoryName(selectedProduct.category) || "N/A"}
+                           </p>
                         </div>
                       </div>
                     </div>
@@ -859,7 +869,7 @@ function ProductCard({
       <div className="p-6 contain-layout">
         <div className="flex justify-between items-start mb-3">
           <span className="text-[10px] font-bold text-red-600 tracking-widest uppercase bg-red-600/10 px-2 py-0.5 rounded-xs will-change-transform">
-            {category || "General"}
+            {getCategoryName(category) || "General"}
           </span>
           <span className="text-[10px] text-gray-600 font-mono">
             #{product.id.toString().padStart(3, "0")}

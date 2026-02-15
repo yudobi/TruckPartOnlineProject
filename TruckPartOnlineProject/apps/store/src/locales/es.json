@@ -9,7 +9,8 @@
     "categories": "Categorías",
     "language": "Idioma",
     "theme": "Tema",
-    "customer": "CLIENTE"
+    "customer": "CLIENTE",
+    "community_manager": "Administrador de Comunidad"
   },
   "user": {
     "profile": "Perfil",
@@ -74,11 +75,10 @@
     "title": "CATÁLOGO",
     "filters": {
       "all": "TODOS",
-      "maintenance": "MANTENIMIENTO",
-      "safety": "SEGURIDAD",
-      "electric": "ELÉCTRICO",
-      "chassis": "CHASSIS",
-      "cooling": "REFRIGERACIÓN",
+      "category": "CATEGORÍA",
+      "subcategory": "SUBCATEGORÍA",
+      "system": "SISTEMA",
+      "piece": "PIEZA",
       "search": "BÚSQUEDA",
       "searchPlaceholder": "Buscar repuestos...",
       "categories": "CATEGORÍAS",
@@ -164,7 +164,7 @@
     "subtitle": "Historial de tus compras",
     "orderNumber": "Pedido #",
     "date": "Fecha",
-    "status": "Estado",
+    "statusTitle": "Estado",
     "total": "Total",
     "items": "Productos",
     "viewDetails": "Ver detalles",
@@ -173,7 +173,7 @@
     "backToOrders": "Volver a pedidos",
     "orderDetails": "Detalles del Pedido",
     "paymentMethod": "Método de pago",
-    "paymentStatus": "Estado de pago",
+    "paymentStatusTitle": "Estado de pago",
     "shippingAddress": "Dirección de envío",
     "product": "Producto",
     "quantity": "Cantidad",
@@ -182,20 +182,20 @@
     "loading": "Cargando pedidos...",
     "error": "Error al cargar los pedidos",
     "retry": "Reintentar",
-    "status": {
+    "orderStatus": {
       "pending": "Pendiente",
       "invoiced": "Facturado",
       "completed": "Completado",
       "failed": "Fallido"
     },
+    "paymentMethods": {
+      "cod": "Contra entrega",
+      "card": "Tarjeta"
+    },
     "paymentStatus": {
       "pending": "Pendiente",
       "paid": "Pagado",
       "failed": "Fallido"
-    },
-    "paymentMethods": {
-      "cod": "Contra entrega",
-      "card": "Tarjeta"
     }
   }
 }
