@@ -1,31 +1,42 @@
 export interface Category {
   id: number;
-  code: string;
   name: string;
-  short_name: string;
-  short_name_en: string;
+  level: number;
+  parent: number | null;
+  qb_id: string | null;
+  // Campos adicionales que pueden venir en algunas respuestas
+  code?: string;
+  short_name?: string;
+  short_name_en?: string;
   description?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Para el endpoint /tree/ que retorna categorías con children anidados
+export interface CategoryTree extends Category {
+  children?: CategoryTree[];
 }
 
 export interface Subcategory {
   id: number;
-  code: string;
+  code?: string;
   name: string;
-  short_name: string;
-  short_name_en: string;
+  short_name?: string;
+  short_name_en?: string;
   description?: string;
   category: Category | number;
   category_code?: string;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
+// CategoryWithSubcategories usa la estructura de árbol del backend
 export interface CategoryWithSubcategories extends Category {
-  subcategories: Subcategory[];
+  children?: CategoryWithSubcategories[];
+  subcategories?: Subcategory[]; // Para compatibilidad con código existente
 }
 
 export interface CategoryFilters {

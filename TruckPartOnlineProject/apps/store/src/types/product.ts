@@ -12,6 +12,14 @@ export interface ProductInventory {
   updated_at: string;
 }
 
+export interface ProductCategory {
+  id: number;
+  name: string;
+  level: number;
+  parent: number | null;
+  qb_id: string | null;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -23,7 +31,7 @@ export interface Product {
   images: ProductImage[];
   created_at: string;
   updated_at: string;
-  category?: string; 
+  category?: ProductCategory | string; 
   manufacturer?: string; // Nuevo campo para filtros
 }
 

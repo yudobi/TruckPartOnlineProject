@@ -1,7 +1,7 @@
 import type { 
   Category, 
+  CategoryTree,
   Subcategory, 
-  CategoryWithSubcategories, 
   CategoryFilters, 
   SubcategoryFilters,
   PaginatedResponse 
@@ -33,10 +33,11 @@ class CategoryService {
     }
   }
 
-  // Obtener todas las categorías con sus subcategorías (no paginado para listados completos)
-  async getAllCategoriesWithSubcategories(): Promise<CategoryWithSubcategories[]> {
+  // Obtener todas las categorías con sus subcategorías en formato árbol
+  async getAllCategoriesWithSubcategories(): Promise<CategoryTree[]> {
     try {
-      const response = await apiClient.get<CategoryWithSubcategories[]>(`${this.endpoint}/with-subcategories/`);
+      // Endpoint: GET /categories/tree/
+      const response = await apiClient.get<CategoryTree[]>(`${this.endpoint}/tree/`);
       return response.data;
     } catch (error) {
       console.error('Error fetching categories with subcategories:', error);
