@@ -245,13 +245,13 @@ CLOVER_CONFIG = {
         "APP_ID": config("CLOVER_APP_ID_SANDBOX"),
         "APP_SECRET": config("CLOVER_APP_SECRET_SANDBOX"),
         "REDIRECT_URI": config("CLOVER_REDIRECT_URI_SANDBOX"),
-        "BASE_URL": "https://sandbox.dev.clover.com",
+        "BASE_URL": config("CLOVER_BASE_URL_SANDBOX", "https://sandbox.dev.clover.com"),
     },
     "production": {
         "APP_ID": config("CLOVER_APP_ID_PROD"),
         "APP_SECRET": config("CLOVER_APP_SECRET_PROD"),
         "REDIRECT_URI": config("CLOVER_REDIRECT_URI_PROD"),
-        "BASE_URL": "https://api.clover.com",
+        "BASE_URL": config("CLOVER_BASE_URL_PROD", "https://www.clover.com"),
     }
 }
 
