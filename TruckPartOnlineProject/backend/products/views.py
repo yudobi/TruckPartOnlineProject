@@ -215,14 +215,14 @@ class CategoryViewSet(ModelViewSet):
             return [IsAdminUser()]
         return [AllowAny()]
     
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], permission_classes=[AllowAny])
     def tree(self, request):
         """
-        Retorna la estructura de categorías en formato de árbol.
+        Retorna la estructura de categorías en formato de árbol jerárquico completo.
         """
         categories = Category.objects.filter(parent=None).prefetch_related(
-            "children__children__children"
-        )
+            "children__children__children__children"
+        ).order_by("name")
         serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data)
 

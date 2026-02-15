@@ -4,6 +4,8 @@ from inventory.serializers import InventorySerializer
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+    
     class Meta:
         model = Category
         fields = [
@@ -11,8 +13,13 @@ class CategorySerializer(serializers.ModelSerializer):
             "name",
             "level",
             "parent",
-            "qb_id"
+            "qb_id",
+            "children"
         ]
+    
+    def get_children(self, obj):
+        children = obj.children.all().order_by("name")
+        return CategorySerializer(children, many=True).data
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
