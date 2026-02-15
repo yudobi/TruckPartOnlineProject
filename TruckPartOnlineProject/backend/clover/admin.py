@@ -54,16 +54,23 @@ class CloverMerchantAdmin(admin.ModelAdmin):
 
     sync_prices_action.short_description = "Sincronizar precios desde Clover"
 
-    # 🔗 Botón OAuth
+    # 🔗 Botón OAuth dinámico (sandbox / production automático)
     def connect_button(self, obj=None):
-        redirect_uri = getattr(settings, "CLOVER_REDIRECT_URI", None)
+        clover_config = getattr(settings, "CLOVER", None)
 
-        if not redirect_uri:
-            return "CLOVER_REDIRECT_URI no configurado"
+        if not clover_config:
+            return "CLOVER config no encontrada"
+
+        redirect_uri = clover_config.get("REDIRECT_URI")
+        client_id = clover_config.get("APP_ID")
+        base_url = clover_config.get("BASE_URL")
+
+        if not redirect_uri or not client_id or not base_url:
+            return "CLOVER mal configurado"
 
         oauth_url = (
-            "https://sandbox.dev.clover.com/oauth/authorize?"
-            f"client_id={settings.CLOVER_APP_ID}&"
+            f"{base_url}/oauth/authorize?"
+            f"client_id={client_id}&"
             "response_type=code&"
             f"redirect_uri={redirect_uri}"
         )
