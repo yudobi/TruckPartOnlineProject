@@ -7,8 +7,8 @@ import {
   type CheckoutResponse,
   type PayOrderData,
   type PayOrderResponse,
-  type PaginatedResponse 
 } from '../types/order';
+import type { PaginatedResponse } from '@/types/product';
 
 // Hook para obtener las órdenes del usuario
 export const useMyOrders = (filters?: OrderFilters) => {

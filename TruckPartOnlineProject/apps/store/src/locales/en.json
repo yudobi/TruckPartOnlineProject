@@ -91,6 +91,13 @@
     "showing": "Showing",
     "productsCount": "products",
     "sortBy": "Sort by",
+    "sortOptions": {
+      "recent": "Most recent",
+      "priceAsc": "Price: Low to High",
+      "priceDesc": "Price: High to Low",
+      "nameAsc": "Name: A-Z",
+      "nameDesc": "Name: Z-A"
+    },
     "recent": "Recent",
     "noProducts": "No products found",
     "noProductsDesc": "Try adjusting your filters or search for something else.",

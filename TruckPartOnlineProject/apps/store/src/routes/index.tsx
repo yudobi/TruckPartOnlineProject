@@ -7,6 +7,7 @@ import ContactPage from "@/pages/ContactPage";
 import AuthPage from "@/pages/AuthPage";
 import OrdersPage from "@/pages/OrdersPage";
 import OrderDetailPage from "@/pages/OrderDetailPage";
+import CheckoutPage from "@/pages/CheckoutPage";
 
 /**
  * Configuración declarativa de rutas usando React Router 7
@@ -49,6 +50,11 @@ export const routes: RouteObject[] = [
         // Página de órdenes del usuario
         path: "orders",
         element: <OrdersPage />,
+      },
+      {
+        // Página de checkout
+        path: "checkout",
+        element: <CheckoutPage />,
       },
       {
         // Página de detalle de orden
