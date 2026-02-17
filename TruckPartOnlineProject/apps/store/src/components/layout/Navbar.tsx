@@ -35,7 +35,7 @@ import {
 
 import CartSidebar from "@components/cart/CartSidebar";
 
-import categories from "@lib/categories";
+import { getAllCategoriesFormatted } from "@lib/categoryHelpers";
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -47,10 +47,10 @@ export default function Navbar() {
     navigate("/auth");
   };
 
-  const handleCategorySearch = (category: string, subcategory?: string) => {
+  const handleCategorySearch = (categoryCode: string, subcategoryCode?: string) => {
     const params = new URLSearchParams();
-    if (category) params.append("category", category);
-    if (subcategory) params.append("subcategory", subcategory);
+    if (categoryCode) params.append("category", categoryCode);
+    if (subcategoryCode) params.append("subcategory", subcategoryCode);
     navigate(`/products?${params.toString()}`);
   };
 
@@ -82,14 +82,14 @@ export default function Navbar() {
                   <DropdownMenuLabel className="text-xs font-bold tracking-widest text-gray-500 uppercase px-2 mb-2">
                     {t("nav.searchCategory")}
                   </DropdownMenuLabel>
-                  {categories.map((category) => (
+                  {getAllCategoriesFormatted().map((category) => (
                     <DropdownMenuSub key={category.code}>
                       <DropdownMenuSubTrigger
                         className="flex items-center gap-2 py-2.5 cursor-pointer focus:bg-white/10"
-                        onClick={() => handleCategorySearch(category.shortName)}
+                        onClick={() => handleCategorySearch(category.code)}
                       >
                         <Wrench className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">{category.shortName}</span>
+                        <span className="text-sm">{category.displayName}</span>
                       </DropdownMenuSubTrigger>
                       <DropdownMenuPortal>
                         <DropdownMenuSubContent className="bg-black/95 border-white/10 text-white backdrop-blur-xl p-2">
@@ -99,12 +99,12 @@ export default function Navbar() {
                               className="cursor-pointer py-2.5 text-sm focus:bg-white/10"
                               onClick={() =>
                                 handleCategorySearch(
-                                  category.shortName,
-                                  subcategory.shortName,
+                                  category.code,
+                                  subcategory.code,
                                 )
                               }
                             >
-                              {subcategory.shortName}
+                              {subcategory.displayName}
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuSubContent>

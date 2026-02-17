@@ -3,6 +3,12 @@ from .models import Product, ProductImage, Brand, Category
 from inventory.serializers import InventorySerializer
 
 
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = ("id", "name", "logo")
+
+
 class CategorySerializer(serializers.ModelSerializer):
     children = serializers.SerializerMethodField()
     
@@ -36,6 +42,7 @@ class ProductSerializer(serializers.ModelSerializer):
     inventory = InventorySerializer(read_only=True)
     images = ProductImageSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
+    brand = BrandSerializer(read_only=True)
 
     class Meta:
         model = Product
@@ -49,6 +56,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "inventory",
             "images",
             "category",
+            "brand",
             "created_at",
             "updated_at",
         ]
@@ -60,10 +68,3 @@ class ProductSearchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = ("id", "name")
-
-
-
-class BrandSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Brand
-        fields = ("id", "name", "logo")

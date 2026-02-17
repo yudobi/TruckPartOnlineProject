@@ -10,18 +10,31 @@ import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
 
 import { type Product, type ProductCategory } from "@app-types/product";
-
-// Helper para obtener el nombre de la categoría de forma segura
-const getCategoryName = (category: ProductCategory | string | undefined): string => {
-  if (!category) return "";
-  if (typeof category === "string") return category;
-  return category.name || "";
-};
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { useCategoriesWithSubcategories } from "@hooks/useCategories";
+import { useBrands } from "@hooks/useBrands";
+import {
+  getCategoryDisplayName,
+  getSubcategoryDisplayName,
+  findCategoryByCode,
+  getAllCategoriesFormatted,
+} from "@lib/categoryHelpers";
+
+// Helper para obtener el nombre de la categoría de forma segura
+const getCategoryName = (category: ProductCategory | string | undefined): string => {
+  if (!category) return "";
+  if (typeof category === "string") {
+    // Si es un código (A, B, C...), mostrar el nombre formateado
+    const categoryInfo = findCategoryByCode(category);
+    if (categoryInfo) return categoryInfo.shortName;
+    return category;
+  }
+  return category.name || "";
+};
+
 import {
   Drawer,
   DrawerContent,
@@ -30,6 +43,13 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -64,57 +84,31 @@ export default function ProductsPage() {
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [isChangingPage, setIsChangingPage] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("recent");
 
-  const MOCK_MANUFACTURERS = [
-    "Cummins",
-    "Caterpillar",
-    "Volvo",
-    "Kenworth",
-    "Freightliner",
-    "Paccar",
-    "Detroit Diesel",
-  ];
-
-  const filters = useMemo(
-    () => ({
-      category: categoryParam || undefined,
-      subcategory: subcategoryParam || undefined,
-      manufacturer: manufacturerParam || undefined,
-      search: searchParam || undefined,
-      minPrice: minPriceParam ? Number(minPriceParam) : undefined,
-      maxPrice: maxPriceParam ? Number(maxPriceParam) : undefined,
-      page: currentPage,
-      page_size: 12,
-    }),
-    [
-      categoryParam,
-      subcategoryParam,
-      manufacturerParam,
-      searchParam,
-      minPriceParam,
-      maxPriceParam,
-      currentPage,
-    ],
-  );
-
-  const { data: productsData, isLoading, isError } = useProducts(filters);
-  const { 
-    data: apiCategories, 
-    isLoading: isCategoriesLoading, 
-    isError: isCategoriesError 
+  const { data: productsData, isLoading, isError } = useProducts();
+  const {
+    data: apiCategories,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
   } = useCategoriesWithSubcategories();
+  const {
+    data: brands,
+    isLoading: isBrandsLoading,
+    isError: isBrandsError,
+  } = useBrands();
 
   // Obtener categorías disponibles desde los productos
   const availableCategories = useMemo(() => {
     if (!productsData?.results || !apiCategories) return [];
-    
+
     const categoryMap = new Map<string, { count: number; name: string }>();
-    
-    productsData.results.forEach(product => {
-      const categoryName = typeof product.category === 'string' 
-        ? product.category 
+
+    productsData.results.forEach((product) => {
+      const categoryName = typeof product.category === "string"
+        ? product.category
         : product.category?.name;
-      
+
       if (categoryName) {
         const existing = categoryMap.get(categoryName);
         if (existing) {
@@ -124,22 +118,108 @@ export default function ProductsPage() {
         }
       }
     });
-    
+
     return Array.from(categoryMap.entries()).map(([name, data]) => ({
       name,
       count: data.count,
       // Intentar mapear con categorías desde la API
-      mappedCategory: apiCategories.find(cat => 
-        cat.name === name || 
-        cat.name.toLowerCase() === name.toLowerCase()
-      )
+      mappedCategory: apiCategories.find((cat) =>
+        cat.name === name || cat.name.toLowerCase() === name.toLowerCase()
+      ),
     }));
   }, [productsData, apiCategories]);
 
-  // Usar directamente los productos filtrados del backend
-  const filteredProducts = useMemo(() => {
-    return productsData?.results || [];
-  }, [productsData]);
+  // Filtrado y ordenamiento en el cliente
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!productsData?.results) return [];
+
+    let filtered = [...productsData.results];
+
+    // Aplicar filtros
+    if (categoryParam) {
+      filtered = filtered.filter((product) => {
+        const categoryName = typeof product.category === "string"
+          ? product.category
+          : product.category?.name;
+        return categoryName === categoryParam;
+      });
+    }
+
+    if (subcategoryParam) {
+      filtered = filtered.filter((product) => {
+        // Filtrar por subcategoría directamente
+        return product.subcategory === subcategoryParam;
+      });
+    }
+
+    if (manufacturerParam) {
+      filtered = filtered.filter((product) =>
+        product.manufacturer === manufacturerParam
+      );
+    }
+
+    if (searchParam) {
+      const searchLower = searchParam.toLowerCase();
+      filtered = filtered.filter((product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description?.toLowerCase().includes(searchLower) ||
+        product.sku?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    if (minPriceParam) {
+      const minPrice = Number(minPriceParam);
+      filtered = filtered.filter((product) =>
+        Number(product.price) >= minPrice
+      );
+    }
+
+    if (maxPriceParam) {
+      const maxPrice = Number(maxPriceParam);
+      filtered = filtered.filter((product) =>
+        Number(product.price) <= maxPrice
+      );
+    }
+
+    // Aplicar ordenamiento
+    switch (sortBy) {
+      case "price-asc":
+        filtered.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case "price-desc":
+        filtered.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case "name-asc":
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "recent":
+      default:
+        // Mantener orden original (más reciente primero)
+        break;
+    }
+
+    return filtered;
+  }, [
+    productsData,
+    categoryParam,
+    subcategoryParam,
+    manufacturerParam,
+    searchParam,
+    minPriceParam,
+    maxPriceParam,
+    sortBy,
+  ]);
+
+  // Paginación en el cliente
+  const ITEMS_PER_PAGE = 12;
+  const totalCount = filteredAndSortedProducts.length;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedProducts = filteredAndSortedProducts.slice(startIndex, endIndex);
 
   const handleFilterChange = (key: string, value: string | undefined) => {
     const newParams = new URLSearchParams(searchParams);
@@ -157,6 +237,25 @@ export default function ProductsPage() {
       newParams.delete("page");
     }
     setSearchParams(newParams);
+  };
+
+  // Helper para obtener el nombre de display de una categoría desde el código
+  const getCategoryDisplayNameFromCode = (code: string | null): string => {
+    if (!code) return "";
+    return getCategoryDisplayName(code) || code;
+  };
+
+  // Helper para obtener el nombre de display de una subcategoría desde el código
+  const getSubcategoryDisplayNameFromCode = (code: string | null): string => {
+    if (!code) return "";
+    return getSubcategoryDisplayName(code) || code;
+  };
+
+  // Helper para obtener el nombre de display de una marca desde su ID
+  const getBrandDisplayNameFromId = (id: string | null): string => {
+    if (!id) return "";
+    const brand = brands?.find((b) => b.id.toString() === id);
+    return brand?.name || id;
   };
 
   const handlePageChange = (page: number) => {
@@ -179,8 +278,18 @@ export default function ProductsPage() {
         newSet.delete(categoryId.toString());
         // Limpiar filtro cuando se cierra la categoría
         const category = apiCategories?.find(cat => cat.id === categoryId);
-        if (category && categoryParam === category.name) {
-          handleFilterChange("category", undefined);
+        if (category) {
+          // Buscar el código de categoría estática correspondiente
+          const staticCategory = getAllCategoriesFormatted().find(
+            staticCat => 
+              staticCat.name.toLowerCase() === category.name.toLowerCase() ||
+              staticCat.shortName.toLowerCase() === category.name.toLowerCase()
+          );
+          const categoryCode = staticCategory?.code || category.name;
+          
+          if (categoryParam === categoryCode || categoryParam === category.name) {
+            handleFilterChange("category", undefined);
+          }
         }
       }
       return newSet;
@@ -298,68 +407,92 @@ export default function ProductsPage() {
                       
                       if (!hasProducts) return null;
                       
+                      // Intentar mapear la categoría de la API a una categoría estática por nombre
+                      const staticCategory = getAllCategoriesFormatted().find(
+                        staticCat => 
+                          staticCat.name.toLowerCase() === cat.name.toLowerCase() ||
+                          staticCat.shortName.toLowerCase() === cat.name.toLowerCase()
+                      );
+                      
+                      // Usar el código de la categoría estática si existe, sino usar el nombre
+                      const categoryCode = staticCategory?.code || cat.name;
+                      const displayName = staticCategory?.displayName || cat.name;
+                      const isActive = categoryParam === categoryCode || categoryParam === cat.name;
+                      
                       return (
                         <Collapsible
                           key={cat.id}
-                          open={expandedCategories.has(cat.id.toString()) || categoryParam === cat.name}
+                          open={expandedCategories.has(cat.id.toString()) || isActive}
                           onOpenChange={(isOpen) => toggleCategory(cat.id, isOpen)}
                         >
                           <CollapsibleTrigger asChild>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleFilterChange("category", cat.name);
+                                // Usar el código si existe, sino el nombre
+                                handleFilterChange("category", categoryCode);
                               }}
                               className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
                                 ${
-                                  categoryParam === cat.name
+                                  isActive
                                     ? "bg-red-600 text-white font-bold"
                                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }
                               `}
                             >
                               <span className="flex items-center gap-2">
-                                {cat.name}
+                                {displayName}
                                 <span className="text-xs text-gray-500">
                                   ({availableCategory?.count || 0})
                                 </span>
                               </span>
                               <ChevronRight
                                 className={`w-4 h-4 transition-transform ${
-                                  expandedCategories.has(cat.id.toString()) || categoryParam === cat.name ? "rotate-90" : ""
+                                  expandedCategories.has(cat.id.toString()) || isActive ? "rotate-90" : ""
                                 }`}
                               />
                             </button>
                           </CollapsibleTrigger>
                           <CollapsibleContent className="pl-6 space-y-1 mt-1">
                             {cat.children?.map((sub) => {
+                              // Contar productos para esta subcategoría específica
                               const subCategoryCount = availableCategories.find(ac => 
-                                ac.name === sub.name
+                                ac.name === sub.name || ac.mappedCategory?.id === sub.id
                               );
                               const hasSubProducts = subCategoryCount && subCategoryCount.count > 0;
                               
                               if (!hasSubProducts) return null;
                               
+                              // Intentar mapear la subcategoría
+                              const staticSubcategory = staticCategory?.subcategories?.find(
+                                staticSub => 
+                                  staticSub.name.toLowerCase() === sub.name.toLowerCase() ||
+                                  staticSub.shortName.toLowerCase() === sub.name.toLowerCase()
+                              );
+                              
+                              const subcategoryCode = staticSubcategory?.code || sub.name;
+                              const subDisplayName = staticSubcategory?.displayName || sub.name;
+                              const isSubActive = subcategoryParam === subcategoryCode || subcategoryParam === sub.name;
+                              
                               return (
                                 <button
                                   key={sub.id}
-                                  onClick={() =>
-                                    handleFilterChange(
-                                      "subcategory",
-                                      sub.name,
-                                    )
-                                  }
+                                  onClick={() => {
+                                    // Al hacer clic en subcategoría, también establecemos la categoría padre
+                                    handleFilterChange("category", categoryCode);
+                                    handleFilterChange("subcategory", subcategoryCode);
+                                  }}
                                   className={`
                                     text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
                                     ${
-                                      subcategoryParam === sub.name
+                                      isSubActive
                                         ? "text-red-500 font-bold bg-red-500/5"
                                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
                                     }
                                   `}
                                 >
-                                  <span>{sub.name}</span>
+                                  <span>{subDisplayName}</span>
                                   <span className="text-xs text-gray-600">
                                     ({subCategoryCount?.count || 0})
                                   </span>
@@ -372,29 +505,42 @@ export default function ProductsPage() {
                     })}
                     
                     {/* Mostrar categorías no mapeadas que existen en productos */}
-                    {availableCategories
+                      {availableCategories
                       .filter(ac => !ac.mappedCategory)
-                      .map((ac) => (
-                        <button
-                          key={ac.name}
-                          onClick={() => handleFilterChange("category", ac.name)}
-                          className={`
-                            w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
-                            ${
-                              categoryParam === ac.name
-                                ? "bg-red-600 text-white font-bold"
-                                : "text-gray-400 hover:bg-white/5 hover:text-white"
-                            }
-                          `}
-                        >
-                          <span className="flex items-center gap-2">
-                            {ac.name}
-                            <span className="text-xs text-gray-500">
-                              ({ac.count})
+                      .map((ac) => {
+                        // Intentar mapear por nombre usando solo getAllCategoriesFormatted
+                        const staticCategory = getAllCategoriesFormatted().find(
+                          staticCat => 
+                            staticCat.name.toLowerCase() === ac.name.toLowerCase() ||
+                            staticCat.shortName.toLowerCase() === ac.name.toLowerCase()
+                        );
+                        
+                        const categoryCode = staticCategory?.code || ac.name;
+                        const displayName = staticCategory?.displayName || ac.name;
+                        const isActive = categoryParam === categoryCode || categoryParam === ac.name;
+                        
+                        return (
+                          <button
+                            key={ac.name}
+                            onClick={() => handleFilterChange("category", categoryCode)}
+                            className={`
+                              w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
+                              ${
+                                isActive
+                                  ? "bg-red-600 text-white font-bold"
+                                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                              }
+                            `}
+                          >
+                            <span className="flex items-center gap-2">
+                              {displayName}
+                              <span className="text-xs text-gray-500">
+                                ({ac.count})
+                              </span>
                             </span>
-                          </span>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                   </CollapsibleContent>
                 </Collapsible>
 
@@ -416,22 +562,37 @@ export default function ProductsPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {MOCK_MANUFACTURERS.map((m) => (
+                    {isBrandsLoading && (
+                      <div className="text-gray-500 text-sm">
+                        Cargando fabricantes...
+                      </div>
+                    )}
+                    {isBrandsError && (
+                      <div className="text-red-500 text-sm">
+                        Error al cargar fabricantes
+                      </div>
+                    )}
+                    {!isBrandsLoading && !isBrandsError && brands?.map((brand) => (
                       <button
-                        key={m}
-                        onClick={() => handleFilterChange("manufacturer", m)}
+                        key={brand.id}
+                        onClick={() => handleFilterChange("manufacturer", brand.id.toString())}
                         className={`
                           px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase border rounded-xs transition-all
                           ${
-                            manufacturerParam === m
+                            manufacturerParam === brand.id.toString()
                               ? "bg-red-600 border-red-600 text-white"
                               : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
                           }
                         `}
                       >
-                        {m}
+                        {brand.name}
                       </button>
                     ))}
+                    {!isBrandsLoading && !isBrandsError && brands?.length === 0 && (
+                      <div className="text-gray-500 text-sm">
+                        No hay fabricantes disponibles
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -497,13 +658,13 @@ export default function ProductsPage() {
                 <div className="flex flex-wrap gap-2 mt-8">
                   {categoryParam && (
                     <ActiveFilter
-                      label={categoryParam}
+                      label={getCategoryDisplayNameFromCode(categoryParam)}
                       onClear={() => handleFilterChange("category", undefined)}
                     />
                   )}
                   {subcategoryParam && (
                     <ActiveFilter
-                      label={subcategoryParam}
+                      label={getSubcategoryDisplayNameFromCode(subcategoryParam)}
                       onClear={() =>
                         handleFilterChange("subcategory", undefined)
                       }
@@ -511,7 +672,7 @@ export default function ProductsPage() {
                   )}
                   {manufacturerParam && (
                     <ActiveFilter
-                      label={manufacturerParam}
+                      label={getBrandDisplayNameFromId(manufacturerParam)}
                       onClear={() =>
                         handleFilterChange("manufacturer", undefined)
                       }
@@ -548,17 +709,29 @@ export default function ProductsPage() {
                   <>
                     {t("catalog.showing")}{" "}
                     <span className="text-white font-bold">
-                      {productsData?.count || 0}
+                      {totalCount}
                     </span>{" "}
                     {t("catalog.productsCount")}
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-gray-400 text-sm cursor-pointer hover:text-white transition-colors">
-                <SlidersHorizontal className="w-4 h-4" />
-                <span>
-                  {t("catalog.sortBy")}: {t("catalog.recent")}
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>{t("catalog.sortBy")}:</span>
+                </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white w-40">
+                    <SelectValue placeholder={t("catalog.sortBy")} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-950 border-white/10 text-white">
+                    <SelectItem value="recent">{t("catalog.recent")}</SelectItem>
+                    <SelectItem value="price-asc">{t("catalog.priceAsc")}</SelectItem>
+                    <SelectItem value="price-desc">{t("catalog.priceDesc")}</SelectItem>
+                    <SelectItem value="name-asc">{t("catalog.nameAsc")}</SelectItem>
+                    <SelectItem value="name-desc">{t("catalog.nameDesc")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -580,7 +753,7 @@ export default function ProductsPage() {
                     {t("catalog.retry")}
                   </Button>
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : paginatedProducts.length === 0 ? (
                 <div className="col-span-full py-32 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-sm">
                   <Package size={48} className="mx-auto text-gray-700 mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">
@@ -598,7 +771,7 @@ export default function ProductsPage() {
                   </Button>
                 </div>
               ) : (
-                filteredProducts.map((product: Product) => (
+                paginatedProducts.map((product: Product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
@@ -615,14 +788,14 @@ export default function ProductsPage() {
             </div>
 
             {/* Pagination */}
-            {productsData && productsData.count > 0 && (
+            {totalCount > 0 && (
               <div className="mt-12 flex justify-center">
                 <PaginationComponent
                   currentPage={currentPage}
-                  totalCount={productsData.count}
-                  totalPages={productsData.total_pages}
-                  hasNext={productsData.has_next}
-                  hasPrevious={productsData.has_previous}
+                  totalCount={totalCount}
+                  totalPages={totalPages}
+                  hasNext={currentPage < totalPages}
+                  hasPrevious={currentPage > 1}
                   onPageChange={handlePageChange}
                 />
               </div>
