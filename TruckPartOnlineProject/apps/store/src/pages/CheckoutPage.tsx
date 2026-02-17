@@ -10,7 +10,7 @@ import {
   type PaymentMethod,
 } from "@components/checkout/PaymentMethodSelector";
 import { OrderSummary } from "@components/checkout/OrderSummary";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
@@ -24,21 +24,30 @@ export default function CheckoutPage() {
     createOrder,
     payOrder,
     checkoutData,
+    setCheckoutData,
     paymentResponse,
     isLoading,
     error,
   } = useCheckout();
 
-  // const [shippingData, setShippingData] = useState<CheckoutFormData | null>(null);
+  const location = useLocation();
+
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>("card");
 
+  // Si hay datos de checkout en el estado de navegación, establecerlos
+  useEffect(() => {
+    if (location.state?.checkoutData && !checkoutData) {
+      setCheckoutData(location.state.checkoutData);
+    }
+  }, [location.state, checkoutData, setCheckoutData]);
+
   // Si el carrito está vacío y no hay orden creada, redirigir
   useEffect(() => {
-    if (items.length === 0 && !checkoutData) {
+    if (items.length === 0 && !checkoutData && !location.state?.checkoutData) {
       navigate("/products");
     }
-  }, [items, checkoutData, navigate]);
+  }, [items, checkoutData, navigate, location.state]);
 
   // Manejar éxito de pago
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AxiosError } from "axios";
 import { orderService } from "../services/orderService";
 import type {
   CheckoutData,
@@ -32,9 +33,10 @@ export function useCheckout() {
         checkoutData: response,
       }));
       return response;
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
       const errorMessage =
-        err.response?.data?.message || err.message || "Error al crear la orden";
+        error.response?.data?.message || error.message || "Error al crear la orden";
       setState((prev) => ({
         ...prev,
         isLoading: false,
@@ -54,9 +56,10 @@ export function useCheckout() {
         paymentResponse: response,
       }));
       return response;
-    } catch (err: any) {
+    } catch (err) {
+      const error = err as AxiosError<{ message: string }>;
       const errorMessage =
-        err.response?.data?.message || err.message || "Error al procesar el pago";
+        error.response?.data?.message || error.message || "Error al procesar el pago";
       setState((prev) => ({
         ...prev,
         isLoading: false,
@@ -75,10 +78,18 @@ export function useCheckout() {
     });
   };
 
+  const setCheckoutData = (data: CheckoutResponse) => {
+    setState((prev) => ({
+      ...prev,
+      checkoutData: data,
+    }));
+  };
+
   return {
     ...state,
     createOrder,
     payOrder,
     resetState,
+    setCheckoutData,
   };
 }
