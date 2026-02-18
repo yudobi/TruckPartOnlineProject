@@ -39,7 +39,11 @@ const getCategoryName = (
     if (categoryInfo) return categoryInfo.shortName;
     return category;
   }
-  return category.name || "";
+  // Ensure we always return a string, even if category is an object
+  if (category && typeof category === 'object' && 'name' in category) {
+    return category.name || "";
+  }
+  return "";
 };
 
 import {
@@ -258,13 +262,29 @@ export default function ProductsPage() {
   // Helper para obtener el nombre de display de una categoría desde el código
   const getCategoryDisplayNameFromCode = (code: string | null): string => {
     if (!code) return "";
-    return getCategoryDisplayName(code) || code;
+    const result = getCategoryDisplayName(code);
+    // Ensure we always return a string, not an object
+    if (typeof result === 'string') {
+      return result;
+    }
+    if (result && typeof result === 'object' && 'name' in result) {
+      return (result as { name: string }).name || code;
+    }
+    return code;
   };
 
   // Helper para obtener el nombre de display de una subcategoría desde el código
   const getSubcategoryDisplayNameFromCode = (code: string | null): string => {
     if (!code) return "";
-    return getSubcategoryDisplayName(code) || code;
+    const result = getSubcategoryDisplayName(code);
+    // Ensure we always return a string, not an object
+    if (typeof result === 'string') {
+      return result;
+    }
+    if (result && typeof result === 'object' && 'name' in result) {
+      return (result as { name: string }).name || code;
+    }
+    return code;
   };
 
   // Helper para obtener el nombre de display de una marca desde su ID
