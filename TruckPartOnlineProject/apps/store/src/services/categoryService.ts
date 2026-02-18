@@ -13,18 +13,9 @@ class CategoryService {
   private subcategoryEndpoint = '/subcategories';
 
   // Obtener todas las categorías (paginadas)
-  async getAllCategories(filters?: CategoryFilters): Promise<PaginatedResponse<Category>> {
+  async getAllCategories(): Promise<PaginatedResponse<Category>> {
     try {
-      const params = new URLSearchParams();
-      if (filters) {
-        for (const key in filters) {
-          const value = filters[key as keyof CategoryFilters];
-          if (value !== undefined) {
-            params.append(key, String(value));
-          }
-        }
-      }
-      const url = `${this.endpoint}/?${params.toString()}`;
+      const url = `${this.endpoint}/tree}`;
       const response = await apiClient.get<PaginatedResponse<Category>>(url);
       return response.data;
     } catch (error) {

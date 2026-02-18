@@ -13,7 +13,7 @@ import {
 export const useCategories = (filters?: CategoryFilters) => {
   return useQuery<PaginatedResponse<Category>, Error>({
     queryKey: ['categories', filters],
-    queryFn: () => categoryService.getAllCategories(filters),
+    queryFn: () => categoryService.getAllCategories(),
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos
   });
