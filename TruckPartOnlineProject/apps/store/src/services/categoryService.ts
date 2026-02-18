@@ -1,8 +1,7 @@
 import type { 
   Category, 
   CategoryTree,
-  Subcategory, 
-  CategoryFilters, 
+  Subcategory,  
   SubcategoryFilters,
   PaginatedResponse 
 } from '@/types/category';
