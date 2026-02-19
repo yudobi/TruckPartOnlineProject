@@ -59,39 +59,65 @@ def checkout(request):
             {"error": str(e)},
             status=status.HTTP_400_BAD_REQUEST
         )
-
-    # 2️⃣ CREAR ORDEN
-    order = Order.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        guest_email=guest_email,
-        status="pending"
-    )
-
-    total = 0
-
-    for item in items:
-        product = get_object_or_404(Product, id=item["product_id"])
-        subtotal = product.price * item["quantity"]
-        total += subtotal
-
-        OrderItem.objects.create(
-            order=order,
-            product=product,
-            quantity=item["quantity"],
-            price=product.price
+    except Product.DoesNotExist:
+         return Response(
+            {"error": "Uno o más productos no existen"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except KeyError:
+        return Response(
+            {"error": "Faltan datos en los items (product_id o quantity)"},
+            status=status.HTTP_400_BAD_REQUEST
         )
 
-    order.total = total
-    order.save()
+    # 2️⃣ CREAR ORDEN
+    try:
+        order = Order.objects.create(
+            user=request.user if request.user.is_authenticated else None,
+            guest_email=guest_email,
+            status="pending"
+        )
 
-    return Response(
-        {
-            "order_id": order.id,
-            "status": order.status,
-            "total": float(order.total)
-        },
-        status=status.HTTP_201_CREATED
-    )
+        total = 0
+
+        for item in items:
+            product = Product.objects.get(id=item["product_id"]) # validate_order_stock already checked existence mostly, but good to be safe
+            subtotal = product.price * item["quantity"]
+            total += subtotal
+
+            OrderItem.objects.create(
+                order=order,
+                product=product,
+                quantity=item["quantity"],
+                price=product.price
+            )
+
+        order.total = total
+        order.save()
+
+        return Response(
+            {
+                "order_id": order.id,
+                "status": order.status,
+                "total": float(order.total)
+            },
+            status=status.HTTP_201_CREATED
+        )
+    except KeyError as e:
+        return Response(
+            {"error": f"Falta el campo {str(e)} en los items"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Product.DoesNotExist:
+        return Response(
+            {"error": "Producto no encontrado durante la creación de la orden"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    except Exception as e:
+        return Response(
+            {"error": f"Error al procesar la orden: {str(e)}"},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Package, ChevronRight, Calendar, DollarSign, Loader2 } from "lucide-react";
+import { Package, ChevronRight, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useMyOrders } from "@/hooks/useOrders";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,12 @@ export default function OrdersPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  
-  const { data: ordersData, isLoading, isError } = useMyOrders({
+
+  const {
+    data: ordersData,
+    isLoading,
+    isError,
+  } = useMyOrders({
     page: currentPage,
     page_size: 10,
   });
@@ -131,11 +135,12 @@ export default function OrdersPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-4 mb-2">
                         <span className="text-white font-bold text-lg">
-                          {t("orders.orderNumber")}{order.id}
+                          {t("orders.orderNumber")}
+                          {order.id}
                         </span>
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(
-                            order.status
+                            order.status,
                           )}`}
                         >
                           {t(`orders.status.${order.status}`)}
@@ -176,10 +181,14 @@ export default function OrdersPage() {
             ))}
 
             {/* Pagination */}
-            {ordersData && ordersData.total_pages && ordersData.total_pages > 1 && (
-              <div className="flex justify-center gap-2 mt-8">
-                {Array.from({ length: ordersData.total_pages }, (_, i) => i + 1).map(
-                  (page) => (
+            {ordersData &&
+              ordersData.total_pages &&
+              ordersData.total_pages > 1 && (
+                <div className="flex justify-center gap-2 mt-8">
+                  {Array.from(
+                    { length: ordersData.total_pages },
+                    (_, i) => i + 1,
+                  ).map((page) => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
@@ -191,10 +200,9 @@ export default function OrdersPage() {
                     >
                       {page}
                     </button>
-                  )
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
           </div>
         )}
       </div>

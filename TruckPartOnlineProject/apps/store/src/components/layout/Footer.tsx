@@ -15,7 +15,7 @@ export default function Footer() {
               to="/"
               className="inline-block text-2xl font-bold tracking-tighter"
             >
-              <img height={100} width={200} src="/logo/full-logo.svg" alt="tony truck part" />
+              <img className="h-20 bg-gray-100" height={100} width={200} src="/logo/full-logo.svg" alt="tony truck part" />
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
               {t("footer.desc")}

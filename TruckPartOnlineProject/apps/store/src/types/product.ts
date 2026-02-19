@@ -20,6 +20,12 @@ export interface ProductCategory {
   qb_id: string | null;
 }
 
+export interface Brand {
+  id: number;
+  name: string;
+  logo: string | null;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -32,6 +38,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   category?: ProductCategory | string; 
+  subcategory?: string; // Subcategoría del producto
   manufacturer?: string; // Nuevo campo para filtros
 }
 

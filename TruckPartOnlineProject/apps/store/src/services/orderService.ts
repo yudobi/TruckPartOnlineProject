@@ -5,9 +5,9 @@ import type {
   CheckoutResponse,
   PayOrderData,
   PayOrderResponse,
-  PaginatedResponse 
 } from '@/types/order';
 import apiClient from './apiClient';
+import type { PaginatedResponse } from '@/types/product';
 
 class OrderService {
   private endpoint = '';

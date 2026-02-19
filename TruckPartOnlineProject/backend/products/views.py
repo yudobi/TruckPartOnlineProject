@@ -46,9 +46,10 @@ class ProductViewSet(ModelViewSet):
         )
           
 
-        # Filtro por Marca
-        if "brands" in params:
-            brand_ids = params["brands"].split(",")
+        # Filtro por Marca (soporta 'brands' o 'manufacturer')
+        brand_param = params.get("brands") or params.get("manufacturer")
+        if brand_param:
+            brand_ids = brand_param.split(",")
             queryset = queryset.filter(brand_id__in=brand_ids)
 
             
@@ -64,6 +65,12 @@ class ProductViewSet(ModelViewSet):
         if "system" in params:
           queryset = queryset.filter(
             category__parent_id=params["system"]
+        )
+
+        # Filtro por Subcategoría
+        if "subcategory" in params:
+          queryset = queryset.filter(
+            category__parent__parent_id=params["subcategory"]
         )
 
         # Filtro por Subcategoría
@@ -188,8 +195,22 @@ class ProductViewSet(ModelViewSet):
 
 
 class BrandViewSet(ReadOnlyModelViewSet):
-    queryset = Brand.objects.all().order_by("name")
     serializer_class = BrandSerializer
+    
+    def get_queryset(self):
+        """
+        Retorna solo las marcas que tienen productos activos.
+        Si se pasa ?all=true, retorna todas las marcas.
+        """
+        queryset = Brand.objects.all().order_by("name")
+        
+        # Si no se pide todas, filtrar solo las que tienen productos activos
+        if self.request.query_params.get("all") != "true":
+            queryset = queryset.filter(
+                products__is_active=True
+            ).distinct()
+        
+        return queryset
 
 
 class CategoryViewSet(ModelViewSet):

@@ -5,23 +5,47 @@ import {
   X,
   ChevronRight,
   SlidersHorizontal,
+  Clock,
+  ArrowDown01,
+  ArrowUp01,
+  ArrowDownAZ,
+  ArrowUpAZ,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
 
 import { type Product, type ProductCategory } from "@app-types/product";
-
-// Helper para obtener el nombre de la categoría de forma segura
-const getCategoryName = (category: ProductCategory | string | undefined): string => {
-  if (!category) return "";
-  if (typeof category === "string") return category;
-  return category.name || "";
-};
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router";
 import { useCategoriesWithSubcategories } from "@hooks/useCategories";
+import { useBrands } from "@hooks/useBrands";
+import {
+  getCategoryDisplayName,
+  getSubcategoryDisplayName,
+  findCategoryByCode,
+  getAllCategoriesFormatted,
+} from "@lib/categoryHelpers";
+
+// Helper para obtener el nombre de la categoría de forma segura
+const getCategoryName = (
+  category: ProductCategory | string | undefined,
+): string => {
+  if (!category) return "";
+  if (typeof category === "string") {
+    // Si es un código (A, B, C...), mostrar el nombre formateado
+    const categoryInfo = findCategoryByCode(category);
+    if (categoryInfo) return categoryInfo.shortName;
+    return category;
+  }
+  // Ensure we always return a string, even if category is an object
+  if (category && typeof category === "object" && "name" in category) {
+    return category.name || "";
+  }
+  return "";
+};
+
 import {
   Drawer,
   DrawerContent,
@@ -30,6 +54,13 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
@@ -62,59 +93,36 @@ export default function ProductsPage() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [isChangingPage, setIsChangingPage] = useState(false);
-
-  const MOCK_MANUFACTURERS = [
-    "Cummins",
-    "Caterpillar",
-    "Volvo",
-    "Kenworth",
-    "Freightliner",
-    "Paccar",
-    "Detroit Diesel",
-  ];
-
-  const filters = useMemo(
-    () => ({
-      category: categoryParam || undefined,
-      subcategory: subcategoryParam || undefined,
-      manufacturer: manufacturerParam || undefined,
-      search: searchParam || undefined,
-      minPrice: minPriceParam ? Number(minPriceParam) : undefined,
-      maxPrice: maxPriceParam ? Number(maxPriceParam) : undefined,
-      page: currentPage,
-      page_size: 12,
-    }),
-    [
-      categoryParam,
-      subcategoryParam,
-      manufacturerParam,
-      searchParam,
-      minPriceParam,
-      maxPriceParam,
-      currentPage,
-    ],
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set(),
   );
+  const [isChangingPage, setIsChangingPage] = useState(false);
+  const [sortBy, setSortBy] = useState<string>("recent");
 
-  const { data: productsData, isLoading, isError } = useProducts(filters);
-  const { 
-    data: apiCategories, 
-    isLoading: isCategoriesLoading, 
-    isError: isCategoriesError 
+  const { data: productsData, isLoading, isError } = useProducts();
+  const {
+    data: apiCategories,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
   } = useCategoriesWithSubcategories();
+  const {
+    data: brands,
+    isLoading: isBrandsLoading,
+    isError: isBrandsError,
+  } = useBrands();
 
   // Obtener categorías disponibles desde los productos
   const availableCategories = useMemo(() => {
     if (!productsData?.results || !apiCategories) return [];
-    
+
     const categoryMap = new Map<string, { count: number; name: string }>();
-    
-    productsData.results.forEach(product => {
-      const categoryName = typeof product.category === 'string' 
-        ? product.category 
-        : product.category?.name;
-      
+
+    productsData.results.forEach((product) => {
+      const categoryName =
+        typeof product.category === "string"
+          ? product.category
+          : product.category?.name;
+
       if (categoryName) {
         const existing = categoryMap.get(categoryName);
         if (existing) {
@@ -124,22 +132,114 @@ export default function ProductsPage() {
         }
       }
     });
-    
+
     return Array.from(categoryMap.entries()).map(([name, data]) => ({
       name,
       count: data.count,
-      // Intentar mapear con categorías desde la API
-      mappedCategory: apiCategories.find(cat => 
-        cat.name === name || 
-        cat.name.toLowerCase() === name.toLowerCase()
-      )
+      mappedCategory: apiCategories.find(
+        (cat) =>
+          cat.name?.toLowerCase() === name.toLowerCase() ||
+          cat.code?.toLowerCase() === name.toLowerCase(),
+      ),
     }));
   }, [productsData, apiCategories]);
 
-  // Usar directamente los productos filtrados del backend
-  const filteredProducts = useMemo(() => {
-    return productsData?.results || [];
-  }, [productsData]);
+  // Filtrado y ordenamiento en el cliente
+  const filteredAndSortedProducts = useMemo(() => {
+    if (!productsData?.results) return [];
+
+    let filtered = [...productsData.results];
+
+    // Aplicar filtros
+    if (categoryParam) {
+      filtered = filtered.filter((product) => {
+        const categoryName =
+          typeof product.category === "string"
+            ? product.category
+            : product.category?.name;
+        return categoryName === categoryParam;
+      });
+    }
+
+    if (subcategoryParam) {
+      filtered = filtered.filter((product) => {
+        // Filtrar por subcategoría directamente
+        return product.subcategory === subcategoryParam;
+      });
+    }
+
+    if (manufacturerParam) {
+      filtered = filtered.filter(
+        (product) => product.manufacturer === manufacturerParam,
+      );
+    }
+
+    if (searchParam) {
+      const searchLower = searchParam.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name?.toLowerCase().includes(searchLower) ||
+          product.description?.toLowerCase().includes(searchLower) ||
+          product.sku?.toLowerCase().includes(searchLower),
+      );
+    }
+
+    if (minPriceParam) {
+      const minPrice = Number(minPriceParam);
+      filtered = filtered.filter(
+        (product) => Number(product.price) >= minPrice,
+      );
+    }
+
+    if (maxPriceParam) {
+      const maxPrice = Number(maxPriceParam);
+      filtered = filtered.filter(
+        (product) => Number(product.price) <= maxPrice,
+      );
+    }
+
+    // Aplicar ordenamiento
+    switch (sortBy) {
+      case "price-asc":
+        filtered.sort((a, b) => Number(a.price) - Number(b.price));
+        break;
+      case "price-desc":
+        filtered.sort((a, b) => Number(b.price) - Number(a.price));
+        break;
+      case "name-asc":
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "recent":
+      default:
+        // Mantener orden original (más reciente primero)
+        break;
+    }
+
+    return filtered;
+  }, [
+    productsData,
+    categoryParam,
+    subcategoryParam,
+    manufacturerParam,
+    searchParam,
+    minPriceParam,
+    maxPriceParam,
+    sortBy,
+  ]);
+
+  // Paginación en el cliente
+  const ITEMS_PER_PAGE = 12;
+  const totalCount = filteredAndSortedProducts.length;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedProducts = filteredAndSortedProducts.slice(
+    startIndex,
+    endIndex,
+  );
 
   const handleFilterChange = (key: string, value: string | undefined) => {
     const newParams = new URLSearchParams(searchParams);
@@ -157,6 +257,41 @@ export default function ProductsPage() {
       newParams.delete("page");
     }
     setSearchParams(newParams);
+  };
+
+  // Helper para obtener el nombre de display de una categoría desde el código
+  const getCategoryDisplayNameFromCode = (code: string | null): string => {
+    if (!code) return "";
+    const result = getCategoryDisplayName(code);
+    // Ensure we always return a string, not an object
+    if (typeof result === "string") {
+      return result;
+    }
+    if (result && typeof result === "object" && "name" in result) {
+      return (result as { name: string }).name || code;
+    }
+    return code;
+  };
+
+  // Helper para obtener el nombre de display de una subcategoría desde el código
+  const getSubcategoryDisplayNameFromCode = (code: string | null): string => {
+    if (!code) return "";
+    const result = getSubcategoryDisplayName(code);
+    // Ensure we always return a string, not an object
+    if (typeof result === "string") {
+      return result;
+    }
+    if (result && typeof result === "object" && "name" in result) {
+      return (result as { name: string }).name || code;
+    }
+    return code;
+  };
+
+  // Helper para obtener el nombre de display de una marca desde su ID
+  const getBrandDisplayNameFromId = (id: string | null): string => {
+    if (!id) return "";
+    const brand = brands?.find((b) => b.id.toString() === id);
+    return brand?.name || id;
   };
 
   const handlePageChange = (page: number) => {
@@ -178,9 +313,22 @@ export default function ProductsPage() {
       } else {
         newSet.delete(categoryId.toString());
         // Limpiar filtro cuando se cierra la categoría
-        const category = apiCategories?.find(cat => cat.id === categoryId);
-        if (category && categoryParam === category.name) {
-          handleFilterChange("category", undefined);
+        const category = apiCategories?.find((cat) => cat.id === categoryId);
+        if (category) {
+          // Buscar el código de categoría estática correspondiente
+          const staticCategory = getAllCategoriesFormatted().find(
+            (staticCat) =>
+              staticCat.name.toLowerCase() === category.name.toLowerCase() ||
+              staticCat.shortName.toLowerCase() === category.name.toLowerCase(),
+          );
+          const categoryCode = staticCategory?.code || category.name;
+
+          if (
+            categoryParam === categoryCode ||
+            categoryParam === category.name
+          ) {
+            handleFilterChange("category", undefined);
+          }
         }
       }
       return newSet;
@@ -252,12 +400,17 @@ export default function ProductsPage() {
                 </div>
 
                 {/* Categories */}
-                <Collapsible open={isCategoriesOpen} onOpenChange={setIsCategoriesOpen}>
+                <Collapsible
+                  open={isCategoriesOpen}
+                  onOpenChange={setIsCategoriesOpen}
+                >
                   <div className="flex items-center justify-between">
                     <CollapsibleTrigger asChild>
                       <button className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-500 uppercase hover:text-white transition-colors">
                         {t("catalog.filters.categories")}
-                        <ChevronRight className={`w-4 h-4 transition-transform ${isCategoriesOpen ? "rotate-90" : ""}`} />
+                        <ChevronRight
+                          className={`w-4 h-4 transition-transform ${isCategoriesOpen ? "rotate-90" : ""}`}
+                        />
                       </button>
                     </CollapsibleTrigger>
                     {categoryParam && (
@@ -280,121 +433,201 @@ export default function ProductsPage() {
                         ))}
                       </div>
                     )}
-                    
+
                     {/* Mostrar error */}
                     {isCategoriesError && (
                       <div className="text-red-500 text-sm py-2">
                         Error al cargar categorías
                       </div>
                     )}
-                    
+
                     {/* Mostrar categorías desde la API que tienen productos */}
-                    {!isCategoriesLoading && !isCategoriesError && apiCategories?.map((cat) => {
-                      const availableCategory = availableCategories.find(ac => 
-                        ac.mappedCategory?.id === cat.id || 
-                        ac.name === cat.name
-                      );
-                      const hasProducts = availableCategory && availableCategory.count > 0;
-                      
-                      if (!hasProducts) return null;
-                      
-                      return (
-                        <Collapsible
-                          key={cat.id}
-                          open={expandedCategories.has(cat.id.toString()) || categoryParam === cat.name}
-                          onOpenChange={(isOpen) => toggleCategory(cat.id, isOpen)}
-                        >
-                          <CollapsibleTrigger asChild>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleFilterChange("category", cat.name);
-                              }}
-                              className={`
+                    {!isCategoriesLoading &&
+                      !isCategoriesError &&
+                      apiCategories?.map((cat) => {
+                        const availableCategory = availableCategories.find(
+                          (ac) =>
+                            ac.mappedCategory?.id === cat.id ||
+                            ac.name === cat.name,
+                        );
+                        const hasProducts =
+                          availableCategory && availableCategory.count > 0;
+
+                        if (!hasProducts) return null;
+
+                        // Intentar mapear la categoría de la API a una categoría estática por nombre
+                        const staticCategory = getAllCategoriesFormatted().find(
+                          (staticCat) =>
+                            staticCat.name.toLowerCase() ===
+                              cat.name.toLowerCase() ||
+                            staticCat.shortName.toLowerCase() ===
+                              cat.name.toLowerCase(),
+                        );
+
+                        // Usar el código de la categoría estática si existe, sino usar el nombre
+                        const categoryCode =
+                          staticCategory?.code || cat.code || cat.name;
+                        const displayName =
+                          staticCategory?.displayName || cat.name;
+                        const isActive =
+                          categoryParam === categoryCode ||
+                          categoryParam === cat.name;
+
+                        return (
+                          <Collapsible
+                            key={cat.id}
+                            open={
+                              expandedCategories.has(cat.id.toString()) ||
+                              isActive
+                            }
+                            onOpenChange={(isOpen) =>
+                              toggleCategory(cat.id, isOpen)
+                            }
+                          >
+                            <CollapsibleTrigger asChild>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Usar el código si existe, sino el nombre
+                                  handleFilterChange("category", categoryCode);
+                                }}
+                                className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
                                 ${
-                                  categoryParam === cat.name
+                                  isActive
                                     ? "bg-red-600 text-white font-bold"
                                     : "text-gray-400 hover:bg-white/5 hover:text-white"
                                 }
                               `}
-                            >
-                              <span className="flex items-center gap-2">
-                                {cat.name}
-                                <span className="text-xs text-gray-500">
-                                  ({availableCategory?.count || 0})
+                              >
+                                <span className="flex items-center gap-2">
+                                  {displayName}
+                                  <span className="text-xs text-gray-500">
+                                    ({availableCategory?.count || 0})
+                                  </span>
                                 </span>
-                              </span>
-                              <ChevronRight
-                                className={`w-4 h-4 transition-transform ${
-                                  expandedCategories.has(cat.id.toString()) || categoryParam === cat.name ? "rotate-90" : ""
-                                }`}
-                              />
-                            </button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent className="pl-6 space-y-1 mt-1">
-                            {cat.children?.map((sub) => {
-                              const subCategoryCount = availableCategories.find(ac => 
-                                ac.name === sub.name
-                              );
-                              const hasSubProducts = subCategoryCount && subCategoryCount.count > 0;
-                              
-                              if (!hasSubProducts) return null;
-                              
-                              return (
-                                <button
-                                  key={sub.id}
-                                  onClick={() =>
-                                    handleFilterChange(
-                                      "subcategory",
-                                      sub.name,
-                                    )
-                                  }
-                                  className={`
+                                <ChevronRight
+                                  className={`w-4 h-4 transition-transform ${
+                                    expandedCategories.has(cat.id.toString()) ||
+                                    isActive
+                                      ? "rotate-90"
+                                      : ""
+                                  }`}
+                                />
+                              </button>
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="pl-6 space-y-1 mt-1">
+                              {cat.children?.map((sub) => {
+                                // Contar productos para esta subcategoría específica
+                                const subCategoryCount =
+                                  availableCategories.find(
+                                    (ac) =>
+                                      ac.name === sub.name ||
+                                      ac.mappedCategory?.id === sub.id,
+                                  );
+                                const hasSubProducts =
+                                  subCategoryCount &&
+                                  subCategoryCount.count > 0;
+
+                                if (!hasSubProducts) return null;
+
+                                // Intentar mapear la subcategoría
+                                const staticSubcategory =
+                                  staticCategory?.subcategories?.find(
+                                    (staticSub) =>
+                                      staticSub.name.toLowerCase() ===
+                                        sub.name.toLowerCase() ||
+                                      staticSub.shortName.toLowerCase() ===
+                                        sub.name.toLowerCase(),
+                                  );
+
+                                const subcategoryCode =
+                                  staticSubcategory?.code || sub.name;
+                                const subDisplayName =
+                                  staticSubcategory?.displayName || sub.name;
+                                const isSubActive =
+                                  subcategoryParam === subcategoryCode ||
+                                  subcategoryParam === sub.name;
+
+                                return (
+                                  <button
+                                    key={sub.id}
+                                    onClick={() => {
+                                      // Al hacer clic en subcategoría, también establecemos la categoría padre
+                                      handleFilterChange(
+                                        "category",
+                                        categoryCode,
+                                      );
+                                      handleFilterChange(
+                                        "subcategory",
+                                        subcategoryCode,
+                                      );
+                                    }}
+                                    className={`
                                     text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
                                     ${
-                                      subcategoryParam === sub.name
+                                      isSubActive
                                         ? "text-red-500 font-bold bg-red-500/5"
                                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
                                     }
                                   `}
-                                >
-                                  <span>{sub.name}</span>
-                                  <span className="text-xs text-gray-600">
-                                    ({subCategoryCount?.count || 0})
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      );
-                    })}
-                    
+                                  >
+                                    <span>{subDisplayName}</span>
+                                    <span className="text-xs text-gray-600">
+                                      ({subCategoryCount?.count || 0})
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </CollapsibleContent>
+                          </Collapsible>
+                        );
+                      })}
+
                     {/* Mostrar categorías no mapeadas que existen en productos */}
                     {availableCategories
-                      .filter(ac => !ac.mappedCategory)
-                      .map((ac) => (
-                        <button
-                          key={ac.name}
-                          onClick={() => handleFilterChange("category", ac.name)}
-                          className={`
-                            w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
-                            ${
-                              categoryParam === ac.name
-                                ? "bg-red-600 text-white font-bold"
-                                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                      .filter((ac) => !ac.mappedCategory)
+                      .map((ac) => {
+                        // Intentar mapear por nombre usando solo getAllCategoriesFormatted
+                        const staticCategory = getAllCategoriesFormatted().find(
+                          (staticCat) =>
+                            staticCat.name.toLowerCase() ===
+                              ac.name.toLowerCase() ||
+                            staticCat.shortName.toLowerCase() ===
+                              ac.name.toLowerCase(),
+                        );
+
+                        const categoryCode = staticCategory?.code || ac.name;
+                        const displayName =
+                          staticCategory?.displayName || ac.name;
+                        const isActive =
+                          categoryParam === categoryCode ||
+                          categoryParam === ac.name;
+
+                        return (
+                          <button
+                            key={ac.name}
+                            onClick={() =>
+                              handleFilterChange("category", categoryCode)
                             }
-                          `}
-                        >
-                          <span className="flex items-center gap-2">
-                            {ac.name}
-                            <span className="text-xs text-gray-500">
-                              ({ac.count})
+                            className={`
+                              w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
+                              ${
+                                isActive
+                                  ? "bg-red-600 text-white font-bold"
+                                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                              }
+                            `}
+                          >
+                            <span className="flex items-center gap-2">
+                              {displayName}
+                              <span className="text-xs text-gray-500">
+                                ({ac.count})
+                              </span>
                             </span>
-                          </span>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                   </CollapsibleContent>
                 </Collapsible>
 
@@ -416,22 +649,46 @@ export default function ProductsPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {MOCK_MANUFACTURERS.map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => handleFilterChange("manufacturer", m)}
-                        className={`
+                    {isBrandsLoading && (
+                      <div className="text-gray-500 text-sm">
+                        Cargando fabricantes...
+                      </div>
+                    )}
+                    {isBrandsError && (
+                      <div className="text-red-500 text-sm">
+                        Error al cargar fabricantes
+                      </div>
+                    )}
+                    {!isBrandsLoading &&
+                      !isBrandsError &&
+                      brands?.map((brand) => (
+                        <button
+                          key={brand.id}
+                          onClick={() =>
+                            handleFilterChange(
+                              "manufacturer",
+                              brand.id.toString(),
+                            )
+                          }
+                          className={`
                           px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase border rounded-xs transition-all
                           ${
-                            manufacturerParam === m
+                            manufacturerParam === brand.id.toString()
                               ? "bg-red-600 border-red-600 text-white"
                               : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
                           }
                         `}
-                      >
-                        {m}
-                      </button>
-                    ))}
+                        >
+                          {brand.name}
+                        </button>
+                      ))}
+                    {!isBrandsLoading &&
+                      !isBrandsError &&
+                      brands?.length === 0 && (
+                        <div className="text-gray-500 text-sm">
+                          No hay fabricantes disponibles
+                        </div>
+                      )}
                   </div>
                 </div>
 
@@ -497,13 +754,15 @@ export default function ProductsPage() {
                 <div className="flex flex-wrap gap-2 mt-8">
                   {categoryParam && (
                     <ActiveFilter
-                      label={categoryParam}
+                      label={getCategoryDisplayNameFromCode(categoryParam)}
                       onClear={() => handleFilterChange("category", undefined)}
                     />
                   )}
                   {subcategoryParam && (
                     <ActiveFilter
-                      label={subcategoryParam}
+                      label={getSubcategoryDisplayNameFromCode(
+                        subcategoryParam,
+                      )}
                       onClear={() =>
                         handleFilterChange("subcategory", undefined)
                       }
@@ -511,7 +770,7 @@ export default function ProductsPage() {
                   )}
                   {manufacturerParam && (
                     <ActiveFilter
-                      label={manufacturerParam}
+                      label={getBrandDisplayNameFromId(manufacturerParam)}
                       onClear={() =>
                         handleFilterChange("manufacturer", undefined)
                       }
@@ -547,23 +806,92 @@ export default function ProductsPage() {
                 ) : (
                   <>
                     {t("catalog.showing")}{" "}
-                    <span className="text-white font-bold">
-                      {productsData?.count || 0}
-                    </span>{" "}
+                    <span className="text-white font-bold">{totalCount}</span>{" "}
                     {t("catalog.productsCount")}
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-gray-400 text-sm cursor-pointer hover:text-white transition-colors">
-                <SlidersHorizontal className="w-4 h-4" />
-                <span>
-                  {t("catalog.sortBy")}: {t("catalog.recent")}
-                </span>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>{t("catalog.sortBy")}:</span>
+                </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white w-48">
+                    <SelectValue placeholder={t("catalog.sortBy")} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-zinc-950 border-white/10 text-white">
+                    <SelectItem
+                      value="recent"
+                      className="cursor-pointer focus:bg-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-red-500" />
+                        <span>
+                          {t("catalog.sortOptions.recent", "Más Recientes")}
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="price-asc"
+                      className="cursor-pointer focus:bg-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ArrowDown01 className="w-4 h-4 text-red-500" />
+                        <span>
+                          {t(
+                            "catalog.sortOptions.priceAsc",
+                            "Precio: Menor a Mayor",
+                          )}
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="price-desc"
+                      className="cursor-pointer focus:bg-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ArrowUp01 className="w-4 h-4 text-red-500" />
+                        <span>
+                          {t(
+                            "catalog.sortOptions.priceDesc",
+                            "Precio: Mayor a Menor",
+                          )}
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="name-asc"
+                      className="cursor-pointer focus:bg-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ArrowDownAZ className="w-4 h-4 text-red-500" />
+                        <span>
+                          {t("catalog.sortOptions.nameAsc", "Nombre: A - Z")}
+                        </span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem
+                      value="name-desc"
+                      className="cursor-pointer focus:bg-white/10"
+                    >
+                      <div className="flex items-center gap-2">
+                        <ArrowUpAZ className="w-4 h-4 text-red-500" />
+                        <span>
+                          {t("catalog.sortOptions.nameDesc", "Nombre: Z - A")}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             {/* Grid */}
-            <div className={`grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-300 ${isChangingPage ? 'opacity-50' : ''}`} style={{ contain: 'layout style paint' }}>
+            <div
+              className={`grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-300 ${isChangingPage ? "opacity-50" : ""}`}
+              style={{ contain: "layout style paint" }}
+            >
               {isLoading || isChangingPage ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <ProductSkeleton key={i} />
@@ -580,7 +908,7 @@ export default function ProductsPage() {
                     {t("catalog.retry")}
                   </Button>
                 </div>
-              ) : filteredProducts.length === 0 ? (
+              ) : paginatedProducts.length === 0 ? (
                 <div className="col-span-full py-32 text-center bg-zinc-900/20 border border-dashed border-white/10 rounded-sm">
                   <Package size={48} className="mx-auto text-gray-700 mb-4" />
                   <h3 className="text-xl font-bold text-white mb-2">
@@ -598,16 +926,16 @@ export default function ProductsPage() {
                   </Button>
                 </div>
               ) : (
-                filteredProducts.map((product: Product) => (
+                paginatedProducts.map((product: Product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     onSelect={() => {
                       setSelectedProduct(product);
                       const mainImg =
-                        product.images.find((img) => img.is_main)?.image ||
-                        product.images[0]?.image;
-                      setActiveImage(mainImg);
+                        product.images?.find((img) => img.is_main)?.image ||
+                        product.images?.[0]?.image;
+                      setActiveImage(mainImg || null);
                     }}
                   />
                 ))
@@ -615,14 +943,14 @@ export default function ProductsPage() {
             </div>
 
             {/* Pagination */}
-            {productsData && productsData.count > 0 && (
+            {totalCount > 0 && (
               <div className="mt-12 flex justify-center">
                 <PaginationComponent
                   currentPage={currentPage}
-                  totalCount={productsData.count}
-                  totalPages={productsData.total_pages}
-                  hasNext={productsData.has_next}
-                  hasPrevious={productsData.has_previous}
+                  totalCount={totalCount}
+                  totalPages={totalPages}
+                  hasNext={currentPage < totalPages}
+                  hasPrevious={currentPage > 1}
                   onPageChange={handlePageChange}
                 />
               </div>
@@ -648,7 +976,7 @@ export default function ProductsPage() {
                   {/* Image Gallery */}
                   <div className="space-y-6">
                     <div className="aspect-square bg-zinc-900 border border-white/5 flex items-center justify-center overflow-hidden rounded-sm group relative">
-        {activeImage ? (
+                      {activeImage ? (
                         <img
                           src={activeImage}
                           alt={selectedProduct.name}
@@ -663,7 +991,7 @@ export default function ProductsPage() {
                         {selectedProduct.sku || "PRO-TRUCK"}
                       </div>
                     </div>
-                      <div className="grid grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                       {selectedProduct.images.map((img) => (
                         <div
                           key={img.id}
@@ -691,8 +1019,9 @@ export default function ProductsPage() {
                     <div>
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-0.5 bg-red-600 text-[10px] font-black text-white uppercase tracking-tighter rounded-xs">
-                           {getCategoryName(selectedProduct.category) || "General"}
-                         </span>
+                          {getCategoryName(selectedProduct.category) ||
+                            "General"}
+                        </span>
                         <div className="h-px flex-1 bg-white/10"></div>
                       </div>
 
@@ -706,13 +1035,13 @@ export default function ProductsPage() {
                         </span>
                         <span
                           className={`text-sm font-bold uppercase tracking-widest ${
-                            selectedProduct.inventory.quantity > 0
+                            (selectedProduct.inventory?.quantity || 0) > 0
                               ? "text-green-500"
                               : "text-red-500"
                           }`}
                         >
-                          {selectedProduct.inventory.quantity > 0
-                            ? `✓ ${selectedProduct.inventory.quantity} ${t("catalog.details.stock")}`
+                          {(selectedProduct.inventory?.quantity || 0) > 0
+                            ? `✓ ${selectedProduct.inventory?.quantity} ${t("catalog.details.stock")}`
                             : `✕ ${t("catalog.details.noStock")}`}
                         </span>
                       </div>
@@ -740,8 +1069,8 @@ export default function ProductsPage() {
                             {t("catalog.details.category")}
                           </span>
                           <p className="text-sm text-white">
-                             {getCategoryName(selectedProduct.category) || "N/A"}
-                           </p>
+                            {getCategoryName(selectedProduct.category) || "N/A"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -815,18 +1144,22 @@ function ProductCard({
   onSelect: () => void;
 }) {
   const { t } = useTranslation();
-  const { name, category, price, images } = product;
-  const imageUrl = images.find((img) => img.is_main)?.image || images[0]?.image;
-  const numericPrice = parseFloat(price);
+  const { name, category, price, images, inventory } = product;
+  const imageUrl =
+    images?.find((img) => img.is_main)?.image || images?.[0]?.image;
+  const numericPrice = parseFloat(price || "0");
 
   return (
     <div
       onClick={onSelect}
       className="cursor-pointer rounded-sm group relative bg-zinc-900/40 border border-white/5 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
-      style={{ contain: 'layout style paint' }}
+      style={{ contain: "layout style paint" }}
     >
       {/* Image Container */}
-      <div className="aspect-square bg-zinc-900 flex items-center justify-center transition-transform duration-700 overflow-hidden relative" style={{ contain: 'layout' }}>
+      <div
+        className="aspect-square bg-zinc-900 flex items-center justify-center transition-transform duration-700 overflow-hidden relative"
+        style={{ contain: "layout" }}
+      >
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -835,10 +1168,10 @@ function ProductCard({
             decoding="async"
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform"
             style={{
-              aspectRatio: '1/1',
-              backgroundColor: '#18181b',
+              aspectRatio: "1/1",
+              backgroundColor: "#18181b",
               backgroundImage: `url(data:image/svg+xml;base64,${btoa(
-                '<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#18181b"/></svg>'
+                '<svg width="400" height="400" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#18181b"/></svg>',
               )})`,
             }}
           />
@@ -857,7 +1190,7 @@ function ProductCard({
           </span>
         </div>
 
-        {product.inventory.quantity <= 0 && (
+        {(!inventory || inventory.quantity <= 0) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] z-10">
             <span className="px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest border border-white/20 shadow-xl transform -rotate-12">
               {t("catalog.details.noStock")}
@@ -908,7 +1241,7 @@ function PaginationComponent({
 }) {
   // Usar totalPages de la API si está disponible, sino calcularlo
   const calculatedTotalPages = totalPages || Math.ceil(totalCount / 12);
-  
+
   if (calculatedTotalPages <= 1) return null;
 
   const getVisiblePages = () => {
@@ -918,7 +1251,11 @@ function PaginationComponent({
     let l: number | undefined;
 
     for (let i = 1; i <= calculatedTotalPages; i++) {
-      if (i === 1 || i === calculatedTotalPages || (i >= currentPage - delta && i <= currentPage + delta)) {
+      if (
+        i === 1 ||
+        i === calculatedTotalPages ||
+        (i >= currentPage - delta && i <= currentPage + delta)
+      ) {
         range.push(i);
       }
     }
@@ -928,7 +1265,7 @@ function PaginationComponent({
         if (i - l === 2) {
           rangeWithDots.push(l + 1);
         } else if (i - l !== 1) {
-          rangeWithDots.push('...');
+          rangeWithDots.push("...");
         }
       }
       rangeWithDots.push(i);
@@ -942,15 +1279,19 @@ function PaginationComponent({
     <Pagination>
       <PaginationContent>
         <PaginationItem className="text-red-500">
-          <PaginationPrevious 
+          <PaginationPrevious
             onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-            className={!hasPrevious && currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            className={
+              !hasPrevious && currentPage === 1
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
           />
         </PaginationItem>
-        
+
         {getVisiblePages().map((page, index) => (
           <PaginationItem className="text-red-500" key={index}>
-            {page === '...' ? (
+            {page === "..." ? (
               <PaginationEllipsis />
             ) : (
               <PaginationLink
@@ -963,11 +1304,18 @@ function PaginationComponent({
             )}
           </PaginationItem>
         ))}
-        
+
         <PaginationItem className="text-red-500">
-          <PaginationNext 
-            onClick={() => currentPage < calculatedTotalPages && onPageChange(currentPage + 1)}
-            className={!hasNext && currentPage === calculatedTotalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+          <PaginationNext
+            onClick={() =>
+              currentPage < calculatedTotalPages &&
+              onPageChange(currentPage + 1)
+            }
+            className={
+              !hasNext && currentPage === calculatedTotalPages
+                ? "pointer-events-none opacity-50"
+                : "cursor-pointer"
+            }
           />
         </PaginationItem>
       </PaginationContent>

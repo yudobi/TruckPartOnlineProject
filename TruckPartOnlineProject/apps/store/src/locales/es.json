@@ -90,7 +90,14 @@
     "subtitle": "Repuestos Premium para Camiones",
     "showing": "Mostrando",
     "productsCount": "productos",
-    "sortBy": "Orderar por",
+    "sortBy": "Ordenar por",
+    "sortOptions": {
+      "recent": "Más recientes",
+      "priceAsc": "Precio: Menor a mayor",
+      "priceDesc": "Precio: Mayor a menor",
+      "nameAsc": "Nombre: A-Z",
+      "nameDesc": "Nombre: Z-A"
+    },
     "recent": "Recientes",
     "noProducts": "No se encontraron productos",
     "noProductsDesc": "Intenta ajustar tus filtros o buscar algo diferente.",
