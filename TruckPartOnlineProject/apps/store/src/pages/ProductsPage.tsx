@@ -40,7 +40,7 @@ const getCategoryName = (
     return category;
   }
   // Ensure we always return a string, even if category is an object
-  if (category && typeof category === 'object' && 'name' in category) {
+  if (category && typeof category === "object" && "name" in category) {
     return category.name || "";
   }
   return "";
@@ -136,10 +136,10 @@ export default function ProductsPage() {
     return Array.from(categoryMap.entries()).map(([name, data]) => ({
       name,
       count: data.count,
-      // Intentar mapear con categorías desde la API
       mappedCategory: apiCategories.find(
         (cat) =>
-          cat.name === name || cat.name.toLowerCase() === name.toLowerCase(),
+          cat.name?.toLowerCase() === name.toLowerCase() ||
+          cat.code?.toLowerCase() === name.toLowerCase(),
       ),
     }));
   }, [productsData, apiCategories]);
@@ -178,7 +178,7 @@ export default function ProductsPage() {
       const searchLower = searchParam.toLowerCase();
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(searchLower) ||
+          product.name?.toLowerCase().includes(searchLower) ||
           product.description?.toLowerCase().includes(searchLower) ||
           product.sku?.toLowerCase().includes(searchLower),
       );
@@ -264,10 +264,10 @@ export default function ProductsPage() {
     if (!code) return "";
     const result = getCategoryDisplayName(code);
     // Ensure we always return a string, not an object
-    if (typeof result === 'string') {
+    if (typeof result === "string") {
       return result;
     }
-    if (result && typeof result === 'object' && 'name' in result) {
+    if (result && typeof result === "object" && "name" in result) {
       return (result as { name: string }).name || code;
     }
     return code;
@@ -278,10 +278,10 @@ export default function ProductsPage() {
     if (!code) return "";
     const result = getSubcategoryDisplayName(code);
     // Ensure we always return a string, not an object
-    if (typeof result === 'string') {
+    if (typeof result === "string") {
       return result;
     }
-    if (result && typeof result === 'object' && 'name' in result) {
+    if (result && typeof result === "object" && "name" in result) {
       return (result as { name: string }).name || code;
     }
     return code;
@@ -465,7 +465,8 @@ export default function ProductsPage() {
                         );
 
                         // Usar el código de la categoría estática si existe, sino usar el nombre
-                        const categoryCode = staticCategory?.code || cat.name;
+                        const categoryCode =
+                          staticCategory?.code || cat.code || cat.name;
                         const displayName =
                           staticCategory?.displayName || cat.name;
                         const isActive =
@@ -932,9 +933,9 @@ export default function ProductsPage() {
                     onSelect={() => {
                       setSelectedProduct(product);
                       const mainImg =
-                        product.images.find((img) => img.is_main)?.image ||
-                        product.images[0]?.image;
-                      setActiveImage(mainImg);
+                        product.images?.find((img) => img.is_main)?.image ||
+                        product.images?.[0]?.image;
+                      setActiveImage(mainImg || null);
                     }}
                   />
                 ))
@@ -1034,13 +1035,13 @@ export default function ProductsPage() {
                         </span>
                         <span
                           className={`text-sm font-bold uppercase tracking-widest ${
-                            selectedProduct.inventory.quantity > 0
+                            (selectedProduct.inventory?.quantity || 0) > 0
                               ? "text-green-500"
                               : "text-red-500"
                           }`}
                         >
-                          {selectedProduct.inventory.quantity > 0
-                            ? `✓ ${selectedProduct.inventory.quantity} ${t("catalog.details.stock")}`
+                          {(selectedProduct.inventory?.quantity || 0) > 0
+                            ? `✓ ${selectedProduct.inventory?.quantity} ${t("catalog.details.stock")}`
                             : `✕ ${t("catalog.details.noStock")}`}
                         </span>
                       </div>
@@ -1143,9 +1144,10 @@ function ProductCard({
   onSelect: () => void;
 }) {
   const { t } = useTranslation();
-  const { name, category, price, images } = product;
-  const imageUrl = images.find((img) => img.is_main)?.image || images[0]?.image;
-  const numericPrice = parseFloat(price);
+  const { name, category, price, images, inventory } = product;
+  const imageUrl =
+    images?.find((img) => img.is_main)?.image || images?.[0]?.image;
+  const numericPrice = parseFloat(price || "0");
 
   return (
     <div
@@ -1188,7 +1190,7 @@ function ProductCard({
           </span>
         </div>
 
-        {product.inventory.quantity <= 0 && (
+        {(!inventory || inventory.quantity <= 0) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-[2px] z-10">
             <span className="px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest border border-white/20 shadow-xl transform -rotate-12">
               {t("catalog.details.noStock")}
