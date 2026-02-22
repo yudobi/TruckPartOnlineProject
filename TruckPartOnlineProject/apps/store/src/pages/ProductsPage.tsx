@@ -357,7 +357,7 @@ export default function ProductsPage() {
           {/* Desktop Sidebar / Mobile Drawer */}
           <aside
             className={`
-            fixed inset-0 z-50 lg:relative lg:z-0 lg:block
+            fixed inset-0 z-50 lg:sticky lg:top-24 lg:z-0 lg:block lg:self-start
             ${isSidebarOpen ? "block" : "hidden"}
             lg:w-80 transition-all duration-300
           `}
@@ -369,7 +369,7 @@ export default function ProductsPage() {
             />
 
             {/* Sidebar Content */}
-            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:static overflow-y-auto max-h-screen lg:max-h-none">
+            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:relative overflow-y-auto max-h-screen lg:max-h-[calc(100vh-10rem)] sidebar-scroll">
               <div className="flex items-center justify-between mb-8 lg:hidden">
                 <span className="text-xl font-bold text-white">
                   {t("catalog.filters.title")}
@@ -459,9 +459,9 @@ export default function ProductsPage() {
                         const staticCategory = getAllCategoriesFormatted().find(
                           (staticCat) =>
                             staticCat.name.toLowerCase() ===
-                              cat.name.toLowerCase() ||
+                            cat.name.toLowerCase() ||
                             staticCat.shortName.toLowerCase() ===
-                              cat.name.toLowerCase(),
+                            cat.name.toLowerCase(),
                         );
 
                         // Usar el código de la categoría estática si existe, sino usar el nombre
@@ -493,11 +493,10 @@ export default function ProductsPage() {
                                 }}
                                 className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
-                                ${
-                                  isActive
+                                ${isActive
                                     ? "bg-red-600 text-white font-bold"
                                     : "text-gray-400 hover:bg-white/5 hover:text-white"
-                                }
+                                  }
                               `}
                               >
                                 <span className="flex items-center gap-2">
@@ -507,12 +506,11 @@ export default function ProductsPage() {
                                   </span>
                                 </span>
                                 <ChevronRight
-                                  className={`w-4 h-4 transition-transform ${
-                                    expandedCategories.has(cat.id.toString()) ||
+                                  className={`w-4 h-4 transition-transform ${expandedCategories.has(cat.id.toString()) ||
                                     isActive
-                                      ? "rotate-90"
-                                      : ""
-                                  }`}
+                                    ? "rotate-90"
+                                    : ""
+                                    }`}
                                 />
                               </button>
                             </CollapsibleTrigger>
@@ -536,9 +534,9 @@ export default function ProductsPage() {
                                   staticCategory?.subcategories?.find(
                                     (staticSub) =>
                                       staticSub.name.toLowerCase() ===
-                                        sub.name.toLowerCase() ||
+                                      sub.name.toLowerCase() ||
                                       staticSub.shortName.toLowerCase() ===
-                                        sub.name.toLowerCase(),
+                                      sub.name.toLowerCase(),
                                   );
 
                                 const subcategoryCode =
@@ -565,11 +563,10 @@ export default function ProductsPage() {
                                     }}
                                     className={`
                                     text-left px-4 py-2 text-xs rounded-sm transition-all w-full flex items-center justify-between
-                                    ${
-                                      isSubActive
+                                    ${isSubActive
                                         ? "text-red-500 font-bold bg-red-500/5"
                                         : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
-                                    }
+                                      }
                                   `}
                                   >
                                     <span>{subDisplayName}</span>
@@ -592,9 +589,9 @@ export default function ProductsPage() {
                         const staticCategory = getAllCategoriesFormatted().find(
                           (staticCat) =>
                             staticCat.name.toLowerCase() ===
-                              ac.name.toLowerCase() ||
+                            ac.name.toLowerCase() ||
                             staticCat.shortName.toLowerCase() ===
-                              ac.name.toLowerCase(),
+                            ac.name.toLowerCase(),
                         );
 
                         const categoryCode = staticCategory?.code || ac.name;
@@ -612,10 +609,9 @@ export default function ProductsPage() {
                             }
                             className={`
                               w-full flex items-center justify-between px-4 py-3 rounded-sm transition-all text-sm
-                              ${
-                                isActive
-                                  ? "bg-red-600 text-white font-bold"
-                                  : "text-gray-400 hover:bg-white/5 hover:text-white"
+                              ${isActive
+                                ? "bg-red-600 text-white font-bold"
+                                : "text-gray-400 hover:bg-white/5 hover:text-white"
                               }
                             `}
                           >
@@ -672,11 +668,10 @@ export default function ProductsPage() {
                           }
                           className={`
                           px-3 py-1.5 text-[10px] font-bold tracking-widest uppercase border rounded-xs transition-all
-                          ${
-                            manufacturerParam === brand.id.toString()
+                          ${manufacturerParam === brand.id.toString()
                               ? "bg-red-600 border-red-600 text-white"
                               : "bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
-                          }
+                            }
                         `}
                         >
                           {brand.name}
@@ -751,51 +746,51 @@ export default function ProductsPage() {
                 minPriceParam ||
                 maxPriceParam ||
                 searchParam) && (
-                <div className="flex flex-wrap gap-2 mt-8">
-                  {categoryParam && (
-                    <ActiveFilter
-                      label={getCategoryDisplayNameFromCode(categoryParam)}
-                      onClear={() => handleFilterChange("category", undefined)}
-                    />
-                  )}
-                  {subcategoryParam && (
-                    <ActiveFilter
-                      label={getSubcategoryDisplayNameFromCode(
-                        subcategoryParam,
-                      )}
-                      onClear={() =>
-                        handleFilterChange("subcategory", undefined)
-                      }
-                    />
-                  )}
-                  {manufacturerParam && (
-                    <ActiveFilter
-                      label={getBrandDisplayNameFromId(manufacturerParam)}
-                      onClear={() =>
-                        handleFilterChange("manufacturer", undefined)
-                      }
-                    />
-                  )}
-                  {minPriceParam && (
-                    <ActiveFilter
-                      label={`>${minPriceParam}`}
-                      onClear={() => handleFilterChange("minPrice", undefined)}
-                    />
-                  )}
-                  {maxPriceParam && (
-                    <ActiveFilter
-                      label={`<${maxPriceParam}`}
-                      onClear={() => handleFilterChange("maxPrice", undefined)}
-                    />
-                  )}
-                  {searchParam && (
-                    <ActiveFilter
-                      label={`"${searchParam}"`}
-                      onClear={() => handleFilterChange("search", undefined)}
-                    />
-                  )}
-                </div>
-              )}
+                  <div className="flex flex-wrap gap-2 mt-8">
+                    {categoryParam && (
+                      <ActiveFilter
+                        label={getCategoryDisplayNameFromCode(categoryParam)}
+                        onClear={() => handleFilterChange("category", undefined)}
+                      />
+                    )}
+                    {subcategoryParam && (
+                      <ActiveFilter
+                        label={getSubcategoryDisplayNameFromCode(
+                          subcategoryParam,
+                        )}
+                        onClear={() =>
+                          handleFilterChange("subcategory", undefined)
+                        }
+                      />
+                    )}
+                    {manufacturerParam && (
+                      <ActiveFilter
+                        label={getBrandDisplayNameFromId(manufacturerParam)}
+                        onClear={() =>
+                          handleFilterChange("manufacturer", undefined)
+                        }
+                      />
+                    )}
+                    {minPriceParam && (
+                      <ActiveFilter
+                        label={`>${minPriceParam}`}
+                        onClear={() => handleFilterChange("minPrice", undefined)}
+                      />
+                    )}
+                    {maxPriceParam && (
+                      <ActiveFilter
+                        label={`<${maxPriceParam}`}
+                        onClear={() => handleFilterChange("maxPrice", undefined)}
+                      />
+                    )}
+                    {searchParam && (
+                      <ActiveFilter
+                        label={`"${searchParam}"`}
+                        onClear={() => handleFilterChange("search", undefined)}
+                      />
+                    )}
+                  </div>
+                )}
             </header>
 
             {/* Results Info */}
@@ -823,35 +818,35 @@ export default function ProductsPage() {
                   <SelectContent className="bg-zinc-950 border-white/10 text-white">
                     <SelectItem
                       value="recent"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-red-500" />
-                        <span>
-                          {t("catalog.sortOptions.recent", "Más Recientes")}
-                        </span>
-                      </div>
+                          <Clock className="w-4 h-4 text-red-500 group-hover:text-white" />
+                          <span>
+                            {t("catalog.sortOptions.recent", "Más Recientes")}
+                          </span>
+                        </div>
                     </SelectItem>
                     <SelectItem
                       value="price-asc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowDown01 className="w-4 h-4 text-red-500" />
-                        <span>
-                          {t(
-                            "catalog.sortOptions.priceAsc",
-                            "Precio: Menor a Mayor",
-                          )}
-                        </span>
-                      </div>
+                          <ArrowDown01 className="w-4 h-4 text-red-500 group-hover:text-white" />
+                          <span>
+                            {t(
+                              "catalog.sortOptions.priceAsc",
+                              "Precio: Menor a Mayor",
+                            )}
+                          </span>
+                        </div>
                     </SelectItem>
                     <SelectItem
                       value="price-desc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUp01 className="w-4 h-4 text-red-500" />
+                        <ArrowUp01 className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t(
                             "catalog.sortOptions.priceDesc",
@@ -862,10 +857,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="name-asc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowDownAZ className="w-4 h-4 text-red-500" />
+                        <ArrowDownAZ className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t("catalog.sortOptions.nameAsc", "Nombre: A - Z")}
                         </span>
@@ -873,10 +868,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="name-desc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUpAZ className="w-4 h-4 text-red-500" />
+                        <ArrowUpAZ className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t("catalog.sortOptions.nameDesc", "Nombre: Z - A")}
                         </span>
@@ -996,11 +991,10 @@ export default function ProductsPage() {
                         <div
                           key={img.id}
                           onClick={() => setActiveImage(img.image)}
-                          className={`aspect-square bg-zinc-900 border rounded-sm overflow-hidden transition-all cursor-pointer ${
-                            activeImage === img.image
-                              ? "border-red-600 ring-2 ring-red-600/20"
-                              : "border-white/5 opacity-40 hover:opacity-100 hover:border-white/20"
-                          }`}
+                          className={`aspect-square bg-zinc-900 border rounded-sm overflow-hidden transition-all cursor-pointer ${activeImage === img.image
+                            ? "border-red-600 ring-2 ring-red-600/20"
+                            : "border-white/5 opacity-40 hover:opacity-100 hover:border-white/20"
+                            }`}
                         >
                           <img
                             src={img.image}
@@ -1034,11 +1028,10 @@ export default function ProductsPage() {
                           ${parseFloat(selectedProduct.price).toLocaleString()}
                         </span>
                         <span
-                          className={`text-sm font-bold uppercase tracking-widest ${
-                            (selectedProduct.inventory?.quantity || 0) > 0
-                              ? "text-green-500"
-                              : "text-red-500"
-                          }`}
+                          className={`text-sm font-bold uppercase tracking-widest ${(selectedProduct.inventory?.quantity || 0) > 0
+                            ? "text-green-500"
+                            : "text-red-500"
+                            }`}
                         >
                           {(selectedProduct.inventory?.quantity || 0) > 0
                             ? `✓ ${selectedProduct.inventory?.quantity} ${t("catalog.details.stock")}`
