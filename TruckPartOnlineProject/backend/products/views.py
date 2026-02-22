@@ -200,6 +200,7 @@ class ProductViewSet(ModelViewSet):
 
 
 class BrandViewSet(ReadOnlyModelViewSet):
+    queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     
     def get_queryset(self):
