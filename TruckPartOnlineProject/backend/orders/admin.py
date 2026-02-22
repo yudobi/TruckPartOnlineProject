@@ -65,12 +65,16 @@ class OrderItemInline(admin.TabularInline):
 # =========================
 # ORDER ADMIN
 # =========================
+# order/admin.py
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user",
+        "full_name",
         "guest_email",
+        "phone",
         "payment_method",
         "payment_status",
         "status",
@@ -88,12 +92,14 @@ class OrderAdmin(admin.ModelAdmin):
 
     search_fields = (
         "id",
+        "full_name",
         "guest_email",
+        "phone",
         "user__email",
+        "user__full_name",
     )
 
     inlines = [OrderItemInline]
-
     actions = [send_to_quickbooks]
 
     readonly_fields = (
@@ -102,7 +108,51 @@ class OrderAdmin(admin.ModelAdmin):
         "qb_invoice_id",
     )
 
+    fieldsets = (
+        (None, {
+            'fields': ('user',)
+        }),
+        ('Información del Cliente', {
+            'fields': (
+                'full_name',
+                'guest_email',
+                'phone',
+            ),
+        }),
+        ('Datos de Envío', {
+            'fields': (
+                'shipping_address',
+                'street',
+                'house_number',
+                'state',
+                'city',
+                'postal_code',
+                'country',
+            ),
+            'classes': ('wide',),  # Opcional: para hacerlo más ancho
+            'description': 'Dirección completa de envío'
+        }),
+        ('Detalles de la orden', {
+            'fields': (
+                'payment_method',
+                'payment_status',
+                'status',
+                'total'
+            )
+        }),
+        ('QuickBooks', {
+            'fields': (
+                'qb_sales_receipt_id',
+                'qb_invoice_id',
+                'created_at'
+            ),
+            'classes': ('collapse',),  # Opcional: para colapsar la sección
+        }),
+    )
 
+    class Media:
+        js = ('admin/js/autocomplete_order_fields.js',)
+#########################################################################################
 # =========================
 # ORDER ITEM ADMIN
 # =========================

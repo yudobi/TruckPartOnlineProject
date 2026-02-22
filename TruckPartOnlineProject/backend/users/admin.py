@@ -14,6 +14,7 @@ class CustomUserAdmin(UserAdmin):
         'username',
         'email',
         'phone_number',
+        'full_name',
         'is_staff',
         'is_active',
     )
@@ -27,6 +28,7 @@ class CustomUserAdmin(UserAdmin):
         'username',
         'email',
         'phone_number',
+        'full_name',
     )
 
     ordering = ('username',)
@@ -37,8 +39,7 @@ class CustomUserAdmin(UserAdmin):
         }),
         ('Personal info', {
             'fields': (
-                'first_name',
-                'last_name',
+                'full_name',
                 'email',
                 'phone_number',
                 'address',
@@ -68,6 +69,7 @@ class CustomUserAdmin(UserAdmin):
                 'username',
                 'email',
                 'phone_number',
+                'full_name',
                 'password1',
                 'password2',
             ),
