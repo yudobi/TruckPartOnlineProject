@@ -13,9 +13,34 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@hooks/useCart";
 
+import { useCheckout } from "@hooks/useCheckout";
+import { useNavigate } from "react-router";
+
 export default function CartSidebar() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { items, removeItem, updateQuantity, subtotal, itemCount } = useCart();
+  const { createOrder, isLoading, error } = useCheckout();
+
+  const handleCheckout = async () => {
+    try {
+      const orderData = {
+        items: items.map((item) => ({
+          product_id: item.id,
+          quantity: item.quantity,
+        })),
+        // Enviamos datos vacíos para shipping_address ya que es opcional en la interfaz
+        // y se supone que el backend creará la orden en estado pendiente
+      };
+
+      const response = await createOrder(orderData);
+
+      // Navegar al checkout pasando los datos de la orden creada
+      navigate("/checkout", { state: { checkoutData: response } });
+    } catch (error) {
+      console.error("Error creating order:", error);
+    }
+  };
 
   return (
     <Sheet>
@@ -40,7 +65,7 @@ export default function CartSidebar() {
             {t("cart.title")} ({itemCount})
           </SheetTitle>
           <SheetClose asChild>
-            <button 
+            <button
               className="text-gray-400 hover:text-white transition-colors p-1 rounded-md hover:bg-white/10"
               aria-label={t("cart.close") || "Cerrar carrito"}
             >
@@ -151,9 +176,18 @@ export default function CartSidebar() {
               </div>
               <p className="text-xs text-gray-500">{t("cart.taxNotice")}</p>
             </div>
-            <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6">
-              {t("cart.checkout")}
+            <Button
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6"
+              onClick={handleCheckout}
+              disabled={isLoading}
+            >
+              {isLoading
+                ? t("common.processing", "Procesando...")
+                : t("cart.checkout")}
             </Button>
+            {error && (
+              <p className="text-red-500 text-sm text-center">{error}</p>
+            )}
           </div>
         )}
       </SheetContent>

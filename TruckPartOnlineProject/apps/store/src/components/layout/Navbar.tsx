@@ -4,7 +4,6 @@ import {
   User,
   LogOut,
   Settings,
-  Wrench,
   Menu,
   Package,
 } from "lucide-react";
@@ -19,10 +18,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuGroup,
   DropdownMenuLabel,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuPortal,
-  DropdownMenuSubContent,
   DropdownMenuSeparator,
 } from "@components/ui/dropdown-menu";
 import {
@@ -35,8 +30,6 @@ import {
 
 import CartSidebar from "@components/cart/CartSidebar";
 
-import categories from "@lib/categories";
-
 export default function Navbar() {
   const { t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuth();
@@ -47,13 +40,6 @@ export default function Navbar() {
     navigate("/auth");
   };
 
-  const handleCategorySearch = (category: string, subcategory?: string) => {
-    const params = new URLSearchParams();
-    if (category) params.append("category", category);
-    if (subcategory) params.append("subcategory", subcategory);
-    navigate(`/products?${params.toString()}`);
-  };
-
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
       <div className="container mx-auto px-6">
@@ -61,7 +47,12 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="px-1 h-20 bg-red-600 flex items-center justify-center ">
-              <img src="/logo/black-logo.svg" height={50} width={100} alt="logo tony truck part" />
+              <img
+                src="/logo/black-logo.svg"
+                height={50}
+                width={100}
+                alt="logo tony truck part"
+              />
             </div>
             <span className="text-2xl font-bold tracking-tighter text-white">
               TRUCK<span className="text-red-600">PART</span>
@@ -72,48 +63,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <NavItem to="/">{t("nav.home").toUpperCase()}</NavItem>
             <NavItem to="/products">{t("nav.catalog").toUpperCase()}</NavItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-sm font-bold tracking-widest hover:text-red-600 transition-colors duration-300 text-white focus:outline-none flex items-center gap-1 cursor-pointer">
-                {t("nav.search").toUpperCase()}
-                <ChevronDown className="h-4 w-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 bg-black/95 border-white/10 text-white backdrop-blur-xl p-2 animate-in fade-in-0 zoom-in-95">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="text-xs font-bold tracking-widest text-gray-500 uppercase px-2 mb-2">
-                    {t("nav.searchCategory")}
-                  </DropdownMenuLabel>
-                  {categories.map((category) => (
-                    <DropdownMenuSub key={category.code}>
-                      <DropdownMenuSubTrigger
-                        className="flex items-center gap-2 py-2.5 cursor-pointer focus:bg-white/10"
-                        onClick={() => handleCategorySearch(category.shortName)}
-                      >
-                        <Wrench className="w-4 h-4 text-red-500" />
-                        <span className="text-sm">{category.shortName}</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent className="bg-black/95 border-white/10 text-white backdrop-blur-xl p-2">
-                          {category.subcategories.map((subcategory) => (
-                            <DropdownMenuItem
-                              key={subcategory.code}
-                              className="cursor-pointer py-2.5 text-sm focus:bg-white/10"
-                              onClick={() =>
-                                handleCategorySearch(
-                                  category.shortName,
-                                  subcategory.shortName,
-                                )
-                              }
-                            >
-                              {subcategory.shortName}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                  ))}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            
             <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
             <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
 
@@ -158,13 +108,13 @@ export default function Navbar() {
 
                   <DropdownMenuGroup className="space-y-1">
                     <Link to="/orders" className="w-full">
-                      <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
-                        <Package className="mr-3 h-4 w-4 text-red-500" />
+                      <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
+                        <Package className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
                         <span>{t("orders.title")}</span>
                       </DropdownMenuItem>
                     </Link>
-                    <DropdownMenuItem className="cursor-pointer text-gray-300 focus:text-white focus:bg-white/10 py-2.5">
-                      <Settings className="mr-3 h-4 w-4 text-red-500" />
+                    <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
+                      <Settings className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
                       <span>{t("user.profile")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuGroup>
@@ -172,10 +122,10 @@ export default function Navbar() {
                   <DropdownMenuSeparator className="my-2 bg-white/10" />
 
                   <DropdownMenuItem
-                    className="cursor-pointer text-red-400 focus:text-red-400 focus:bg-red-950/20 py-2.5"
+                    className="group cursor-pointer text-red-400 focus:text-white focus:bg-red-600 py-2.5 transition-colors"
                     onClick={handleLogout}
                   >
-                    <LogOut className="mr-3 h-4 w-4" />
+                    <LogOut className="mr-3 h-4 w-4 group-focus:text-white transition-colors" />
                     <span>{t("user.logout")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
