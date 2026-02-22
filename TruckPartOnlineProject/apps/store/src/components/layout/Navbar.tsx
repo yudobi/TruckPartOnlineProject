@@ -29,7 +29,6 @@ import {
 } from "@components/ui/sheet";
 
 import CartSidebar from "@components/cart/CartSidebar";
-import { NavbarCategories } from "@components/layout/NavbarCategories";
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -64,7 +63,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-8">
             <NavItem to="/">{t("nav.home").toUpperCase()}</NavItem>
             <NavItem to="/products">{t("nav.catalog").toUpperCase()}</NavItem>
-            <NavbarCategories />
+            
             <NavItem to="/about">{t("nav.about").toUpperCase()}</NavItem>
             <NavItem to="/contact">{t("nav.contact").toUpperCase()}</NavItem>
 

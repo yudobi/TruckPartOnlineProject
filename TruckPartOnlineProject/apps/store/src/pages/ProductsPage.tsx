@@ -357,7 +357,7 @@ export default function ProductsPage() {
           {/* Desktop Sidebar / Mobile Drawer */}
           <aside
             className={`
-            fixed inset-0 z-50 lg:relative lg:z-0 lg:block
+            fixed inset-0 z-50 lg:sticky lg:top-24 lg:z-0 lg:block lg:self-start
             ${isSidebarOpen ? "block" : "hidden"}
             lg:w-80 transition-all duration-300
           `}
@@ -369,7 +369,7 @@ export default function ProductsPage() {
             />
 
             {/* Sidebar Content */}
-            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:static overflow-y-auto max-h-screen lg:max-h-none">
+            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:relative overflow-y-auto max-h-screen lg:max-h-[calc(100vh-10rem)] sidebar-scroll">
               <div className="flex items-center justify-between mb-8 lg:hidden">
                 <span className="text-xl font-bold text-white">
                   {t("catalog.filters.title")}
@@ -823,10 +823,10 @@ export default function ProductsPage() {
                   <SelectContent className="bg-zinc-950 border-white/10 text-white">
                     <SelectItem
                       value="recent"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-red-500" />
+                        <Clock className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t("catalog.sortOptions.recent", "Más Recientes")}
                         </span>
@@ -834,10 +834,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="price-asc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowDown01 className="w-4 h-4 text-red-500" />
+                        <ArrowDown01 className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t(
                             "catalog.sortOptions.priceAsc",
@@ -848,10 +848,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="price-desc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUp01 className="w-4 h-4 text-red-500" />
+                        <ArrowUp01 className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t(
                             "catalog.sortOptions.priceDesc",
@@ -862,10 +862,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="name-asc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowDownAZ className="w-4 h-4 text-red-500" />
+                        <ArrowDownAZ className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t("catalog.sortOptions.nameAsc", "Nombre: A - Z")}
                         </span>
@@ -873,10 +873,10 @@ export default function ProductsPage() {
                     </SelectItem>
                     <SelectItem
                       value="name-desc"
-                      className="cursor-pointer focus:bg-white/10"
+                      className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white"
                     >
                       <div className="flex items-center gap-2">
-                        <ArrowUpAZ className="w-4 h-4 text-red-500" />
+                        <ArrowUpAZ className="w-4 h-4 text-red-500 group-hover:text-white" />
                         <span>
                           {t("catalog.sortOptions.nameDesc", "Nombre: Z - A")}
                         </span>
