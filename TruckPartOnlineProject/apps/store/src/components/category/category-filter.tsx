@@ -28,9 +28,10 @@ import { useTranslation } from "react-i18next";
 export interface CategoryFilterNode {
   id: number;
   name: string;
-  level: "category" | "subcategory" | "system" | "piece";
-  parent: number | null;
-  qb_id: string | null;
+  level?: number | "category" | "subcategory" | "system" | "piece";
+  parent?: number | null;
+  qb_id?: string | null;
+  code?: string;
   children?: CategoryFilterNode[];
 }
 
@@ -50,12 +51,30 @@ interface CategoryFilterProps {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const LEVEL_KEY: Record<CategoryFilterNode["level"], keyof CategoryFilterValue> = {
-  category: "category_ids",
-  subcategory: "subcategory_ids",
-  system: "system_ids",
-  piece: "piece_ids",
-};
+// Mapea level (número o string) a la clave correcta en CategoryFilterValue
+function getLevelKey(level: number | string | undefined): keyof CategoryFilterValue {
+  if (!level) return "category_ids";
+  
+  // Si es string
+  if (typeof level === "string") {
+    const key: Record<string, keyof CategoryFilterValue> = {
+      category: "category_ids",
+      subcategory: "subcategory_ids",
+      system: "system_ids",
+      piece: "piece_ids",
+    };
+    return key[level] || "category_ids";
+  }
+  
+  // Si es número: 0=category, 1=subcategory, 2=system, 3=piece
+  const numericKey: Record<number, keyof CategoryFilterValue> = {
+    0: "category_ids",
+    1: "subcategory_ids",
+    2: "system_ids",
+    3: "piece_ids",
+  };
+  return numericKey[level] || "category_ids";
+}
 
 /** Recopila todos los IDs del subárbol de un nodo (incluyéndolo) */
 function collectAllIds(node: CategoryFilterNode): number[] {
@@ -111,7 +130,8 @@ export default function CategoryFilter({ tree, onChange, value: controlledValue 
       for (const id of ids) {
         const node = nodeMap.get(id);
         if (node) {
-          result[LEVEL_KEY[node.level]].push(id);
+          const key = getLevelKey(node.level);
+          result[key].push(id);
         }
       }
       return result;
