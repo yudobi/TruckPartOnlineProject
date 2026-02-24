@@ -5,10 +5,17 @@ import { ChevronRight } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
-import type { Category } from "@/lib/categories"
+
+interface CategoryNode {
+  id: string
+  name: string
+  code: string
+  shortName?: string
+  children?: CategoryNode[]
+}
 
 interface CategoryTreeNodeProps {
-  category: Category
+  category: CategoryNode
   level?: number
   selectedCategories: Set<string>
   onToggleCategory: (id: string) => void
@@ -112,7 +119,7 @@ export function CategoryTreeNode({
 
       <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-[collapsible-up_150ms_ease-out] data-[state=open]:animate-[collapsible-down_150ms_ease-out]">
         <div className="flex flex-col">
-          {category.children?.map((child) => (
+          {category.children?.map((child: CategoryNode) => (
             <CategoryTreeNode
               key={child.id}
               category={child}

@@ -38,6 +38,7 @@ export interface Product {
   created_at: string;
   updated_at: string;
   category?: ProductCategory | string; 
+  brand?: Brand;
   subcategory?: string; // Subcategoría del producto
   manufacturer?: string; // Nuevo campo para filtros
 }

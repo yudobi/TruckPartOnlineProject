@@ -1,338 +1,341 @@
-import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
-import { useState, useMemo, useCallback } from "react";
+/**
+ * CategoryFilter Component
+ *
+ * Filtro jerárquico de categorías para el catálogo de productos.
+ * Soporta 4 niveles: category → subcategory → system → piece
+ *
+ * USO:
+ *   import CategoryFilter, { type CategoryFilterValue, type CategoryFilterNode } from "@/components/category/category-filter";
+ *
+ *   <CategoryFilter tree={apiCategories} onChange={handleCategoryFilterChange} />
+ *
+ * El `onChange` emite un objeto con:
+ *   - category_ids    → IDs del nivel "category"
+ *   - subcategory_ids → IDs del nivel "subcategory"
+ *   - system_ids      → IDs del nivel "system"
+ *   - piece_ids       → IDs del nivel "piece"
+ *
+ * La lógica de filtrado en ProductsPage ya agrupa todos estos IDs en un Set
+ * y verifica si el category.id del producto es descendiente de alguno de ellos.
+ */
 
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useState, useCallback } from "react";
+import { ChevronRight, Tag } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
-// ── Demo data ─────────────────────────────────────────────────────────────────
-const DEMO_TREE = [
-  {
-    id: 1, name: "Aceite de motor", level: 0, parent: null, qb_id: "ENG",
-    children: [
-      { id: 11, name: "Sintético", level: 1, parent: 1, qb_id: null },
-      { id: 12, name: "Mineral", level: 1, parent: 1, qb_id: null },
-      { id: 13, name: "Semi-sintético", level: 1, parent: 1, qb_id: null },
-    ],
-  },
-  {
-    id: 2, name: "Aceite de transmisión manual", level: 0, parent: null, qb_id: null,
-    children: [
-      { id: 21, name: "SAE 75W-90", level: 1, parent: 2, qb_id: null },
-      { id: 22, name: "SAE 80W-140", level: 1, parent: 2, qb_id: null },
-    ],
-  },
-  {
-    id: 3, name: "Kit de frenos", level: 0, parent: null, qb_id: null,
-    children: [
-      { id: 31, name: "Tambores (DRU)", level: 1, parent: 3, qb_id: null },
-      { id: 32, name: "Discos (DSC)", level: 1, parent: 3, qb_id: null },
-      { id: 33, name: "Zapatas (SHU)", level: 1, parent: 3, qb_id: null },
-    ],
-  },
-  {
-    id: 4, name: "Filtro de aire motor", level: 0, parent: null, qb_id: "AFL",
-    children: [
-      { id: 41, name: "Primario", level: 1, parent: 4, qb_id: null },
-      { id: 42, name: "Secundario", level: 1, parent: 4, qb_id: null },
-    ],
-  },
-  {
-    id: 5, name: "Aditivo", level: 0, parent: null, qb_id: null,
-    children: [
-      { id: 51, name: "Para motor", level: 1, parent: 5, qb_id: null },
-      { id: 52, name: "Para combustible", level: 1, parent: 5, qb_id: null },
-    ],
-  },
-  {
-    id: 6, name: "Anticongelante", level: 0, parent: null, qb_id: null,
-    children: [
-      { id: 61, name: "Concentrado", level: 1, parent: 6, qb_id: null },
-      { id: 62, name: "Predilución 50/50", level: 1, parent: 6, qb_id: null },
-    ],
-  },
-];
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-function getAllDescendantIds(node) {
-  const ids = [node.id];
-  if (node.children) node.children.forEach((c) => ids.push(...getAllDescendantIds(c)));
+export interface CategoryFilterNode {
+  id: number;
+  name: string;
+  level: "category" | "subcategory" | "system" | "piece";
+  parent: number | null;
+  qb_id: string | null;
+  children?: CategoryFilterNode[];
+}
+
+export interface CategoryFilterValue {
+  category_ids: number[];
+  subcategory_ids: number[];
+  system_ids: number[];
+  piece_ids: number[];
+}
+
+interface CategoryFilterProps {
+  tree: CategoryFilterNode[];
+  onChange: (value: CategoryFilterValue) => void;
+  /** Valor controlado opcional; si no se pasa, el componente maneja su propio estado */
+  value?: CategoryFilterValue;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const LEVEL_KEY: Record<CategoryFilterNode["level"], keyof CategoryFilterValue> = {
+  category: "category_ids",
+  subcategory: "subcategory_ids",
+  system: "system_ids",
+  piece: "piece_ids",
+};
+
+/** Recopila todos los IDs del subárbol de un nodo (incluyéndolo) */
+function collectAllIds(node: CategoryFilterNode): number[] {
+  const ids: number[] = [node.id];
+  node.children?.forEach((c) => ids.push(...collectAllIds(c)));
   return ids;
 }
 
-function filterTree(nodes, query) {
-  if (!query) return nodes;
-  return nodes.reduce((acc, node) => {
-    const match = node.name.toLowerCase().includes(query.toLowerCase());
-    const filteredChildren = node.children ? filterTree(node.children, query) : [];
-    if (match || filteredChildren.length > 0) acc.push({ ...node, children: filteredChildren });
-    return acc;
-  }, []);
+/** Dado el árbol, construye un mapa id → node para búsquedas rápidas */
+function buildNodeMap(
+  nodes: CategoryFilterNode[],
+  map: Map<number, CategoryFilterNode> = new Map(),
+): Map<number, CategoryFilterNode> {
+  for (const node of nodes) {
+    map.set(node.id, node);
+    if (node.children?.length) buildNodeMap(node.children, map);
+  }
+  return map;
 }
 
-// ── CategoryRow ───────────────────────────────────────────────────────────────
-function CategoryRow({ node, selected, onToggle, expanded, onExpand }) {
-  const hasChildren = node.children && node.children.length > 0;
-  const isExpanded = expanded.has(node.id);
-  const isSelected = selected.has(node.id);
+// ─── Main Component ───────────────────────────────────────────────────────────
 
-  const childIds = hasChildren ? node.children.map((c) => c.id) : [];
-  const selectedChildCount = childIds.filter((id) => selected.has(id)).length;
-  const allChildrenSelected = hasChildren && selectedChildCount === childIds.length;
-  const someChildrenSelected = hasChildren && selectedChildCount > 0 && !allChildrenSelected;
-  const effectiveSelected = isSelected || allChildrenSelected;
+export default function CategoryFilter({ tree, onChange, value: controlledValue }: CategoryFilterProps) {
+  const { t } = useTranslation();
 
-  const checkboxState = effectiveSelected ? true : someChildrenSelected ? "indeterminate" : false;
+  // Estado interno de selección: Set de IDs seleccionados
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+
+  // Estado de acordeones abiertos
+  const [openNodes, setOpenNodes] = useState<Set<number>>(new Set());
+
+  // Usar valor controlado si se proporciona
+  const effectiveSelected = controlledValue
+    ? new Set([
+        ...controlledValue.category_ids,
+        ...controlledValue.subcategory_ids,
+        ...controlledValue.system_ids,
+        ...controlledValue.piece_ids,
+      ])
+    : selected;
+
+  const nodeMap = buildNodeMap(tree);
+
+  /** Convierte el Set de IDs seleccionados en el objeto CategoryFilterValue */
+  const toFilterValue = useCallback(
+    (ids: Set<number>): CategoryFilterValue => {
+      const result: CategoryFilterValue = {
+        category_ids: [],
+        subcategory_ids: [],
+        system_ids: [],
+        piece_ids: [],
+      };
+      for (const id of ids) {
+        const node = nodeMap.get(id);
+        if (node) {
+          result[LEVEL_KEY[node.level]].push(id);
+        }
+      }
+      return result;
+    },
+    [nodeMap],
+  );
+
+  const toggleNode = useCallback(
+    (node: CategoryFilterNode) => {
+      const newSelected = new Set(effectiveSelected);
+      const allIds = collectAllIds(node);
+
+      const isSelected = newSelected.has(node.id);
+
+      if (isSelected) {
+        // Deseleccionar este nodo y todos sus descendientes
+        allIds.forEach((id) => newSelected.delete(id));
+      } else {
+        // Seleccionar este nodo y todos sus descendientes
+        allIds.forEach((id) => newSelected.add(id));
+
+        // Auto-abrir el acordeón si tiene hijos
+        if (node.children?.length) {
+          setOpenNodes((prev) => new Set([...prev, node.id]));
+        }
+      }
+
+      if (!controlledValue) setSelected(newSelected);
+      onChange(toFilterValue(newSelected));
+    },
+    [effectiveSelected, controlledValue, onChange, toFilterValue],
+  );
+
+  const toggleAccordion = (id: number) => {
+    setOpenNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const clearAll = () => {
+    if (!controlledValue) setSelected(new Set());
+    onChange({ category_ids: [], subcategory_ids: [], system_ids: [], piece_ids: [] });
+  };
+
+  const totalSelected = effectiveSelected.size;
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={() => hasChildren && onExpand(node.id)}>
-
-      {/* Fila padre */}
-      <div className="flex items-center justify-between py-3 border-b border-white/6 cursor-pointer">
-        <div
-          className="flex items-center gap-2.5 flex-1"
-          onClick={() => onToggle(node)}
-        >
-          {/* Checkbox */}
-          <Checkbox
-            checked={checkboxState}
-            onCheckedChange={() => onToggle(node)}
-            onClick={(e) => e.stopPropagation()}
-            className={[
-              "w-3 h-4 rounded-[3px] shrink-0 transition-all duration-150",
-              // Borde
-              effectiveSelected || someChildrenSelected
-                ? "border-[#e63329]"
-                : "border-white/20",
-              // Fondo
-              effectiveSelected
-                ? "bg-[#e63329]"
-                : someChildrenSelected
-                ? "bg-[#e63329]/20"
-                : "bg-transparent",
-              // Overrides shadcn defaults
-              "data-[state=checked]:bg-[#e63329] data-[state=checked]:border-[#e63329]",
-              "data-[state=indeterminate]:bg-[#e63329]/20 data-[state=indeterminate]:border-[#e63329]",
-            ].join(" ")}
-          />
-
-          {/* Label */}
-          <span
-            className={[
-              "text-sm font-[Barlow,sans-serif] transition-colors",
-              effectiveSelected ? "text-white font-semibold" : "text-white/78 font-normal",
-            ].join(" ")}
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-bold tracking-widest text-gray-500 uppercase">
+          {t("catalog.filters.categories", "Categorías")}
+        </h3>
+        {totalSelected > 0 && (
+          <button
+            onClick={clearAll}
+            className="text-[10px] font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter transition-colors"
           >
-            {node.name}
-            {node.qb_id && (
-              <span className="text-white/30 font-normal"> ({node.qb_id})</span>
-            )}
-            {hasChildren && (
-              <span className="text-white/[0.28] font-normal ml-1.5">
-                ({selectedChildCount > 0 ? `${selectedChildCount}/` : ""}{childIds.length})
-              </span>
-            )}
-          </span>
-        </div>
-
-        {/* Chevron */}
-        {hasChildren && (
-          <CollapsibleTrigger asChild>
-            <button
-              onClick={(e) => e.stopPropagation()}
-              className="text-white/35 shrink-0 flex p-0.5 bg-transparent border-none cursor-pointer hover:text-white/60 transition-colors"
-            >
-              {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-          </CollapsibleTrigger>
+            {t("catalog.filters.clear", "Limpiar")}
+            {totalSelected > 0 && ` (${totalSelected})`}
+          </button>
         )}
       </div>
 
-      {/* Hijos */}
-      {hasChildren && (
-        <CollapsibleContent>
-          {node.children.map((child) => (
-            <div
-              key={child.id}
-              onClick={() => onToggle(child)}
-              className="flex items-stretch py-2 cursor-pointer border-b border-white/3"
-            >
-              {/* Barra lateral */}
-              <div
-                className={[
-                  "w-0.5 shrink-0 ml-0.5 mr-4 rounded-[1px] transition-colors duration-150 self-stretch",
-                  selected.has(child.id) ? "bg-[#e63329]" : "bg-white/8",
-                ].join(" ")}
-              />
-              <span
-                className={[
-                  "text-[13px] font-[Barlow,sans-serif] transition-colors duration-150",
-                  selected.has(child.id)
-                    ? "text-white/80 font-medium"
-                    : "text-white/38 font-normal",
-                ].join(" ")}
-              >
-                {child.name}
-              </span>
-            </div>
-          ))}
-        </CollapsibleContent>
-      )}
-    </Collapsible>
-  );
-}
-
-// ── Main Component ────────────────────────────────────────────────────────────
-export default function CategoryFilter({ tree = DEMO_TREE, onChange }) {
-  const [selected, setSelected] = useState(new Set());
-  const [expanded, setExpanded] = useState(new Set());
-  const [search, setSearch] = useState("");
-
-  const handleToggle = useCallback((node) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      const ids = getAllDescendantIds(node);
-      const allSelected = ids.every((id) => next.has(id));
-      if (allSelected) ids.forEach((id) => next.delete(id));
-      else ids.forEach((id) => next.add(id));
-      onChange?.(Array.from(next));
-      return next;
-    });
-  }, [onChange]);
-
-  const handleExpand = useCallback((id) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }, []);
-
-  const clearAll = () => { setSelected(new Set()); onChange?.([]); };
-
-  const displayTree = useMemo(() => filterTree(tree, search), [tree, search]);
-
-  const activeExpanded = useMemo(() => {
-    if (!search) return expanded;
-    const all = new Set();
-    function collect(nodes) {
-      nodes.forEach((n) => { all.add(n.id); if (n.children) collect(n.children); });
-    }
-    collect(tree);
-    return all;
-  }, [search, tree, expanded]);
-
-  return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-10 font-[Barlow,sans-serif]">
-      <div className="w-full max-w-77 bg-[#1a1a1a] rounded-[10px] overflow-hidden shadow-[0_24px_64px_rgba(0,0,0,0.6)]">
-
-        {/* ── Logo ── */}
-        <div className="px-5 pt-5 pb-4 border-b border-white/[0.07]">
-          <div className="flex items-center gap-2.5">
-            <div className="bg-[#e63329] px-2 py-1 rounded-[3px] font-extrabold text-[15px] text-white tracking-[0.02em] font-[Barlow,sans-serif]">
-              TONY
-            </div>
-            <span className="font-bold text-[15px] tracking-[0.06em] text-white font-[Barlow,sans-serif]">
-              TRUCK<span className="text-[#e63329]">PART</span>
-            </span>
-          </div>
-        </div>
-
-        <div className="p-5">
-
-          {/* ── Search ── */}
-          <div className="mb-5">
-            <p className="text-[10px] tracking-[0.14em] uppercase text-white/30 font-semibold mb-2.5 font-[Barlow,sans-serif]">
-              Búsqueda
-            </p>
-            <div className="relative">
-              <Search
-                size={16}
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-white/[0.28] pointer-events-none"
-              />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar repuestos..."
-                className="
-                  w-full bg-white/4 border border-white/10 rounded-[6px]
-                  pl-8 pr-3 py-2.5 text-white text-[13px]
-                  font-[Barlow,sans-serif] transition-colors duration-150
-                  placeholder:text-white/28
-                  focus-visible:ring-0 focus-visible:ring-offset-0
-                  focus-visible:border-white/25
-                "
-              />
-            </div>
-          </div>
-
-          {/* ── Separator ── */}
-          <Separator className="bg-white/6 mb-5" />
-
-          {/* ── Categories ── */}
-          <div className="mb-5">
-            <div className="flex items-center justify-between mb-0.5">
-              <div className="flex items-center gap-1 text-[10px] tracking-[0.14em] uppercase text-white/30 font-semibold font-[Barlow,sans-serif]">
-                Categorías
-                <ChevronDown size={12} className="text-white/18" />
-              </div>
-              {selected.size > 0 && (
-                <Badge
-                  variant="outline"
-                  className="text-[11px] text-[#e63329] font-semibold border-none bg-transparent p-0 h-auto"
-                >
-                  {selected.size} activos
-                </Badge>
-              )}
-            </div>
-
-            {/* ScrollArea */}
-            <ScrollArea className="h-95">
-              {displayTree.length === 0 ? (
-                <p className="py-6 text-center text-white/20 text-[13px] font-[Barlow,sans-serif]">
-                  Sin resultados para "{search}"
-                </p>
-              ) : (
-                displayTree.map((node) => (
-                  <CategoryRow
-                    key={node.id}
-                    node={node}
-                    selected={selected}
-                    onToggle={handleToggle}
-                    expanded={activeExpanded}
-                    onExpand={handleExpand}
-                  />
-                ))
-              )}
-            </ScrollArea>
-          </div>
-
-          {/* ── Reset ── */}
-          <Button
-            onClick={clearAll}
-            disabled={selected.size === 0}
-            className={[
-              "w-full rounded-[6px] py-3.25 h-auto",
-              "text-[12px] font-bold tracking-widest uppercase font-[Barlow,sans-serif]",
-              "flex items-center justify-center gap-2 transition-all duration-200 border-none",
-              selected.size > 0
-                ? "bg-white text-[#111111] hover:bg-white/90 cursor-pointer"
-                : "bg-white/6 text-white/22 cursor-default hover:bg-white/6",
-            ].join(" ")}
-          >
-            <X size={16} />
-            Reset filtros
-          </Button>
-        </div>
+      {/* Tree */}
+      <div className="space-y-1">
+        {tree.map((node) => (
+          <CategoryNode
+            key={node.id}
+            node={node}
+            depth={0}
+            selected={effectiveSelected}
+            openNodes={openNodes}
+            onToggleSelect={toggleNode}
+            onToggleAccordion={toggleAccordion}
+          />
+        ))}
       </div>
     </div>
   );
+}
+
+// ─── Recursive Node ───────────────────────────────────────────────────────────
+
+interface CategoryNodeProps {
+  node: CategoryFilterNode;
+  depth: number;
+  selected: Set<number>;
+  openNodes: Set<number>;
+  onToggleSelect: (node: CategoryFilterNode) => void;
+  onToggleAccordion: (id: number) => void;
+}
+
+function CategoryNode({
+  node,
+  depth,
+  selected,
+  openNodes,
+  onToggleSelect,
+  onToggleAccordion,
+}: CategoryNodeProps) {
+  const hasChildren = (node.children?.length ?? 0) > 0;
+  const isOpen = openNodes.has(node.id);
+  const isSelected = selected.has(node.id);
+
+  // Verificar si algún descendiente está seleccionado (para mostrar estado "parcial")
+  const hasSelectedDescendant = hasChildren
+    ? node.children!.some((child) => hasAnySelected(child, selected))
+    : false;
+
+  const isPartial = !isSelected && hasSelectedDescendant;
+
+  // Estilos según nivel de profundidad
+  const depthStyles: Record<number, string> = {
+    0: "text-[11px] font-black tracking-widest uppercase text-gray-400",
+    1: "text-[11px] font-bold tracking-wider uppercase text-gray-400",
+    2: "text-[11px] font-semibold text-gray-500",
+    3: "text-[11px] font-medium text-gray-500",
+  };
+
+  const paddingLeft = depth * 12;
+
+  return (
+    <div>
+      <div
+        className={`
+          flex items-center gap-2 py-2 px-2 rounded-xs cursor-pointer group transition-all duration-200
+          ${isSelected ? "bg-red-600/15 text-white" : "hover:bg-white/5 text-gray-400 hover:text-white"}
+          ${isPartial ? "bg-white/3" : ""}
+        `}
+        style={{ paddingLeft: `${8 + paddingLeft}px` }}
+      >
+        {/* Checkbox visual */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect(node);
+          }}
+          className={`
+            flex-shrink-0 w-4 h-4 rounded-xs border transition-all duration-200 flex items-center justify-center
+            ${
+              isSelected
+                ? "bg-red-600 border-red-600"
+                : isPartial
+                  ? "border-red-600/50 bg-red-600/10"
+                  : "border-white/20 group-hover:border-white/40"
+            }
+          `}
+          aria-label={`Seleccionar ${node.name}`}
+        >
+          {isSelected && (
+            <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
+              <path d="M1 3L3 5L7 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+          {isPartial && (
+            <div className="w-2 h-0.5 bg-red-500 rounded-full" />
+          )}
+        </button>
+
+        {/* Label */}
+        <span
+          onClick={() => {
+            if (hasChildren) onToggleAccordion(node.id);
+            else onToggleSelect(node);
+          }}
+          className={`flex-1 select-none leading-tight transition-colors ${depthStyles[depth] || depthStyles[3]} ${isSelected ? "!text-white" : ""}`}
+        >
+          {node.name}
+        </span>
+
+        {/* Chevron si tiene hijos */}
+        {hasChildren && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleAccordion(node.id);
+            }}
+            className="shrink-0 text-gray-600 hover:text-white transition-colors"
+          >
+            <ChevronRight
+              className={`w-3.5 h-3.5 transition-transform duration-300 ${isOpen ? "rotate-90" : ""}`}
+            />
+          </button>
+        )}
+
+        {/* Dot indicator si es hoja (piece) */}
+        {!hasChildren && (
+          <Tag className="w-2.5 h-2.5 text-gray-700 shrink-0" />
+        )}
+      </div>
+
+      {/* Children - acordeón */}
+      {hasChildren && isOpen && (
+        <div
+          className="overflow-hidden"
+          style={{
+            borderLeft: depth < 2 ? "1px solid rgba(255,255,255,0.06)" : "none",
+            marginLeft: `${16 + paddingLeft}px`,
+          }}
+        >
+          {node.children!.map((child) => (
+            <CategoryNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              selected={selected}
+              openNodes={openNodes}
+              onToggleSelect={onToggleSelect}
+              onToggleAccordion={onToggleAccordion}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Utils ────────────────────────────────────────────────────────────────────
+
+function hasAnySelected(node: CategoryFilterNode, selected: Set<number>): boolean {
+  if (selected.has(node.id)) return true;
+  return node.children?.some((c) => hasAnySelected(c, selected)) ?? false;
 }
