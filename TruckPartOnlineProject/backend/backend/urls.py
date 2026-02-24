@@ -65,9 +65,11 @@ inventory_urls.urlpatterns = apply_tag('Inventario', inventory_urls.urlpatterns)
 products_urls.urlpatterns = apply_tag('Productos', products_urls.urlpatterns)
 clover_urls.urlpatterns = apply_tag('Clover', clover_urls.urlpatterns)
 
+import users.views as views
 urlpatterns = [
     # URLs de administración
     path('admin/', admin.site.urls),
+    
     
     # Documentación de la API
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', 

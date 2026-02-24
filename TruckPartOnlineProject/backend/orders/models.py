@@ -30,6 +30,7 @@ class Order(models.Model):
         blank=True,
         related_name='orders'
     )
+    full_name = models.CharField(max_length=255)
     guest_email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     shipping_address = models.TextField(null=True, blank=True)
@@ -37,6 +38,9 @@ class Order(models.Model):
     state = models.CharField(max_length=100, null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     postal_code = models.CharField(max_length=20, null=True, blank=True)
+    street = models.CharField(max_length=255, null=True, blank=True)
+    house_number = models.CharField(max_length=20, null=True, blank=True)
+
 
     created_at = models.DateTimeField(auto_now_add=True)
 

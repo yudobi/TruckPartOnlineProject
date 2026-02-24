@@ -51,7 +51,7 @@ def checkout(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # 1️⃣ VALIDAR STOCK CON QUICKBOOKS
+    # 1️⃣ VALIDAR STOCK CON INVENTARIO LOCAL NO CON QUICKBOOKS
     try:
         validate_order_stock(items)
     except ValueError as e:
@@ -251,3 +251,5 @@ def my_orders(request):
         "results": data
     })
 ####################################################################################
+
+

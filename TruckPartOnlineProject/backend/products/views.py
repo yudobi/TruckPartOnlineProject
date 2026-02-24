@@ -101,6 +101,11 @@ class ProductViewSet(ModelViewSet):
             "delete_image",
         ]:
             return [IsAdminUser()]
+        
+        # Para retrieve (obtener un producto específico) permitir a staff
+        if self.action == "retrieve" and self.request.user.is_staff:
+            return [AllowAny()]  # O podrías usar un permiso personalizado
+
         return [AllowAny()]
     
 
@@ -195,6 +200,7 @@ class ProductViewSet(ModelViewSet):
 
 
 class BrandViewSet(ReadOnlyModelViewSet):
+    queryset = Brand.objects.all()
     serializer_class = BrandSerializer
     
     def get_queryset(self):
