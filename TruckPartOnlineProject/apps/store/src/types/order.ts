@@ -50,7 +50,13 @@ export interface CheckoutData {
     product_id: number;
     quantity: number;
   }[];
+  full_name?: string;
   shipping_address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  guest_email?: string;
   phone?: string;
   payment_method?: PaymentMethod;
 }

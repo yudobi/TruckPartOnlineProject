@@ -20,7 +20,7 @@ import CategoryFilter, {
 import { type Product, type ProductCategory } from "@app-types/product";
 import { useProducts } from "@hooks/useProducts";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, memo } from "react";
 import { useSearchParams } from "react-router";
 import { useCategoriesWithSubcategories } from "@hooks/useCategories";
 import { useBrands } from "@hooks/useBrands";
@@ -310,11 +310,23 @@ export default function ProductsPage() {
   };
 
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     setIsChangingPage(true);
-    handleFilterChange("page", page.toString());
+    setSearchParams((prev) => {
+      const newParams = new URLSearchParams(prev);
+      newParams.set("page", page.toString());
+      return newParams;
+    });
     setTimeout(() => setIsChangingPage(false), 500);
-  };
+  }, [setSearchParams]);
+
+  const handleProductSelect = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    const mainImg =
+      product.images?.find((img) => img.is_main)?.image ||
+      product.images?.[0]?.image;
+    setActiveImage(mainImg || null);
+  }, []);
 
   const clearFilters = () => {
     clearCategoryFilter();
@@ -692,13 +704,7 @@ export default function ProductsPage() {
                   <ProductCard
                     key={product.id}
                     product={product}
-                    onSelect={() => {
-                      setSelectedProduct(product);
-                      const mainImg =
-                        product.images?.find((img) => img.is_main)?.image ||
-                        product.images?.[0]?.image;
-                      setActiveImage(mainImg || null);
-                    }}
+                    onSelect={handleProductSelect}
                   />
                 ))
               )}
@@ -858,7 +864,7 @@ function ProductSkeleton() {
   );
 }
 
-function ProductCard({ product, onSelect }: { product: Product; onSelect: () => void }) {
+const ProductCard = memo(function ProductCard({ product, onSelect }: { product: Product; onSelect: (product: Product) => void }) {
   const { t } = useTranslation();
   const { name, category, price, images, inventory } = product;
   const imageUrl = images?.find((img) => img.is_main)?.image || images?.[0]?.image;
@@ -866,7 +872,7 @@ function ProductCard({ product, onSelect }: { product: Product; onSelect: () => 
 
   return (
     <div
-      onClick={onSelect}
+      onClick={() => onSelect(product)}
       className="cursor-pointer rounded-sm group relative bg-zinc-900/40 border border-white/5 hover:border-red-600/50 transition-all duration-500 overflow-hidden"
       style={{ contain: "layout style paint" }}
     >
@@ -914,7 +920,7 @@ function ProductCard({ product, onSelect }: { product: Product; onSelect: () => 
       </div>
     </div>
   );
-}
+});
 
 function PaginationComponent({
   currentPage,

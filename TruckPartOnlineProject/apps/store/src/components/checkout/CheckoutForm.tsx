@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 export interface CheckoutFormData {
+  fullName: string;
   guestEmail?: string;
   shippingAddress: string;
   city: string;
@@ -21,6 +22,7 @@ interface CheckoutFormProps {
 export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<CheckoutFormData>({
+    fullName: "",
     shippingAddress: "",
     city: "",
     state: "",
@@ -46,6 +48,20 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
       <h2 className="text-xl font-bold text-white mb-4">
         {t("checkout.shippingDetails", "Detalles de Envío")}
       </h2>
+      <div className="space-y-2">
+        <Label htmlFor="fullName" className="text-zinc-300">
+          {t("checkout.fullName", "Nombre Completo")}
+        </Label>
+        <Input
+          id="fullName"
+          name="fullName"
+          required
+          placeholder="Juan Pérez"
+          value={formData.fullName}
+          onChange={handleChange}
+          className="bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600"
+        />
+      </div>
 
       <div className="space-y-2">
         <Label htmlFor="guestEmail" className="text-zinc-300">

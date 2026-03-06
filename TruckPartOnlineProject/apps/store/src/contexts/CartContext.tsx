@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { CartContext } from "@hooks/useCart";
 import { type Product, type CartItem } from "@app-types/product";
 
@@ -23,6 +24,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
+        toast.success(`"${product.name}" actualizado en el carrito`);
         return prevItems.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -40,12 +42,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         quantity: 1,
       };
 
+      toast.success(`"${product.name}" agregado al carrito`);
       return [...prevItems, newItem];
     });
   };
 
   const removeItem = (id: number) => {
-    setItems((prevItems) => prevItems.filter((item) => item.id !== id));
+    setItems((prevItems) => {
+      toast("Producto eliminado del carrito");
+      return prevItems.filter((item) => item.id !== id);
+    });
   };
 
   const updateQuantity = (id: number, quantity: number) => {
@@ -57,6 +63,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     setItems([]);
+    toast("Carrito vaciado");
   };
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);

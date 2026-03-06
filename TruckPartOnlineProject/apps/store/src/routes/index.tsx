@@ -1,25 +1,59 @@
+import { lazy, Suspense } from "react";
 import type { RouteObject } from "react-router";
 import MainLayout from "@/components/layout/MainLayout";
-import HomePage from "@/pages/HomePage";
-import ProductsPage from "@/pages/ProductsPage";
-import AboutPage from "@/pages/AboutPage";
-import ContactPage from "@/pages/ContactPage";
-import AuthPage from "@/pages/AuthPage";
-import OrdersPage from "@/pages/OrdersPage";
-import OrderDetailPage from "@/pages/OrderDetailPage";
-import CheckoutPage from "@/pages/CheckoutPage";
+import ErrorBoundary from "@/components/error/ErrorBoundary";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { AdminProtectedRoute } from "@/components/auth/AdminProtectedRoute";
+
+// ---------------------------------------------------------------------------
+// Code-split page components (each becomes its own JS chunk)
+// ---------------------------------------------------------------------------
+const HomePage = lazy(() => import("@/pages/HomePage"));
+const ProductsPage = lazy(() => import("@/pages/ProductsPage"));
+const AboutPage = lazy(() => import("@/pages/AboutPage"));
+const ContactPage = lazy(() => import("@/pages/ContactPage"));
+const AuthPage = lazy(() => import("@/pages/AuthPage"));
+const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
+const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
+const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
+const OrderConfirmationPage = lazy(() => import("@/pages/OrderConfirmationPage"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+
+// Admin pages
+const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
+const AdminOrderDetailPage = lazy(() => import("@/pages/admin/AdminOrderDetailPage"));
+
+// ---------------------------------------------------------------------------
+// Shared loading spinner shown while a lazy chunk is being fetched
+// ---------------------------------------------------------------------------
+function PageLoader() {
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <span className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 /**
- * Configuración declarativa de rutas usando React Router 7
+ * Configuración declarativa de rutas usando React Router 7.
  *
- * Esta configuración utiliza el array de rutas (RouteObject[]) que es la forma
- * declarativa recomendada en React Router 7.
+ * Todas las páginas se cargan de forma diferida (React.lazy) para reducir
+ * el bundle inicial. Las rutas de órdenes y checkout requieren autenticación
+ * y están envueltas en <ProtectedRoute>. Las rutas de admin también requieren
+ * is_staff=true y están envueltas en <AdminProtectedRoute>. El árbol completo
+ * está protegido por un <ErrorBoundary> para capturar errores de renderizado.
  */
 export const routes: RouteObject[] = [
   {
     // Ruta raíz con layout principal
     path: "/",
-    element: <MainLayout />,
+    element: (
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <MainLayout />
+        </Suspense>
+      </ErrorBoundary>
+    ),
     children: [
       {
         // Página de inicio
@@ -47,32 +81,70 @@ export const routes: RouteObject[] = [
         element: <AuthPage />,
       },
       {
-        // Página de órdenes del usuario
+        // Página de órdenes — requiere sesión activa
         path: "orders",
-        element: <OrdersPage />,
+        element: (
+          <ProtectedRoute>
+            <OrdersPage />
+          </ProtectedRoute>
+        ),
       },
       {
-        // Página de checkout
-        path: "checkout",
-        element: <CheckoutPage />,
-      },
-      {
-        // Página de detalle de orden
+        // Detalle de orden — requiere sesión activa
         path: "orders/:id",
-        element: <OrderDetailPage />,
+        element: (
+          <ProtectedRoute>
+            <OrderDetailPage />
+          </ProtectedRoute>
+        ),
       },
-      // Puedes agregar más rutas aquí fácilmente
-      // {
-      //   path: 'nueva-ruta',
-      //   element: <NuevaPagina />,
-      // },
+      {
+        // Página de checkout — requiere sesión activa
+        path: "checkout",
+        element: (
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        // Confirmación de orden tras pago exitoso — requiere sesión activa
+        path: "orders/confirmation/:id",
+        element: (
+          <ProtectedRoute>
+            <OrderConfirmationPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        // Listado de órdenes (admin) — requiere is_staff
+        path: "admin/orders",
+        element: (
+          <AdminProtectedRoute>
+            <AdminOrdersPage />
+          </AdminProtectedRoute>
+        ),
+      },
+      {
+        // Detalle de orden (admin) — requiere is_staff
+        path: "admin/orders/:id",
+        element: (
+          <AdminProtectedRoute>
+            <AdminOrderDetailPage />
+          </AdminProtectedRoute>
+        ),
+      },
     ],
   },
-  // Ruta 404 - Página no encontrada (opcional)
-  // {
-  //   path: '*',
-  //   element: <NotFoundPage />,
-  // },
+  // Ruta 404 — Página no encontrada
+  {
+    path: "*",
+    element: (
+      <Suspense fallback={<PageLoader />}>
+        <NotFoundPage />
+      </Suspense>
+    ),
+  },
 ];
 
 export default routes;

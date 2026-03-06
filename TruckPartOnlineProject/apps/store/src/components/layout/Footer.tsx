@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
-export default function Footer() {
+const Footer = memo(function Footer() {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
@@ -94,4 +95,6 @@ export default function Footer() {
       </div>
     </footer>
   );
-}
+});
+
+export default Footer;

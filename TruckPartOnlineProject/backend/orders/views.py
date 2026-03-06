@@ -74,7 +74,14 @@ def checkout(request):
     try:
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
+            full_name=request.data.get("full_name"),
             guest_email=guest_email,
+            phone=request.data.get("phone"),
+            shipping_address=request.data.get("shipping_address"),
+            city=request.data.get("city"),
+            state=request.data.get("state"),
+            country=request.data.get("country"),
+            postal_code=request.data.get("postal_code"),
             status="pending"
         )
 
@@ -253,3 +260,173 @@ def my_orders(request):
 ####################################################################################
 
 
+#############################ADMIN: LISTAR TODAS LAS ÓRDENES############################
+@api_view(["GET"])
+def admin_orders_list(request):
+    """
+    GET /api/admin/orders/
+    Lista todas las órdenes del sistema (solo staff)
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return Response(
+            {"error": "Admin access required"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    # Soporte de filtros
+    status_filter = request.query_params.get("status")
+    payment_status_filter = request.query_params.get("payment_status")
+    search = request.query_params.get("search")  # buscar por id, nombre del cliente o email
+
+    orders = Order.objects.all().order_by('-created_at')
+
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    if payment_status_filter:
+        orders = orders.filter(payment_status=payment_status_filter)
+    if search:
+        from django.db.models import Q
+        orders = orders.filter(
+            Q(id__icontains=search) |
+            Q(full_name__icontains=search) |
+            Q(guest_email__icontains=search) |
+            Q(user__email__icontains=search)
+        )
+
+    # Paginación
+    page = int(request.query_params.get("page", 1))
+    page_size = int(request.query_params.get("page_size", 20))
+    total = orders.count()
+    start = (page - 1) * page_size
+    end = start + page_size
+    orders = orders[start:end]
+
+    data = []
+    for order in orders:
+        items_count = order.items.count()
+        data.append({
+            "id": order.id,
+            "full_name": order.full_name,
+            "guest_email": order.guest_email,
+            "user_email": order.user.email if order.user else None,
+            "status": order.status,
+            "payment_method": order.payment_method,
+            "payment_status": order.payment_status,
+            "total": float(order.total),
+            "items_count": items_count,
+            "created_at": order.created_at,
+            "shipping_address": order.shipping_address,
+            "city": order.city,
+            "state": order.state,
+        })
+
+    return Response({
+        "count": total,
+        "page": page,
+        "page_size": page_size,
+        "results": data
+    })
+
+
+#############################ADMIN: DETALLE DE UNA ORDEN############################
+@api_view(["GET"])
+def admin_order_detail(request, order_id):
+    """
+    GET /api/admin/orders/{order_id}/
+    Detalle completo de una orden (solo staff)
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return Response(
+            {"error": "Admin access required"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    order = get_object_or_404(Order, id=order_id)
+
+    items = []
+    for i in order.items.all():
+        product_images = [{"id": img.id, "image": img.image.url, "is_main": img.is_main}
+                         for img in i.product.images.all()]
+        items.append({
+            "id": i.id,
+            "product": {
+                "id": i.product.id,
+                "name": i.product.name,
+                "sku": i.product.sku,
+                "images": product_images,
+            },
+            "quantity": i.quantity,
+            "price": float(i.price)
+        })
+
+    return Response({
+        "id": order.id,
+        "full_name": order.full_name,
+        "guest_email": order.guest_email,
+        "phone": order.phone,
+        "user": {
+            "id": order.user.id,
+            "email": order.user.email,
+            "username": order.user.username,
+        } if order.user else None,
+        "shipping_address": order.shipping_address,
+        "city": order.city,
+        "state": order.state,
+        "country": order.country,
+        "postal_code": order.postal_code,
+        "status": order.status,
+        "payment_method": order.payment_method,
+        "payment_status": order.payment_status,
+        "total": float(order.total),
+        "qb_invoice_id": order.qb_invoice_id,
+        "qb_sales_receipt_id": order.qb_sales_receipt_id,
+        "items": items,
+        "created_at": order.created_at,
+    })
+
+
+#############################ADMIN: ACTUALIZAR STATUS DE UNA ORDEN############################
+@api_view(["PATCH"])
+def admin_update_order_status(request, order_id):
+    """
+    PATCH /api/admin/orders/{order_id}/status/
+    Actualizar status de una orden (solo staff)
+    """
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return Response(
+            {"error": "Admin access required"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    order = get_object_or_404(Order, id=order_id)
+
+    new_status = request.data.get("status")
+    new_payment_status = request.data.get("payment_status")
+
+    valid_statuses = ["pending", "invoiced", "completed", "failed"]
+    valid_payment_statuses = ["pending", "paid", "failed"]
+
+    if new_status:
+        if new_status not in valid_statuses:
+            return Response(
+                {"error": f"Invalid status. Valid: {valid_statuses}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        order.status = new_status
+
+    if new_payment_status:
+        if new_payment_status not in valid_payment_statuses:
+            return Response(
+                {"error": f"Invalid payment status. Valid: {valid_payment_statuses}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        order.payment_status = new_payment_status
+
+    order.save()
+
+    return Response({
+        "id": order.id,
+        "status": order.status,
+        "payment_status": order.payment_status,
+        "message": "Order updated successfully"
+    })

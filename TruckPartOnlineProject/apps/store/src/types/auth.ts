@@ -8,6 +8,7 @@ export type UserInfo = {
   name?: string;
   last_name?: string;
   home_address?: string;
+  is_staff?: boolean;
 
   accessToken?: string;
   refreshToken?: string;
@@ -35,5 +36,9 @@ export type RegisterResponse = {
   user: UserInfo;
   access: string;
   refresh: string;
+};
+
+export type TokenRefreshResponse = {
+  access: string;
 };
 

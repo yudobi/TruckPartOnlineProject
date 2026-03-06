@@ -6,7 +6,9 @@ import {
   Settings,
   Menu,
   Package,
+  Shield,
 } from "lucide-react";
+import { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@components/layout/LanguageSwitcher";
 import { useAuth } from "@hooks/useAuth";
@@ -30,15 +32,15 @@ import {
 
 import CartSidebar from "@components/cart/CartSidebar";
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
   const { t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate("/auth");
-  };
+  }, [logout, navigate]);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
@@ -117,6 +119,14 @@ export default function Navbar() {
                       <Settings className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
                       <span>{t("user.profile")}</span>
                     </DropdownMenuItem>
+                    {user?.is_staff && (
+                      <Link to="/admin/orders" className="w-full">
+                        <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
+                          <Shield className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
+                          <span>Admin</span>
+                        </DropdownMenuItem>
+                      </Link>
+                    )}
                   </DropdownMenuGroup>
 
                   <DropdownMenuSeparator className="my-2 bg-white/10" />
@@ -211,6 +221,11 @@ export default function Navbar() {
                         <MobileNavItem to="/orders">
                           {t("orders.title")}
                         </MobileNavItem>
+                        {user?.is_staff && (
+                          <MobileNavItem to="/admin/orders">
+                            Admin
+                          </MobileNavItem>
+                        )}
                         <button
                           onClick={handleLogout}
                           className="flex items-center gap-2 text-red-500 font-bold text-sm hover:text-red-400 transition-colors"
@@ -237,7 +252,9 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+});
+
+export default Navbar;
 
 function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
   return (

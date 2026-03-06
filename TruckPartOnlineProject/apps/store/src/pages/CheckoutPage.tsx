@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useCart } from "@hooks/useCart";
 import { useCheckout } from "@hooks/useCheckout";
 import {
@@ -10,7 +11,7 @@ import {
   type PaymentMethod,
 } from "@components/checkout/PaymentMethodSelector";
 import { OrderSummary } from "@components/checkout/OrderSummary";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
@@ -24,30 +25,20 @@ export default function CheckoutPage() {
     createOrder,
     payOrder,
     checkoutData,
-    setCheckoutData,
     paymentResponse,
     isLoading,
     error,
   } = useCheckout();
 
-  const location = useLocation();
-
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>("card");
 
-  // Si hay datos de checkout en el estado de navegación, establecerlos
-  useEffect(() => {
-    if (location.state?.checkoutData && !checkoutData) {
-      setCheckoutData(location.state.checkoutData);
-    }
-  }, [location.state, checkoutData, setCheckoutData]);
-
   // Si el carrito está vacío y no hay orden creada, redirigir
   useEffect(() => {
-    if (items.length === 0 && !checkoutData && !location.state?.checkoutData) {
+    if (items.length === 0 && !checkoutData) {
       navigate("/products");
     }
-  }, [items, checkoutData, navigate, location.state]);
+  }, [items, checkoutData, navigate]);
 
   // Manejar éxito de pago
   useEffect(() => {
@@ -57,11 +48,8 @@ export default function CheckoutPage() {
         paymentResponse.status === "completed")
     ) {
       clearCart();
-      // Redirigir a confirmación o historial
-      // navigate(`/orders/${paymentResponse.order_id}`);
-      // O mostrar mensaje de éxito temporalmente
-      alert("Pedido completado con éxito!");
-      navigate("/orders"); // Asumiendo que existe esta ruta
+      toast.success("¡Pedido completado con éxito!");
+      navigate(`/orders/confirmation/${paymentResponse.order_id}`);
     }
   }, [paymentResponse, clearCart, navigate]);
 
@@ -89,39 +77,16 @@ export default function CheckoutPage() {
           product_id: item.id,
           quantity: item.quantity,
         })),
+        full_name: data.fullName,
         shipping_address: data.shippingAddress,
-        // Asumiendo que el backend espera city, state, etc. en el address o separados
-        // El tipo CheckoutData tiene shipping_address, phone, payment_method opcionales.
-        // Si el backend no soporta city/state separados, los concatenamos en shipping_address.
-        // Pero el form los pide separados.
-        // Voy a asumir concatenación para shipping_address por ahora si el tipo no los tiene.
-        // El tipo CheckoutData en order.ts solo tiene shipping_address, pero el Order tiene city, state, etc.
-        // Ajustaré para enviar lo que el backend espera.
+        city: data.city,
+        state: data.state,
+        country: data.country,
+        postal_code: data.postalCode,
+        guest_email: data.guestEmail,
       };
 
-      // Enviar también datos extras si el backend lo soporta, o concatenar en shipping_address
-      const fullAddress = `${data.shippingAddress}, ${data.city}, ${data.state}, ${data.postalCode}, ${data.country}`;
-      // orderData.shipping_address = fullAddress; // Si el backend espera un string largo
-
-      // NOTA: El tipo CheckoutData en order.ts es:
-      /*
-      export interface CheckoutData {
-        items: { product_id: number; quantity: number }[];
-        shipping_address?: string;
-        phone?: string;
-        payment_method?: PaymentMethod;
-      }
-      */
-
-      // Modificaré orderData para que coincida con lo que el backend REALMENTE espera.
-      // Si el backend es Django REST Framework y usa un serializador personalizado, podría aceptar más campos.
-      // Por seguridad, enviaré shipping_address como concatenación por ahora.
-
-      await createOrder({
-        ...orderData,
-        shipping_address: fullAddress,
-      });
-
+      await createOrder(orderData);
       // Si la respuesta es exitosa, pasamos al paso de pago automáticamente
     } catch (err) {
       console.error("Checkout failed", err);

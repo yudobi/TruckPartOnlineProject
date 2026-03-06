@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { type UserInfo, type LoginCredentials, type RegisterCredentials } from "@app-types/auth";
 import { AuthContext, type AuthContextType } from "@hooks/useAuth";
@@ -49,8 +50,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         secure: window.location.protocol === "https:",
         sameSite: "strict",
       });
+
+      toast.success("¡Sesión iniciada correctamente!");
     } catch (error) {
       console.error("Login Error:", error);
+      toast.error("Error al iniciar sesión. Verifica tus credenciales.");
       throw error;
     }
   };
@@ -76,8 +80,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         secure: window.location.protocol === "https:",
         sameSite: "strict",
       });
+
+      toast.success("¡Cuenta creada exitosamente!");
     } catch (error) {
       console.error("Register Error:", error);
+      toast.error("Error al crear la cuenta. Inténtalo de nuevo.");
       throw error;
     }
   };
@@ -86,6 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     apiClient.setAuthToken(null);
     Cookies.remove(AUTH_COOKIE_NAME);
+    toast("Sesión cerrada");
   };
 
   const value: AuthContextType = {
