@@ -17,6 +17,7 @@ const OrdersPage = lazy(() => import("@/pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("@/pages/OrderDetailPage"));
 const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
 const OrderConfirmationPage = lazy(() => import("@/pages/OrderConfirmationPage"));
+const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 
 // Admin pages
@@ -86,6 +87,15 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute>
             <OrdersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        // Perfil de usuario — requiere sesión activa
+        path: "profile",
+        element: (
+          <ProtectedRoute>
+            <UserProfilePage />
           </ProtectedRoute>
         ),
       },

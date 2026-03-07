@@ -115,10 +115,12 @@ const Navbar = memo(function Navbar() {
                         <span>{t("orders.title")}</span>
                       </DropdownMenuItem>
                     </Link>
-                    <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
-                      <Settings className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
-                      <span>{t("user.profile")}</span>
-                    </DropdownMenuItem>
+                    <Link to="/profile" className="w-full">
+                      <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
+                        <Settings className="mr-3 h-4 w-4 text-red-500 group-focus:text-white transition-colors" />
+                        <span>{t("user.profile")}</span>
+                      </DropdownMenuItem>
+                    </Link>
                     {user?.is_staff && (
                       <Link to="/admin/orders" className="w-full">
                         <DropdownMenuItem className="group cursor-pointer text-gray-300 focus:text-white focus:bg-red-600 py-2.5 transition-colors">
