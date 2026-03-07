@@ -187,20 +187,50 @@ def pay_order(request, order_id):
 @api_view(["GET"])
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+    
+    # Validar que el usuario solo vea sus propias órdenes
+    if order.user and order.user != request.user:
+        return Response(
+            {"error": "No tiene permiso para acceder a esta orden"},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     items = []
     for i in order.items.all():
+        product_images = [{"id": img.id, "image": img.image.url, "is_main": img.is_main}
+                         for img in i.product.images.all()]
         items.append({
-            "product": i.product.name,
+            "id": i.id,
+            "product": {
+                "id": i.product.id,
+                "name": i.product.name,
+                "sku": i.product.sku,
+                "images": product_images,
+            },
             "quantity": i.quantity,
             "price": float(i.price)
         })
 
     return Response({
         "id": order.id,
+        "user": {
+            "id": order.user.id,
+            "email": order.user.email,
+            "username": order.user.username,
+        } if order.user else None,
+        "guest_email": order.guest_email,
+        "phone": order.phone,
+        "shipping_address": order.shipping_address,
+        "country": order.country,
+        "state": order.state,
+        "city": order.city,
+        "postal_code": order.postal_code,
         "status": order.status,
+        "payment_method": order.payment_method,
+        "payment_status": order.payment_status,
         "total": float(order.total),
-        "qb_sales_id": order.qb_sales_id,
+        "qb_invoice_id": order.qb_invoice_id,
+        "qb_sales_receipt_id": order.qb_sales_receipt_id,
         "items": items,
         "created_at": order.created_at
     })
