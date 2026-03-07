@@ -5,14 +5,20 @@ import { Input } from "@/components/ui/input";
 import { User, Mail, Lock, ArrowRight, Phone, MapPin } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
+import { loginSchema, registerSchema } from "@lib/validations";
+import { useFormValidation } from "@hooks/useFormValidation";
 
-interface ValidationErrors {
-  username?: string;
-  email?: string;
-  phone?: string;
-  address?: string;
-  password?: string;
-  confirmPassword?: string;
+function getPasswordStrength(password: string) {
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) return { score, label: "Débil", color: "bg-red-500" };
+  if (score <= 3) return { score, label: "Media", color: "bg-yellow-500" };
+  return { score, label: "Fuerte", color: "bg-green-500" };
 }
 
 export default function AuthPage() {
@@ -28,83 +34,33 @@ export default function AuthPage() {
     address: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState<ValidationErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const loginValidation = useFormValidation(loginSchema);
+  const registerValidation = useFormValidation(registerSchema);
 
-  const validatePhone = (phone: string): boolean => {
-    const phoneRegex = /^\+?[\d\s-()]{10,}$/;
-    return phoneRegex.test(phone.replace(/\s/g, ''));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
-
-    if (!isLogin) {
-      // Validar username
-      if (!formData.username.trim()) {
-        newErrors.username = t("auth.register.validation.username_required");
-      } else if (formData.username.length < 3) {
-        newErrors.username = t("auth.register.validation.username_min");
-      }
-
-      // Validar email
-      if (!formData.email.trim()) {
-        newErrors.email = t("auth.register.validation.email_required");
-      } else if (!validateEmail(formData.email)) {
-        newErrors.email = t("auth.register.validation.email_invalid");
-      }
-
-      // Validar teléfono
-      if (!formData.phone.trim()) {
-        newErrors.phone = t("auth.register.validation.phone_required");
-      } else if (!validatePhone(formData.phone)) {
-        newErrors.phone = t("auth.register.validation.phone_invalid");
-      }
-
-      // Validar dirección
-      if (!formData.address.trim()) {
-        newErrors.address = t("auth.register.validation.address_required");
-      } else if (formData.address.length < 5) {
-        newErrors.address = t("auth.register.validation.address_min");
-      }
-
-      // Validar contraseña
-      if (!formData.password) {
-        newErrors.password = t("auth.register.validation.password_required");
-      } else if (formData.password.length < 8) {
-        newErrors.password = t("auth.register.validation.password_min");
-      }
-
-      // Validar confirmación de contraseña
-      if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = t("auth.register.validation.passwords_match");
-      }
-    } else {
-      // Validar login
-      if (!formData.username.trim()) {
-        newErrors.username = t("auth.login.error_message");
-      }
-      if (!formData.password) {
-        newErrors.password = t("auth.login.error_message");
-      }
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const strength = getPasswordStrength(formData.password);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!validateForm()) {
-      return;
+    if (isLogin) {
+      const valid = loginValidation.validate({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (!valid) return;
+    } else {
+      const valid = registerValidation.validate({
+        username: formData.username,
+        email: formData.email,
+        phone_number: formData.phone,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+      if (!valid) return;
     }
 
     setLoading(true);
@@ -112,7 +68,7 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await login({
-          username: formData.username,
+          username: formData.email,
           password: formData.password,
         });
         navigate("/");
@@ -131,11 +87,11 @@ export default function AuthPage() {
       let errorMessage = isLogin
         ? t("auth.login.error_message")
         : t("auth.register.error_message");
-      
+
       if (err instanceof Error) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -145,7 +101,8 @@ export default function AuthPage() {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
-    setErrors({});
+    loginValidation.clearErrors();
+    registerValidation.clearErrors();
     setFormData({
       username: "",
       password: "",
@@ -156,6 +113,13 @@ export default function AuthPage() {
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const activeErrors = isLogin
+    ? loginValidation.errors
+    : registerValidation.errors;
+  const clearFieldError = isLogin
+    ? loginValidation.clearFieldError
+    : registerValidation.clearFieldError;
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-6">
@@ -191,17 +155,20 @@ export default function AuthPage() {
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
                       className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                        errors.username ? "border-red-500" : ""
+                        activeErrors.username ? "border-red-500" : ""
                       }`}
                       placeholder="johndoe"
                       value={formData.username}
-                      onChange={(e) =>
-                        setFormData({ ...formData, username: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ ...formData, username: e.target.value });
+                        clearFieldError("username");
+                      }}
                     />
                   </div>
-                  {errors.username && (
-                    <p className="text-red-500 text-xs">{errors.username}</p>
+                  {activeErrors.username && (
+                    <p className="text-red-400 text-xs mt-1">
+                      {activeErrors.username}
+                    </p>
                   )}
                 </div>
 
@@ -214,18 +181,21 @@ export default function AuthPage() {
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
                       className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                        errors.email ? "border-red-500" : ""
+                        activeErrors.email ? "border-red-500" : ""
                       }`}
                       type="email"
                       placeholder="john@example.com"
                       value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ ...formData, email: e.target.value });
+                        clearFieldError("email");
+                      }}
                     />
                   </div>
-                  {errors.email && (
-                    <p className="text-red-500 text-xs">{errors.email}</p>
+                  {activeErrors.email && (
+                    <p className="text-red-400 text-xs mt-1">
+                      {activeErrors.email}
+                    </p>
                   )}
                 </div>
 
@@ -238,18 +208,21 @@ export default function AuthPage() {
                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
                       className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                        errors.phone ? "border-red-500" : ""
+                        activeErrors.phone_number ? "border-red-500" : ""
                       }`}
                       type="tel"
                       placeholder="+1 234 567 8900"
                       value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ ...formData, phone: e.target.value });
+                        clearFieldError("phone_number");
+                      }}
                     />
                   </div>
-                  {errors.phone && (
-                    <p className="text-red-500 text-xs">{errors.phone}</p>
+                  {activeErrors.phone_number && (
+                    <p className="text-red-400 text-xs mt-1">
+                      {activeErrors.phone_number}
+                    </p>
                   )}
                 </div>
 
@@ -261,19 +234,14 @@ export default function AuthPage() {
                   <div className="relative">
                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                     <Input
-                      className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                        errors.address ? "border-red-500" : ""
-                      }`}
+                      className="pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600"
                       placeholder="123 Main St, City"
                       value={formData.address}
-                      onChange={(e) =>
-                        setFormData({ ...formData, address: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ ...formData, address: e.target.value });
+                      }}
                     />
                   </div>
-                  {errors.address && (
-                    <p className="text-red-500 text-xs">{errors.address}</p>
-                  )}
                 </div>
               </>
             )}
@@ -284,21 +252,24 @@ export default function AuthPage() {
                   {t("auth.login.username")} *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                      errors.username ? "border-red-500" : ""
+                      activeErrors.email ? "border-red-500" : ""
                     }`}
-                    type="text"
+                    type="email"
                     placeholder={t("auth.login.username")}
-                    value={formData.username}
-                    onChange={(e) =>
-                      setFormData({ ...formData, username: e.target.value })
-                    }
+                    value={formData.email}
+                    onChange={(e) => {
+                      setFormData({ ...formData, email: e.target.value });
+                      clearFieldError("email");
+                    }}
                   />
                 </div>
-                {errors.username && (
-                  <p className="text-red-500 text-xs">{errors.username}</p>
+                {activeErrors.email && (
+                  <p className="text-red-400 text-xs mt-1">
+                    {activeErrors.email}
+                  </p>
                 )}
               </div>
             )}
@@ -322,18 +293,42 @@ export default function AuthPage() {
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
                   className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                    errors.password ? "border-red-500" : ""
+                    activeErrors.password ? "border-red-500" : ""
                   }`}
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) =>
-                    setFormData({ ...formData, password: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setFormData({ ...formData, password: e.target.value });
+                    clearFieldError("password");
+                  }}
                 />
               </div>
-              {errors.password && (
-                <p className="text-red-500 text-xs">{errors.password}</p>
+              {activeErrors.password && (
+                <p className="text-red-400 text-xs mt-1">
+                  {activeErrors.password}
+                </p>
+              )}
+              {!isLogin && formData.password && (
+                <div className="mt-1">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded-full ${
+                          i <= strength.score
+                            ? strength.color
+                            : "bg-zinc-700"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    className={`text-xs mt-0.5 ${strength.color.replace("bg-", "text-")}`}
+                  >
+                    {strength.label}
+                  </p>
+                </div>
               )}
             </div>
 
@@ -346,21 +341,24 @@ export default function AuthPage() {
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                      errors.confirmPassword ? "border-red-500" : ""
+                      activeErrors.confirmPassword ? "border-red-500" : ""
                     }`}
                     type="password"
                     placeholder="••••••••"
                     value={formData.confirmPassword}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setFormData({
                         ...formData,
                         confirmPassword: e.target.value,
-                      })
-                    }
+                      });
+                      clearFieldError("confirmPassword");
+                    }}
                   />
                 </div>
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs">{errors.confirmPassword}</p>
+                {activeErrors.confirmPassword && (
+                  <p className="text-red-400 text-xs mt-1">
+                    {activeErrors.confirmPassword}
+                  </p>
                 )}
               </div>
             )}

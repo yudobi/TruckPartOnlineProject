@@ -8,7 +8,8 @@
       "Bash(npx tsc -b --noEmit)",
       "Bash(python -c \"import django; import os; os.environ.setdefault\\(''DJANGO_SETTINGS_MODULE'', ''backend.settings''\\); django.setup\\(\\); from orders.views import admin_orders_list, admin_order_detail, admin_update_order_status; print\\(''Admin views OK''\\)\")",
       "Bash(ls \"D:\\\\Dev\\\\React Works\\\\Jorge\\\\TruckPartOnlineProject\\\\TruckPartOnlineProject\\\\apps\\\\store\\\\src\\\\pages\\\\admin\"\" 2>&1 && ls \"D:DevReact WorksJorgeTruckPartOnlineProjectTruckPartOnlineProjectappsstoresrcpagesOrderConfirmationPage.tsx\" 2>&1 && ls \"D:DevReact WorksJorgeTruckPartOnlineProjectTruckPartOnlineProjectappsstoresrccomponentsauthAdminProtectedRoute.tsx\" 2>&1 && ls \"D:DevReact WorksJorgeTruckPartOnlineProjectTruckPartOnlineProjectappsstoresrctypesadmin.ts\" 2>&1 && ls \"D:DevReact WorksJorgeTruckPartOnlineProjectTruckPartOnlineProjectappsstoresrcservicesadminOrderService.ts\" 2>&1 && ls \"D:DevReact WorksJorgeTruckPartOnlineProjectTruckPartOnlineProjectappsstoresrchooksuseAdminOrders.ts \")",
-      "Bash(npm install zod)"
+      "Bash(npm install zod)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

@@ -43,7 +43,7 @@ const Navbar = memo(function Navbar() {
   }, [logout, navigate]);
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10">
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black/95 backdrop-blur-sm border-b border-white/10" role="navigation" aria-label="Navegación principal">
       <div className="container mx-auto px-6">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
@@ -75,7 +75,7 @@ const Navbar = memo(function Navbar() {
 
             {isAuthenticated ? (
               <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none cursor-pointer group">
+                <DropdownMenuTrigger className="flex items-center gap-3 focus:outline-none cursor-pointer group" aria-label="Menú de usuario">
                   <div className="relative">
                     <div className="w-9 h-9 rounded-full bg-linear-to-br from-red-600 to-red-800 flex items-center justify-center text-white shadow-lg shadow-red-900/20 group-hover:shadow-red-900/40 transition-all duration-300 border border-white/10">
                       <User className="w-5 h-5" />
@@ -156,8 +156,8 @@ const Navbar = memo(function Navbar() {
             <CartSidebar />
             <Sheet>
               <SheetTrigger asChild>
-                <button className="text-white hover:text-red-600 transition-colors p-2">
-                  <Menu className="w-8 h-8" />
+                <button className="text-white hover:text-red-600 transition-colors p-2" aria-label="Abrir menú de navegación">
+                  <Menu className="w-8 h-8" aria-hidden="true" />
                 </button>
               </SheetTrigger>
               <SheetContent

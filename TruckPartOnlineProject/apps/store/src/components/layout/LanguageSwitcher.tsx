@@ -10,7 +10,7 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex items-center p-1 bg-zinc-900/80 backdrop-blur-md border border-white/10 rounded-full relative w-32 h-10 select-none shadow-2xl overflow-hidden group">
+    <div className="flex items-center p-1 bg-zinc-900/80 backdrop-blur-md border border-white/10 rounded-full relative w-32 h-10 select-none shadow-2xl overflow-hidden group" role="group" aria-label="Cambiar idioma">
       {/* Sliding Background / Highlight */}
       <div
         className={cn(
@@ -22,6 +22,8 @@ export function LanguageSwitcher() {
       {/* Spanish Option */}
       <button
         onClick={() => setLanguage("es")}
+        aria-label="Español"
+        aria-pressed={currentLanguage === "es"}
         className={cn(
           "flex-1 flex items-center justify-center gap-2 z-10 transition-all duration-300 outline-none",
           currentLanguage === "es"
@@ -36,6 +38,8 @@ export function LanguageSwitcher() {
       {/* English Option */}
       <button
         onClick={() => setLanguage("en")}
+        aria-label="English"
+        aria-pressed={currentLanguage === "en"}
         className={cn(
           "flex-1 flex items-center justify-center gap-2 z-10 transition-all duration-300 outline-none",
           currentLanguage === "en"
