@@ -27,16 +27,16 @@ export default function UserProfilePage() {
     postal_code: user?.postal_code || "",
   });
 
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/auth");
+  }, [logout, navigate]);
+
   // Redirigir si no está autenticado
   if (!isAuthenticated) {
     navigate("/auth");
     return null;
   }
-
-  const handleLogout = useCallback(() => {
-    logout();
-    navigate("/auth");
-  }, [logout, navigate]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
