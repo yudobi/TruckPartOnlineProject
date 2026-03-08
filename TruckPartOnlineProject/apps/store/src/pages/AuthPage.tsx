@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Mail, Lock, ArrowRight, Phone, MapPin } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { loginSchema, registerSchema } from "@lib/validations";
@@ -375,7 +375,7 @@ export default function AuthPage() {
               className="w-full h-14 bg-white text-black hover:bg-red-600 hover:text-white text-sm font-black tracking-widest transition-all duration-300 group mt-4 disabled:opacity-50"
             >
               {loading
-                ? "..."
+                ? <Loader2 className="animate-spin h-4 w-4" />
                 : isLogin
                   ? t("auth.login.submit")
                   : t("auth.register.submit")}

@@ -24,7 +24,7 @@ export function PaymentMethodSelector({
   return (
     <div className="space-y-6 bg-zinc-900 p-6 rounded-lg border border-zinc-800">
       <h2 className="text-xl font-bold text-white mb-4">
-        {t("checkout.paymentMethod", "Método de Pago")}
+        {t("checkout.selectPaymentMethod")}
       </h2>
 
       <RadioGroup
@@ -40,7 +40,10 @@ export function PaymentMethodSelector({
           >
             <CreditCard className="mb-3 h-6 w-6 text-white" />
             <span className="text-white font-bold">
-              {t("checkout.card", "Tarjeta de Crédito")}
+              {t("checkout.paymentMethod.card")}
+            </span>
+            <span className="text-xs text-zinc-400 mt-1">
+              {t("checkout.paymentMethod.cardDesc")}
             </span>
           </Label>
         </div>
@@ -53,7 +56,10 @@ export function PaymentMethodSelector({
           >
             <Banknote className="mb-3 h-6 w-6 text-white" />
             <span className="text-white font-bold">
-              {t("checkout.cod", "Pago Contra Entrega")}
+              {t("checkout.paymentMethod.cod")}
+            </span>
+            <span className="text-xs text-zinc-400 mt-1">
+              {t("checkout.paymentMethod.codDesc")}
             </span>
           </Label>
         </div>
@@ -65,8 +71,8 @@ export function PaymentMethodSelector({
         disabled={isLoading}
       >
         {isLoading
-          ? t("common.processing", "Procesando...")
-          : t("checkout.payNow", "Pagar Ahora")}
+          ? t("checkout.processing")
+          : t("checkout.completeOrder")}
       </Button>
     </div>
   );

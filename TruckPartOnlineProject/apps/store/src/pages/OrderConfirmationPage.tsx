@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { CheckCircle, Package, MapPin, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
 
 // Local type matching the backend GET /api/{order_id}/ response shape
 interface ConfirmationOrderItem {
-  product: string;
+  product: {
+    id: number;
+    name: string;
+    sku?: string;
+    images?: { id: number; image: string; is_main: boolean }[];
+  };
   quantity: number;
   price: number;
 }
@@ -29,6 +35,7 @@ interface ConfirmationOrder {
 export default function OrderConfirmationPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [order, setOrder] = useState<ConfirmationOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +63,7 @@ export default function OrderConfirmationPage() {
         setOrder(data as unknown as ConfirmationOrder);
       })
       .catch(() => {
-        setError("No pudimos cargar los detalles de tu pedido.");
+        setError(t("confirmation.error"));
       })
       .finally(() => {
         setIsLoading(false);
@@ -67,7 +74,7 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen bg-black pt-24 px-6 flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
-        <p className="text-zinc-400 text-sm">Cargando tu pedido...</p>
+        <p className="text-zinc-400 text-sm">{t("confirmation.loading")}</p>
       </div>
     );
   }
@@ -76,13 +83,13 @@ export default function OrderConfirmationPage() {
     return (
       <div className="min-h-screen bg-black pt-24 px-6 flex flex-col items-center justify-center gap-4">
         <p className="text-white text-lg font-semibold">
-          {error ?? "Pedido no encontrado."}
+          {error ?? t("confirmation.notFound")}
         </p>
         <Button
           onClick={() => navigate("/orders")}
           className="bg-red-600 hover:bg-red-700 text-white"
         >
-          Ver mis pedidos
+          {t("confirmation.viewOrders")}
         </Button>
       </div>
     );
@@ -114,7 +121,7 @@ export default function OrderConfirmationPage() {
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tighter mb-1">
-            ¡PEDIDO CONFIRMADO!
+            {t("confirmation.title")}
           </h1>
           <p className="text-zinc-400 text-sm">{formattedDate}</p>
         </div>
@@ -125,12 +132,12 @@ export default function OrderConfirmationPage() {
           <div className="p-5 flex items-center justify-between">
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-widest mb-1">
-                Número de pedido
+                {t("confirmation.orderNumber")}
               </p>
               <p className="text-white font-bold text-lg">#{order.id}</p>
             </div>
             <span className="px-3 py-1 bg-red-600/10 border border-red-600/40 text-red-400 text-xs font-semibold rounded-full uppercase tracking-wider">
-              {order.status}
+              {t(`orders.orderStatus.${order.status}`, order.status)}
             </span>
           </div>
 
@@ -139,7 +146,7 @@ export default function OrderConfirmationPage() {
             <div className="flex items-center gap-2 mb-4">
               <Package className="w-4 h-4 text-red-500" />
               <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-                Productos
+                {t("confirmation.products")}
               </p>
             </div>
             <ul className="space-y-3">
@@ -150,10 +157,10 @@ export default function OrderConfirmationPage() {
                 >
                   <div className="flex-1 pr-4">
                     <p className="text-white font-medium line-clamp-1">
-                      {item.product}
+                      {item.product.name}
                     </p>
                     <p className="text-zinc-500 text-xs mt-0.5">
-                      Cantidad: {item.quantity}
+                      {t("confirmation.quantity")}: {item.quantity}
                     </p>
                   </div>
                   <p className="text-white font-semibold flex-shrink-0">
@@ -166,7 +173,7 @@ export default function OrderConfirmationPage() {
 
           {/* Total */}
           <div className="p-5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-zinc-300">Total</p>
+            <p className="text-sm font-semibold text-zinc-300">{t("confirmation.total")}</p>
             <p className="text-xl font-black text-red-500">
               ${order.total.toLocaleString()}
             </p>
@@ -174,14 +181,32 @@ export default function OrderConfirmationPage() {
 
           {/* Shipping address */}
           {shippingDisplay && (
-            <div className="p-5">
-              <div className="flex items-center gap-2 mb-2">
-                <MapPin className="w-4 h-4 text-red-500" />
-                <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-                  Dirección de envío
+            <div className="p-6 relative overflow-hidden group">
+              {/* Subtle background glow */}
+              <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-red-600/5 blur-[40px] rounded-full pointer-events-none group-hover:bg-red-600/10 transition-colors" />
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/20 flex items-center justify-center">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                </div>
+                <p className="text-xs font-black text-zinc-300 uppercase tracking-widest">
+                  {t("confirmation.shippingAddress")}
                 </p>
               </div>
-              <p className="text-zinc-400 text-sm">{shippingDisplay}</p>
+
+              <div className="pl-11">
+                <p className="text-white font-medium leading-relaxed">
+                  {order.shipping_address}
+                </p>
+                {(order.city || order.state || order.postal_code) && (
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+                    {order.city && <span className="text-zinc-400 text-xs font-bold">{order.city}</span>}
+                    {order.state && <span className="text-zinc-400 text-xs font-bold">{order.state}</span>}
+                    {order.postal_code && <span className="text-red-500 text-xs font-mono font-black">{order.postal_code}</span>}
+                    {order.country && <span className="text-zinc-400 text-xs font-bold">{order.country}</span>}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -191,15 +216,15 @@ export default function OrderConfirmationPage() {
               <div className="flex items-center gap-2 mb-2">
                 <CreditCard className="w-4 h-4 text-red-500" />
                 <p className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">
-                  Método de pago
+                  {t("confirmation.paymentMethod")}
                 </p>
               </div>
               <p className="text-zinc-400 text-sm capitalize">
                 {order.payment_method === "cod"
-                  ? "Pago contra entrega"
+                  ? t("confirmation.paymentMethods.cod")
                   : order.payment_method === "card"
-                  ? "Tarjeta de crédito/débito"
-                  : order.payment_method}
+                    ? t("confirmation.paymentMethods.card")
+                    : order.payment_method}
               </p>
             </div>
           )}
@@ -212,13 +237,13 @@ export default function OrderConfirmationPage() {
             variant="outline"
             className="flex-1 border-white/20 text-white hover:bg-white/5 bg-transparent"
           >
-            Ver mis pedidos
+            {t("confirmation.viewOrders")}
           </Button>
           <Button
             onClick={() => navigate("/products")}
             className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold"
           >
-            Seguir comprando
+            {t("confirmation.continueShopping")}
           </Button>
         </div>
       </div>

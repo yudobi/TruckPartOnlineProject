@@ -7,7 +7,7 @@ export interface OrderItem {
     images?: { id: number; image: string; is_main: boolean }[];
   };
   quantity: number;
-  price: string;
+  price: number;
 }
 
 export type OrderStatus = 'pending' | 'invoiced' | 'completed' | 'failed';
@@ -32,7 +32,7 @@ export interface Order {
   status: OrderStatus;
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
-  total: string;
+  total: number;
   qb_invoice_id?: string | null;
   qb_sales_receipt_id?: string | null;
   items: OrderItem[];
