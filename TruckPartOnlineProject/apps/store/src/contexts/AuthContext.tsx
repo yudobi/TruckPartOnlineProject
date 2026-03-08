@@ -96,12 +96,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     toast("Sesión cerrada");
   };
 
+  const updateUser = async (data: Partial<UserInfo>) => {
+    try {
+      const updatedInfo = await authService.updateProfile(
+        data as Pick<UserInfo, 'full_name' | 'phone_number' | 'address'>
+      );
+      const currentUser = user;
+      const updatedUser: UserInfo = {
+        ...currentUser,
+        ...updatedInfo,
+        accessToken: currentUser?.accessToken,
+        refreshToken: currentUser?.refreshToken,
+      };
+      setUser(updatedUser);
+      Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(updatedUser), {
+        expires: 7,
+        secure: window.location.protocol === "https:",
+        sameSite: "strict",
+      });
+      toast.success("Perfil actualizado correctamente.");
+    } catch (error) {
+      console.error("Update profile error:", error);
+      toast.error("Error al actualizar el perfil. Inténtalo de nuevo.");
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     login,
     register,
     logout,
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,16 +3,9 @@ export type UserInfo = {
   email: string;
   username: string;
   role?: string;
+  full_name?: string | null;
   address?: string | null;
   phone_number?: string | null;
-  phone?: string | null;
-  country?: string | null;
-  city?: string | null;
-  state?: string | null;
-  postal_code?: string | null;
-  name?: string;
-  last_name?: string;
-  home_address?: string;
   is_staff?: boolean;
 
   accessToken?: string;

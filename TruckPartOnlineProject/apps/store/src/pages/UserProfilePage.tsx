@@ -16,15 +16,14 @@ import { Input } from "@/components/ui/input";
 
 export default function UserProfilePage() {
   const { t } = useTranslation();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, updateUser } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [formData, setFormData] = useState({
-    phone: user?.phone || "",
-    country: user?.country || "",
-    city: user?.city || "",
-    state: user?.state || "",
-    postal_code: user?.postal_code || "",
+    full_name: user?.full_name || "",
+    phone_number: user?.phone_number || "",
+    address: user?.address || "",
   });
 
   const handleLogout = useCallback(() => {
@@ -45,18 +44,27 @@ export default function UserProfilePage() {
     }));
   };
 
-  const handleSave = () => {
-    // TODO: Implementar guardado en backend
-    setIsEditing(false);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateUser({
+        full_name: formData.full_name || null,
+        phone_number: formData.phone_number || null,
+        address: formData.address || null,
+      });
+      setIsEditing(false);
+    } catch {
+      // toast is already shown in updateUser
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setFormData({
-      phone: user?.phone || "",
-      country: user?.country || "",
-      city: user?.city || "",
-      state: user?.state || "",
-      postal_code: user?.postal_code || "",
+      full_name: user?.full_name || "",
+      phone_number: user?.phone_number || "",
+      address: user?.address || "",
     });
     setIsEditing(false);
   };
@@ -110,6 +118,24 @@ export default function UserProfilePage() {
           </div>
 
           <div className="space-y-4">
+            {/* Full Name */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
+                {t("user.fullName")}
+              </label>
+              {isEditing ? (
+                <Input
+                  type="text"
+                  placeholder={t("user.fullNamePlaceholder")}
+                  value={formData.full_name}
+                  onChange={(e) => handleInputChange("full_name", e.target.value)}
+                  className="bg-white/5 border-white/10 text-white"
+                />
+              ) : (
+                <p className="text-white">{formData.full_name || t("user.notProvided")}</p>
+              )}
+            </div>
+
             {/* Phone */}
             <div>
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
@@ -119,84 +145,30 @@ export default function UserProfilePage() {
                 <Input
                   type="tel"
                   placeholder={t("user.phonePlaceholder")}
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
+                  value={formData.phone_number}
+                  onChange={(e) => handleInputChange("phone_number", e.target.value)}
                   className="bg-white/5 border-white/10 text-white"
                 />
               ) : (
-                <p className="text-white">{formData.phone || t("user.notProvided")}</p>
+                <p className="text-white">{formData.phone_number || t("user.notProvided")}</p>
               )}
             </div>
 
-            {/* Country */}
+            {/* Address */}
             <div>
               <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                {t("user.country")}
+                {t("user.address")}
               </label>
               {isEditing ? (
                 <Input
                   type="text"
-                  placeholder={t("user.countryPlaceholder")}
-                  value={formData.country}
-                  onChange={(e) => handleInputChange("country", e.target.value)}
+                  placeholder={t("user.addressPlaceholder")}
+                  value={formData.address}
+                  onChange={(e) => handleInputChange("address", e.target.value)}
                   className="bg-white/5 border-white/10 text-white"
                 />
               ) : (
-                <p className="text-white">{formData.country || t("user.notProvided")}</p>
-              )}
-            </div>
-
-            {/* City */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                {t("user.city")}
-              </label>
-              {isEditing ? (
-                <Input
-                  type="text"
-                  placeholder={t("user.cityPlaceholder")}
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
-                />
-              ) : (
-                <p className="text-white">{formData.city || t("user.notProvided")}</p>
-              )}
-            </div>
-
-            {/* State */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                {t("user.state")}
-              </label>
-              {isEditing ? (
-                <Input
-                  type="text"
-                  placeholder={t("user.statePlaceholder")}
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
-                />
-              ) : (
-                <p className="text-white">{formData.state || t("user.notProvided")}</p>
-              )}
-            </div>
-
-            {/* Postal Code */}
-            <div>
-              <label className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                {t("user.postalCode")}
-              </label>
-              {isEditing ? (
-                <Input
-                  type="text"
-                  placeholder={t("user.postalCodePlaceholder")}
-                  value={formData.postal_code}
-                  onChange={(e) => handleInputChange("postal_code", e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
-                />
-              ) : (
-                <p className="text-white">{formData.postal_code || t("user.notProvided")}</p>
+                <p className="text-white">{formData.address || t("user.notProvided")}</p>
               )}
             </div>
           </div>
@@ -206,13 +178,15 @@ export default function UserProfilePage() {
             <div className="flex gap-3 mt-6 pt-6 border-t border-white/10">
               <Button
                 onClick={handleSave}
+                disabled={isSaving}
                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white"
               >
                 <Save className="w-4 h-4 mr-2" />
-                {t("user.save")}
+                {isSaving ? t("user.saving") : t("user.save")}
               </Button>
               <Button
                 onClick={handleCancel}
+                disabled={isSaving}
                 className="flex-1 bg-white/5 hover:bg-white/10 text-white border border-white/10"
               >
                 <X className="w-4 h-4 mr-2" />
