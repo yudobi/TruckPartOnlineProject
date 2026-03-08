@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Package } from "lucide-react";
 import { toast } from "sonner";
 import { useAdminOrderById, useUpdateOrderStatus } from "@/hooks/useAdminOrders";
@@ -9,27 +10,23 @@ import type { OrderStatus, PaymentStatus } from "@/types/order";
 // Badge helpers
 // ---------------------------------------------------------------------------
 function StatusBadge({ status }: { status: OrderStatus }) {
-  const config: Record<OrderStatus, { label: string; className: string }> = {
+  const { t } = useTranslation();
+  const config: Record<OrderStatus, { className: string }> = {
     pending: {
-      label: "Pendiente",
       className: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
     },
     invoiced: {
-      label: "Facturado",
       className: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
     },
     completed: {
-      label: "Completado",
       className: "bg-green-500/20 text-green-400 border border-green-500/30",
     },
     failed: {
-      label: "Fallido",
       className: "bg-red-500/20 text-red-400 border border-red-500/30",
     },
   };
 
-  const { label, className } = config[status] ?? {
-    label: status,
+  const { className } = config[status] ?? {
     className: "bg-zinc-700 text-zinc-300",
   };
 
@@ -37,7 +34,7 @@ function StatusBadge({ status }: { status: OrderStatus }) {
     <span
       className={`px-3 py-1 rounded text-sm font-semibold ${className}`}
     >
-      {label}
+      {t(`orders.orderStatus.${status}`)}
     </span>
   );
 }
@@ -86,6 +83,7 @@ function DetailRow({
 // Page component
 // ---------------------------------------------------------------------------
 export default function AdminOrderDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -100,7 +98,7 @@ export default function AdminOrderDetailPage() {
   function handleUpdate() {
     if (!orderId) return;
     if (!selectedStatus && !selectedPaymentStatus) {
-      toast.error("Selecciona al menos un estado para actualizar.");
+      toast.error(t("admin.orders.selectStatus"));
       return;
     }
 
@@ -112,12 +110,12 @@ export default function AdminOrderDetailPage() {
       { orderId, data: payload },
       {
         onSuccess: () => {
-          toast.success("Estado de la orden actualizado correctamente.");
+          toast.success(t("admin.orders.updateSuccess"));
           setSelectedStatus("");
           setSelectedPaymentStatus("");
         },
         onError: () => {
-          toast.error("Error al actualizar el estado. Inténtalo de nuevo.");
+          toast.error(t("admin.orders.updateError"));
         },
       }
     );
@@ -155,13 +153,13 @@ export default function AdminOrderDetailPage() {
   if (isError || !order) {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4 text-white">
-        <p className="text-red-400">Error al cargar la orden.</p>
+        <p className="text-red-400">{t("admin.orders.errorLoadingOrder")}</p>
         <button
           onClick={() => navigate("/admin/orders")}
           className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Volver al listado
+          {t("admin.orders.backToList")}
         </button>
       </div>
     );
@@ -185,12 +183,12 @@ export default function AdminOrderDetailPage() {
             className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Volver al listado
+            {t("admin.orders.backToList")}
           </button>
 
           <div className="flex flex-wrap items-center gap-4">
             <h1 className="text-3xl font-bold tracking-tight text-white">
-              Orden <span className="text-red-600">#{order.id}</span>
+              {t("admin.orders.orderDetail")} <span className="text-red-600">#{order.id}</span>
             </h1>
             <StatusBadge status={order.status} />
             <span className="text-sm text-zinc-500">
@@ -202,17 +200,17 @@ export default function AdminOrderDetailPage() {
         {/* Two-column grid for info sections */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Customer Info */}
-          <Section title="Información del Cliente">
+          <Section title={t("admin.orders.customerInfo")}>
             <div className="space-y-3">
-              <DetailRow label="Nombre" value={order.full_name} />
+              <DetailRow label={t("admin.orders.name")} value={order.full_name} />
               <DetailRow
-                label="Email"
+                label={t("admin.orders.email")}
                 value={order.user?.email ?? order.guest_email}
               />
-              <DetailRow label="Teléfono" value={order.phone} />
+              <DetailRow label={t("admin.orders.phone")} value={order.phone} />
               {order.user && (
                 <DetailRow
-                  label="Usuario"
+                  label={t("admin.orders.user")}
                   value={`${order.user.username} (ID: ${order.user.id})`}
                 />
               )}
@@ -220,37 +218,37 @@ export default function AdminOrderDetailPage() {
           </Section>
 
           {/* Shipping Address */}
-          <Section title="Dirección de Envío">
+          <Section title={t("admin.orders.shippingAddress")}>
             <div className="space-y-3">
-              <DetailRow label="Dirección" value={order.shipping_address} />
-              <DetailRow label="Ciudad" value={order.city} />
-              <DetailRow label="Estado" value={order.state} />
-              <DetailRow label="País" value={order.country} />
-              <DetailRow label="Código Postal" value={order.postal_code} />
+              <DetailRow label={t("admin.orders.address")} value={order.shipping_address} />
+              <DetailRow label={t("admin.orders.city")} value={order.city} />
+              <DetailRow label={t("admin.orders.state")} value={order.state} />
+              <DetailRow label={t("admin.orders.country")} value={order.country} />
+              <DetailRow label={t("admin.orders.postalCode")} value={order.postal_code} />
             </div>
           </Section>
         </div>
 
         {/* Order Items */}
-        <Section title="Artículos de la Orden">
+        <Section title={t("admin.orders.orderItems")}>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/10 text-left">
                   <th className="pb-2 text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                    Producto
+                    {t("admin.orders.product")}
                   </th>
                   <th className="pb-2 text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                    SKU
+                    {t("admin.orders.sku")}
                   </th>
                   <th className="pb-2 text-center text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                    Cant.
+                    {t("admin.orders.quantity")}
                   </th>
                   <th className="pb-2 text-right text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                    Precio
+                    {t("admin.orders.price")}
                   </th>
                   <th className="pb-2 text-right text-xs font-bold tracking-widest text-zinc-500 uppercase">
-                    Subtotal
+                    {t("admin.orders.subtotal")}
                   </th>
                 </tr>
               </thead>
@@ -305,31 +303,31 @@ export default function AdminOrderDetailPage() {
         </Section>
 
         {/* Order Summary */}
-        <Section title="Resumen de la Orden">
+        <Section title={t("admin.orders.orderSummary")}>
           <div className="space-y-2 max-w-xs ml-auto">
             <div className="flex justify-between text-sm text-zinc-400">
-              <span>Subtotal</span>
+              <span>{t("admin.orders.subtotal")}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between text-base font-bold text-white border-t border-white/10 pt-2 mt-2">
-              <span>Total</span>
+              <span>{t("admin.orders.total")}</span>
               <span className="text-red-500">{formatCurrency(order.total)}</span>
             </div>
             <div className="text-xs text-zinc-500 text-right">
-              Método:{" "}
+              {t("admin.orders.method")}:{" "}
               <span className="text-zinc-300 font-semibold">
-                {order.payment_method === "cod" ? "Contra entrega" : "Tarjeta"}
+                {order.payment_method === "cod" ? t("orders.paymentMethods.cod") : t("orders.paymentMethods.card")}
               </span>
             </div>
           </div>
         </Section>
 
         {/* Status Management */}
-        <Section title="Gestión de Estado">
+        <Section title={t("admin.orders.statusManagement")}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="text-xs text-zinc-500 font-semibold uppercase tracking-widest">
-                Estado de la Orden
+                {t("admin.orders.orderStatus")}
               </label>
               <select
                 value={selectedStatus}
@@ -339,18 +337,18 @@ export default function AdminOrderDetailPage() {
                 className="w-full px-3 py-2 bg-zinc-800 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-red-600 transition-colors cursor-pointer"
               >
                 <option value="">
-                  Actual: {order.status}
+                  {t("admin.orders.current")}: {t(`orders.orderStatus.${order.status}`)}
                 </option>
-                <option value="pending">Pendiente</option>
-                <option value="invoiced">Facturado</option>
-                <option value="completed">Completado</option>
-                <option value="failed">Fallido</option>
+                <option value="pending">{t("orders.orderStatus.pending")}</option>
+                <option value="invoiced">{t("orders.orderStatus.invoiced")}</option>
+                <option value="completed">{t("orders.orderStatus.completed")}</option>
+                <option value="failed">{t("orders.orderStatus.failed")}</option>
               </select>
             </div>
 
             <div className="space-y-1">
               <label className="text-xs text-zinc-500 font-semibold uppercase tracking-widest">
-                Estado de Pago
+                {t("admin.orders.paymentStatus")}
               </label>
               <select
                 value={selectedPaymentStatus}
@@ -360,11 +358,11 @@ export default function AdminOrderDetailPage() {
                 className="w-full px-3 py-2 bg-zinc-800 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-red-600 transition-colors cursor-pointer"
               >
                 <option value="">
-                  Actual: {order.payment_status}
+                  {t("admin.orders.current")}: {t(`orders.paymentStatus.${order.payment_status}`)}
                 </option>
-                <option value="pending">Pendiente</option>
-                <option value="paid">Pagado</option>
-                <option value="failed">Fallido</option>
+                <option value="pending">{t("orders.paymentStatus.pending")}</option>
+                <option value="paid">{t("orders.paymentStatus.paid")}</option>
+                <option value="failed">{t("orders.paymentStatus.failed")}</option>
               </select>
             </div>
           </div>
@@ -378,7 +376,7 @@ export default function AdminOrderDetailPage() {
               {updateStatus.isPending && (
                 <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               )}
-              Actualizar
+              {t("admin.orders.update")}
             </button>
           </div>
         </Section>
@@ -387,19 +385,19 @@ export default function AdminOrderDetailPage() {
         {(order.qb_invoice_id ||
           order.qb_sales_receipt_id ||
           order.qb_sales_id) && (
-          <Section title="Información QuickBooks">
+          <Section title={t("admin.orders.quickbooksInfo")}>
             <div className="space-y-3">
               {order.qb_invoice_id && (
-                <DetailRow label="Invoice ID" value={order.qb_invoice_id} />
+                <DetailRow label={t("admin.orders.invoiceId")} value={order.qb_invoice_id} />
               )}
               {order.qb_sales_receipt_id && (
                 <DetailRow
-                  label="Sales Receipt ID"
+                  label={t("admin.orders.salesReceiptId")}
                   value={order.qb_sales_receipt_id}
                 />
               )}
               {order.qb_sales_id && (
-                <DetailRow label="Sales ID" value={order.qb_sales_id} />
+                <DetailRow label={t("admin.orders.salesId")} value={order.qb_sales_id} />
               )}
             </div>
           </Section>
