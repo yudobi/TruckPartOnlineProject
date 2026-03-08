@@ -48,23 +48,23 @@ export default function CheckoutPage() {
         paymentResponse.status === "completed")
     ) {
       clearCart();
-      toast.success("¡Pedido completado con éxito!");
+      toast.success(t("checkout.orderSuccess"));
       navigate(`/orders/confirmation/${paymentResponse.order_id}`);
     }
-  }, [paymentResponse, clearCart, navigate]);
+  }, [paymentResponse, clearCart, navigate, t]);
 
   if (items.length === 0 && !checkoutData) {
     return (
       <div className="min-h-screen bg-black pt-24 px-6 flex flex-col items-center justify-center">
         <ShoppingCart className="w-16 h-16 text-zinc-600 mb-4" />
         <h1 className="text-2xl font-bold text-white mb-2">
-          {t("checkout.emptyCart", "Tu carrito está vacío")}
+          {t("checkout.emptyCart")}
         </h1>
         <Button
           onClick={() => navigate("/products")}
           className="mt-4 bg-red-600 hover:bg-red-700 text-white"
         >
-          {t("checkout.backToShop", "Volver a la tienda")}
+          {t("checkout.backToShop")}
         </Button>
       </div>
     );
@@ -111,8 +111,8 @@ export default function CheckoutPage() {
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-3xl font-black text-white mb-8 tracking-tighter">
           {checkoutData
-            ? t("checkout.paymentTitle", "PAGO SEGURO")
-            : t("checkout.title", "FINALIZAR COMPRA")}
+            ? t("checkout.paymentTitle")
+            : t("checkout.title")}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

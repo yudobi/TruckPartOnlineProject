@@ -54,16 +54,16 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
       className="space-y-6 bg-zinc-900 p-6 rounded-lg border border-zinc-800"
     >
       <h2 className="text-xl font-bold text-white mb-4">
-        {t("checkout.shippingDetails", "Detalles de Envío")}
+        {t("checkout.shippingInfo")}
       </h2>
       <div className="space-y-2">
         <Label htmlFor="fullName" className="text-zinc-300">
-          {t("checkout.fullName", "Nombre Completo")}
+          {t("checkout.fullName")}
         </Label>
         <Input
           id="fullName"
           name="fullName"
-          placeholder="Juan Pérez"
+          placeholder={t("checkout.fullNamePlaceholder")}
           value={formData.fullName}
           onChange={handleChange}
           className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -77,13 +77,13 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="guestEmail" className="text-zinc-300">
-          {t("checkout.email", "Email (Opcional)")}
+          {t("checkout.email")}
         </Label>
         <Input
           id="guestEmail"
           name="guestEmail"
           type="email"
-          placeholder="tu@email.com"
+          placeholder={t("checkout.emailPlaceholder")}
           value={formData.guestEmail || ""}
           onChange={handleChange}
           className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -97,12 +97,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
 
       <div className="space-y-2">
         <Label htmlFor="shippingAddress" className="text-zinc-300">
-          {t("checkout.shippingAddress", "Dirección de Envío")}
+          {t("checkout.shippingAddress")}
         </Label>
         <Input
           id="shippingAddress"
           name="shippingAddress"
-          placeholder={t("checkout.addressPlaceholder", "Calle 123")}
+          placeholder={t("checkout.shippingAddressPlaceholder")}
           value={formData.shippingAddress}
           onChange={handleChange}
           className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -117,11 +117,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="city" className="text-zinc-300">
-            {t("checkout.city", "Ciudad")}
+            {t("checkout.city")}
           </Label>
           <Input
             id="city"
             name="city"
+            placeholder={t("checkout.cityPlaceholder")}
             value={formData.city}
             onChange={handleChange}
             className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -134,11 +135,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="state" className="text-zinc-300">
-            {t("checkout.state", "Estado/Provincia")}
+            {t("checkout.state")}
           </Label>
           <Input
             id="state"
             name="state"
+            placeholder={t("checkout.statePlaceholder")}
             value={formData.state}
             onChange={handleChange}
             className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -154,11 +156,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="country" className="text-zinc-300">
-            {t("checkout.country", "País")}
+            {t("checkout.country")}
           </Label>
           <Input
             id="country"
             name="country"
+            placeholder={t("checkout.countryPlaceholder")}
             value={formData.country}
             onChange={handleChange}
             className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -171,11 +174,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="postalCode" className="text-zinc-300">
-            {t("checkout.postalCode", "Código Postal")}
+            {t("checkout.postalCode")}
           </Label>
           <Input
             id="postalCode"
             name="postalCode"
+            placeholder={t("checkout.postalCodePlaceholder")}
             value={formData.postalCode}
             onChange={handleChange}
             className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
@@ -194,8 +198,8 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
         disabled={isLoading}
       >
         {isLoading
-          ? t("common.processing", "Procesando...")
-          : t("checkout.continueToPayment", "Continuar al Pago")}
+          ? t("checkout.processing")
+          : t("checkout.continueToPayment")}
       </Button>
     </form>
   );

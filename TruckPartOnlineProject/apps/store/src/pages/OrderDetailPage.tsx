@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
-import { 
-  Package, 
-  ChevronLeft, 
-  Calendar, 
-  MapPin, 
-  CreditCard, 
+import {
+  Package,
+  ChevronLeft,
+  Calendar,
+  MapPin,
+  CreditCard,
   CheckCircle,
   XCircle,
   Clock
@@ -21,7 +21,7 @@ export default function OrderDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useAuth();
-  
+
   const orderId = id ? parseInt(id, 10) : null;
   const { data: order, isLoading, isError } = useOrderById(orderId);
 
@@ -143,7 +143,7 @@ export default function OrderDetailPage() {
                   order.status
                 )}`}
               >
-                {t(`orders.status.${order.status}`)}
+                {t(`orders.orderStatus.${order.status}`)}
               </span>
             </div>
           </div>
@@ -207,19 +207,56 @@ export default function OrderDetailPage() {
 
             {/* Shipping Address */}
             {order.shipping_address && (
-              <div className="bg-zinc-950 border border-white/5 rounded-sm p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <MapPin className="w-5 h-5 text-red-600" />
-                  <h2 className="text-lg font-bold text-white">
-                    {t("orders.shippingAddress")}
-                  </h2>
+              <div className="group relative bg-zinc-950 border border-white/10 rounded-xl p-8 overflow-hidden transition-all duration-500 hover:border-red-600/30">
+                {/* Background Decoration */}
+                <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-red-600/5 blur-[80px] rounded-full pointer-events-none group-hover:bg-red-600/10 transition-colors" />
+
+                <div className="relative flex items-center gap-4 mb-8">
+                  <div className="w-12 h-12 rounded-full bg-red-600/10 border border-red-600/20 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.1)] group-hover:shadow-[0_0_30px_rgba(220,38,38,0.2)] transition-all">
+                    <MapPin className="w-6 h-6 text-red-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-white tracking-tight uppercase italic">
+                      {t("orders.shippingAddress")}
+                    </h2>
+                    <div className="h-0.5 w-12 bg-red-600 mt-1" />
+                  </div>
                 </div>
-                <div className="text-gray-400 space-y-1">
-                  <p>{order.shipping_address}</p>
-                  {order.city && <p>{order.city}</p>}
-                  {order.state && <p>{order.state}</p>}
-                  {order.country && <p>{order.country}</p>}
-                  {order.postal_code && <p>{order.postal_code}</p>}
+
+                <div className="relative grid gap-6">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t("checkout.shippingAddress", "Dirección de Envío")}</span>
+                    <p className="text-lg text-white font-medium leading-tight">
+                      {order.shipping_address}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-6 border-t border-white/5">
+                    {order.city && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t("checkout.city", "Ciudad")}</span>
+                        <p className="text-sm text-white font-bold">{order.city}</p>
+                      </div>
+                    )}
+                    {order.state && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t("checkout.state", "Estado")}</span>
+                        <p className="text-sm text-white font-bold">{order.state}</p>
+                      </div>
+                    )}
+                    {order.postal_code && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t("checkout.postalCode", "Código Postal")}</span>
+                        <p className="text-sm font-mono text-red-500 font-black tracking-tighter">{order.postal_code}</p>
+                      </div>
+                    )}
+                    {order.country && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">{t("checkout.country", "País")}</span>
+                        <p className="text-sm text-white font-bold">{order.country}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -257,7 +294,7 @@ export default function OrderDetailPage() {
                 <div className="pt-4 border-t border-white/5">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm text-gray-400">
-                      {t("orders.paymentStatus")}
+                      {t("orders.paymentStatusTitle")}
                     </span>
                     <span className={`text-sm font-bold ${getPaymentStatusColor(order.payment_status)}`}>
                       {t(`orders.paymentStatus.${order.payment_status}`)}
