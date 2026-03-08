@@ -1,12 +1,13 @@
+import { memo } from "react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
 
-export default function Footer() {
+const Footer = memo(function Footer() {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-black text-white border-t border-white/10 pt-16 pb-8">
+    <footer className="bg-black text-white border-t border-white/10 pt-16 pb-8" role="contentinfo">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
@@ -23,6 +24,7 @@ export default function Footer() {
           </div>
 
           {/* Links */}
+          <nav aria-label={t("footer.explore")}>
           <div className="space-y-6">
             <h4 className="text-xs font-bold text-red-600 tracking-widest uppercase">
               {t("footer.explore")}
@@ -54,13 +56,14 @@ export default function Footer() {
               </li>
             </ul>
           </div>
+          </nav>
 
           {/* Contact */}
-          <div className="space-y-6">
+          <div className="space-y-6" aria-label={t("footer.contact")}>
             <h4 className="text-xs font-bold text-red-600 tracking-widest uppercase">
               {t("footer.contact")}
             </h4>
-            <ul className="space-y-4 text-sm text-gray-400">
+            <ul className="space-y-4 text-sm text-gray-400" aria-label="Información de contacto">
               <li className="flex items-center gap-3">
                 <span className="w-1.5 h-1.5 bg-red-600 rounded-full"></span>
                 info@truckpart.com
@@ -82,6 +85,7 @@ export default function Footer() {
           <p>
             © {currentYear} TruckPart Online. {t("footer.rights")}
           </p>
+          <nav aria-label="Legal">
           <div className="flex gap-6">
             <a href="#" className="hover:text-white transition-colors">
               {t("footer.privacy")}
@@ -90,8 +94,11 @@ export default function Footer() {
               {t("footer.terms")}
             </a>
           </div>
+          </nav>
         </div>
       </div>
     </footer>
   );
-}
+});
+
+export default Footer;

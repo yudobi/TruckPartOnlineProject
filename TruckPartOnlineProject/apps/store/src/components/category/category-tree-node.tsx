@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { memo, useState } from "react"
 import { ChevronRight } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -22,7 +22,7 @@ interface CategoryTreeNodeProps {
   variant?: "filter" | "nav"
 }
 
-export function CategoryTreeNode({
+export const CategoryTreeNode = memo(function CategoryTreeNode({
   category,
   level = 0,
   selectedCategories,
@@ -133,4 +133,4 @@ export function CategoryTreeNode({
       </CollapsibleContent>
     </Collapsible>
   )
-}
+});

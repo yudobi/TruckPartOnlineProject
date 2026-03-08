@@ -9,18 +9,19 @@ export default function HomePage() {
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden border-b border-white/10">
         {/* Background Image */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0" role="img" aria-label="Imagen de fondo: camión Peterbilt en carretera">
           <img
             src={heroBg}
-            alt="Peterbilt Truck Premium"
+            alt=""
+            aria-hidden="true"
             className="w-full h-full object-cover object-center scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" aria-hidden="true"></div>
         </div>
 
-        {/* Abstract Red Shape - Optional specifically if requested, but better without it for clean image look, keeping a subtle glow maybe */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/10 rounded-full blur-3xl z-0 mix-blend-overlay"></div>
+        {/* Abstract Red Shape - decorative */}
+        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/10 rounded-full blur-3xl z-0 mix-blend-overlay" aria-hidden="true"></div>
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <span className="inline-block py-1 px-3 border border-red-600/30 rounded-full text-red-500 text-xs tracking-[0.2em] font-bold mb-8 uppercase">
@@ -94,7 +95,7 @@ export default function HomePage() {
               <div className="aspect-square bg-linear-to-br from-zinc-800 to-black border border-white/10 rounded-2xl p-8 flex items-center justify-center relative overflow-hidden group">
                 <div className="absolute inset-0 bg-red-600/10 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
                 <div className="text-center relative z-10">
-                  <div className="text-9xl mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <div className="text-9xl mb-4 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">
                     ⚙️
                   </div>
                   <div className="text-xl font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">
@@ -165,7 +166,7 @@ function FeatureItem({
 function ListItem({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center space-x-4 text-gray-300">
-      <span className="w-2 h-2 bg-red-600"></span>
+      <span className="w-2 h-2 bg-red-600" aria-hidden="true"></span>
       <span>{children}</span>
     </li>
   );
@@ -174,7 +175,7 @@ function ListItem({ children }: { children: React.ReactNode }) {
 function BrandCard({ name, logo }: { name: string; logo: string }) {
   return (
     <div className="group relative h-32 md:h-40 bg-zinc-900/50 border border-white/5 hover:border-red-600/50 hover:bg-zinc-900 transition-all duration-300 flex items-center justify-center cursor-pointer hover:scale-105 hover:shadow-2xl hover:shadow-red-900/10 p-8">
-      <div className="absolute inset-x-0 bottom-0 h-1 bg-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
+      <div className="absolute inset-x-0 bottom-0 h-1 bg-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" aria-hidden="true"></div>
       <img
         src={logo}
         alt={name}

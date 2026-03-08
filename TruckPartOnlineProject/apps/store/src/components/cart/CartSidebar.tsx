@@ -1,3 +1,4 @@
+import { memo, useCallback } from "react";
 import { Minus, Plus, ShoppingCart, Trash2, X } from "lucide-react";
 import { Link } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -13,39 +14,21 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@hooks/useCart";
 
-import { useCheckout } from "@hooks/useCheckout";
 import { useNavigate } from "react-router";
 
-export default function CartSidebar() {
+const CartSidebar = memo(function CartSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { items, removeItem, updateQuantity, subtotal, itemCount } = useCart();
-  const { createOrder, isLoading, error } = useCheckout();
 
-  const handleCheckout = async () => {
-    try {
-      const orderData = {
-        items: items.map((item) => ({
-          product_id: item.id,
-          quantity: item.quantity,
-        })),
-        // Enviamos datos vacíos para shipping_address ya que es opcional en la interfaz
-        // y se supone que el backend creará la orden en estado pendiente
-      };
-
-      const response = await createOrder(orderData);
-
-      // Navegar al checkout pasando los datos de la orden creada
-      navigate("/checkout", { state: { checkoutData: response } });
-    } catch (error) {
-      console.error("Error creating order:", error);
-    }
-  };
+  const handleCheckout = useCallback(() => {
+    navigate("/checkout");
+  }, [navigate]);
 
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="flex items-center gap-3 focus:outline-none cursor-pointer group relative">
+        <button className="flex items-center gap-3 focus:outline-none cursor-pointer group relative" aria-label="Abrir carrito de compras">
           <div className="relative">
             <div className="w-9 h-9 rounded-full bg-zinc-900 flex items-center justify-center text-white border border-white/10 group-hover:border-red-600/50 group-hover:bg-red-600/10 transition-all duration-300">
               <ShoppingCart className="w-5 h-5 group-hover:text-red-500 transition-colors" />
@@ -119,8 +102,9 @@ export default function CartSidebar() {
                         <button
                           onClick={() => removeItem(item.id)}
                           className="text-gray-500 hover:text-red-500 transition-colors p-1"
+                          aria-label={`Eliminar ${item.name} del carrito`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" aria-hidden="true" />
                         </button>
                       </div>
                       <p className="text-sm text-gray-400 mt-1">
@@ -135,10 +119,11 @@ export default function CartSidebar() {
                           }
                           className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors disabled:opacity-50"
                           disabled={item.quantity <= 1}
+                          aria-label={`Disminuir cantidad de ${item.name}`}
                         >
-                          <Minus className="w-3 h-3" />
+                          <Minus className="w-3 h-3" aria-hidden="true" />
                         </button>
-                        <span className="text-xs font-mono w-6 text-center text-white">
+                        <span className="text-xs font-mono w-6 text-center text-white" aria-live="polite" aria-label={`Cantidad: ${item.quantity}`}>
                           {item.quantity}
                         </span>
                         <button
@@ -146,8 +131,9 @@ export default function CartSidebar() {
                             updateQuantity(item.id, item.quantity + 1)
                           }
                           className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                          aria-label={`Aumentar cantidad de ${item.name}`}
                         >
-                          <Plus className="w-3 h-3" />
+                          <Plus className="w-3 h-3" aria-hidden="true" />
                         </button>
                       </div>
                       <p className="text-white font-bold text-sm">
@@ -179,18 +165,14 @@ export default function CartSidebar() {
             <Button
               className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6"
               onClick={handleCheckout}
-              disabled={isLoading}
             >
-              {isLoading
-                ? t("common.processing", "Procesando...")
-                : t("cart.checkout")}
+              {t("cart.checkout")}
             </Button>
-            {error && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
           </div>
         )}
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+export default CartSidebar;

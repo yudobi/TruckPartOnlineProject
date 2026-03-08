@@ -50,7 +50,13 @@ export interface CheckoutData {
     product_id: number;
     quantity: number;
   }[];
+  full_name?: string;
   shipping_address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postal_code?: string;
+  guest_email?: string;
   phone?: string;
   payment_method?: PaymentMethod;
 }
@@ -68,5 +74,6 @@ export interface PayOrderData {
 export interface PayOrderResponse {
   order_id: number;
   status: OrderStatus;
-  qb_sales_id?: string;
+  qb_invoice_id?: string | null;
+  qb_sales_receipt_id?: string | null;
 }

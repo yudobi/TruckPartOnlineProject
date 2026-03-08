@@ -36,6 +36,17 @@ class AuthService {
       throw error;
     }
   }
+
+  // Actualizar perfil del usuario
+  async updateProfile(data: Pick<UserInfo, 'full_name' | 'phone_number' | 'address'>): Promise<UserInfo> {
+    try {
+      const response = await apiClient.patch<UserInfo>(`${this.endpoint}/me/`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating profile:`, error);
+      throw error;
+    }
+  }
 }
 
 const authService = new AuthService();

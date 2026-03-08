@@ -19,7 +19,7 @@
  * y verifica si el category.id del producto es descendiente de alguno de ellos.
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, memo, useMemo } from "react";
 import { ChevronRight, Tag } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -116,7 +116,8 @@ export default function CategoryFilter({ tree, onChange, value: controlledValue 
       ])
     : selected;
 
-  const nodeMap = buildNodeMap(tree);
+  // Memoize nodeMap to prevent recreating callbacks on every render
+  const nodeMap = useMemo(() => buildNodeMap(tree), [tree]);
 
   /** Convierte el Set de IDs seleccionados en el objeto CategoryFilterValue */
   const toFilterValue = useCallback(
@@ -165,19 +166,19 @@ export default function CategoryFilter({ tree, onChange, value: controlledValue 
     [effectiveSelected, controlledValue, onChange, toFilterValue],
   );
 
-  const toggleAccordion = (id: number) => {
+  const toggleAccordion = useCallback((id: number) => {
     setOpenNodes((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const clearAll = () => {
+  const clearAll = useCallback(() => {
     if (!controlledValue) setSelected(new Set());
     onChange({ category_ids: [], subcategory_ids: [], system_ids: [], piece_ids: [] });
-  };
+  }, [controlledValue, onChange]);
 
   const totalSelected = effectiveSelected.size;
 
@@ -228,7 +229,7 @@ interface CategoryNodeProps {
   onToggleAccordion: (id: number) => void;
 }
 
-function CategoryNode({
+const CategoryNode = memo(function CategoryNode({
   node,
   depth,
   selected,
@@ -351,7 +352,7 @@ function CategoryNode({
       )}
     </div>
   );
-}
+});
 
 // ─── Utils ────────────────────────────────────────────────────────────────────
 

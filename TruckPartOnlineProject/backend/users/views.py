@@ -37,6 +37,14 @@ class MeView(APIView):
     def get(self, request):
         return Response(UserSerializer(request.user).data)
 
+    def patch(self, request):
+        allowed_fields = {'full_name', 'phone_number', 'address'}
+        data = {key: value for key, value in request.data.items() if key in allowed_fields}
+        serializer = UserSerializer(request.user, data=data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 ########################################################################################################
 
 
