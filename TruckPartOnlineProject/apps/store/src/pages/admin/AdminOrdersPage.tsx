@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useAdminOrders } from "@/hooks/useAdminOrders";
 import type { AdminOrderFilters } from "@/types/admin";
@@ -9,61 +10,54 @@ import type { OrderStatus, PaymentStatus } from "@/types/order";
 // Badge helpers
 // ---------------------------------------------------------------------------
 function StatusBadge({ status }: { status: OrderStatus }) {
-  const config: Record<OrderStatus, { label: string; className: string }> = {
+  const { t } = useTranslation();
+  const config: Record<OrderStatus, { className: string }> = {
     pending: {
-      label: "Pendiente",
       className: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
     },
     invoiced: {
-      label: "Facturado",
       className: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
     },
     completed: {
-      label: "Completado",
       className: "bg-green-500/20 text-green-400 border border-green-500/30",
     },
     failed: {
-      label: "Fallido",
       className: "bg-red-500/20 text-red-400 border border-red-500/30",
     },
   };
 
-  const { label, className } = config[status] ?? {
-    label: status,
+  const { className } = config[status] ?? {
     className: "bg-zinc-700 text-zinc-300",
   };
 
   return (
     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${className}`}>
-      {label}
+      {t(`orders.orderStatus.${status}`)}
     </span>
   );
 }
 
 function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  const config: Record<PaymentStatus, { label: string; className: string }> = {
+  const { t } = useTranslation();
+  const config: Record<PaymentStatus, { className: string }> = {
     pending: {
-      label: "Pendiente",
       className: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
     },
     paid: {
-      label: "Pagado",
       className: "bg-green-500/20 text-green-400 border border-green-500/30",
     },
     failed: {
-      label: "Fallido",
       className: "bg-red-500/20 text-red-400 border border-red-500/30",
     },
   };
 
-  const { label, className } = config[status] ?? {
-    label: status,
+  const { className } = config[status] ?? {
     className: "bg-zinc-700 text-zinc-300",
   };
 
   return (
     <span className={`px-2 py-0.5 rounded text-xs font-semibold ${className}`}>
-      {label}
+      {t(`orders.paymentStatus.${status}`)}
     </span>
   );
 }
@@ -72,6 +66,7 @@ function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
 // Page component
 // ---------------------------------------------------------------------------
 export default function AdminOrdersPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [filters, setFilters] = useState<AdminOrderFilters>({
@@ -133,10 +128,10 @@ export default function AdminOrdersPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-white">
-            Administración de <span className="text-red-600">Órdenes</span>
+            {t("admin.orders.title")}
           </h1>
           <p className="mt-1 text-sm text-zinc-400">
-            {data ? `${data.count} órdenes en total` : "Cargando órdenes..."}
+            {data ? `${data.count} ${t("admin.orders.totalOrders")}` : t("admin.orders.loading")}
           </p>
         </div>
 
@@ -149,7 +144,7 @@ export default function AdminOrdersPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, email o ID..."
+                  placeholder={t("admin.orders.searchPlaceholder")}
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 bg-zinc-800 border border-white/10 rounded text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-red-600 transition-colors"
@@ -159,7 +154,7 @@ export default function AdminOrdersPage() {
                 type="submit"
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded transition-colors"
               >
-                Buscar
+                {t("admin.orders.search")}
               </button>
             </form>
 
@@ -169,11 +164,11 @@ export default function AdminOrdersPage() {
               onChange={handleStatusChange}
               className="px-3 py-2 bg-zinc-800 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-red-600 transition-colors cursor-pointer"
             >
-              <option value="">Todos los estados</option>
-              <option value="pending">Pendiente</option>
-              <option value="invoiced">Facturado</option>
-              <option value="completed">Completado</option>
-              <option value="failed">Fallido</option>
+              <option value="">{t("admin.orders.allStatuses")}</option>
+              <option value="pending">{t("orders.orderStatus.pending")}</option>
+              <option value="invoiced">{t("orders.orderStatus.invoiced")}</option>
+              <option value="completed">{t("orders.orderStatus.completed")}</option>
+              <option value="failed">{t("orders.orderStatus.failed")}</option>
             </select>
 
             {/* Payment status filter */}
@@ -182,10 +177,10 @@ export default function AdminOrdersPage() {
               onChange={handlePaymentStatusChange}
               className="px-3 py-2 bg-zinc-800 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-red-600 transition-colors cursor-pointer"
             >
-              <option value="">Todos los pagos</option>
-              <option value="pending">Pago pendiente</option>
-              <option value="paid">Pagado</option>
-              <option value="failed">Pago fallido</option>
+              <option value="">{t("admin.orders.allPayments")}</option>
+              <option value="pending">{t("admin.orders.paymentPending")}</option>
+              <option value="paid">{t("orders.paymentStatus.paid")}</option>
+              <option value="failed">{t("admin.orders.paymentFailed")}</option>
             </select>
           </div>
         </div>
@@ -200,7 +195,7 @@ export default function AdminOrdersPage() {
 
           {isError && (
             <div className="flex items-center justify-center h-64 text-red-400">
-              Error al cargar las órdenes. Verifica tu conexión e inténtalo de nuevo.
+              {t("admin.orders.errorLoading")}
             </div>
           )}
 
@@ -211,28 +206,28 @@ export default function AdminOrdersPage() {
                   <thead>
                     <tr className="border-b border-white/10 bg-zinc-800/50">
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        # ID
+                        {t("admin.orders.id")}
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Cliente
+                        {t("admin.orders.customer")}
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Estado
+                        {t("admin.orders.status")}
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Método Pago
+                        {t("admin.orders.paymentMethod")}
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Estado Pago
+                        {t("admin.orders.paymentStatus")}
                       </th>
                       <th className="text-right px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Total
+                        {t("admin.orders.total")}
                       </th>
                       <th className="text-left px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Fecha
+                        {t("admin.orders.date")}
                       </th>
                       <th className="text-center px-4 py-3 text-xs font-bold tracking-widest text-zinc-400 uppercase">
-                        Items
+                        {t("admin.orders.items")}
                       </th>
                     </tr>
                   </thead>
@@ -243,7 +238,7 @@ export default function AdminOrdersPage() {
                           colSpan={8}
                           className="text-center py-16 text-zinc-500"
                         >
-                          No se encontraron órdenes con los filtros aplicados.
+                          {t("admin.orders.noOrders")}
                         </td>
                       </tr>
                     )}
@@ -268,7 +263,7 @@ export default function AdminOrdersPage() {
                           <StatusBadge status={order.status} />
                         </td>
                         <td className="px-4 py-3 text-zinc-300 uppercase text-xs font-semibold">
-                          {order.payment_method === "cod" ? "Contra entrega" : "Tarjeta"}
+                          {order.payment_method === "cod" ? t("orders.paymentMethods.cod") : t("orders.paymentMethods.card")}
                         </td>
                         <td className="px-4 py-3">
                           <PaymentStatusBadge status={order.payment_status} />
@@ -294,7 +289,7 @@ export default function AdminOrdersPage() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-zinc-800/30">
                   <span className="text-xs text-zinc-500">
-                    Página {filters.page} de {totalPages}
+                    {t("admin.orders.page")} {filters.page} {t("admin.orders.of")} {totalPages}
                   </span>
                   <div className="flex items-center gap-2">
                     <button
