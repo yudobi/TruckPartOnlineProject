@@ -167,7 +167,7 @@ export default function OrdersPage() {
                           {t("orders.total")}
                         </p>
                         <p className="text-2xl font-light text-white">
-                          ${parseFloat(order.total).toLocaleString()}
+                          ${order.total.toLocaleString()}
                         </p>
                       </div>
                       <ChevronRight

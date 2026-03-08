@@ -168,7 +168,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const subtotal = order.items.reduce(
-    (acc, item) => acc + parseFloat(item.price) * item.quantity,
+    (acc, item) => acc + item.price * item.quantity,
     0
   );
 
@@ -293,7 +293,7 @@ export default function AdminOrderDetailPage() {
                       </td>
                       <td className="py-3 text-right text-white font-semibold">
                         {formatCurrency(
-                          parseFloat(item.price) * item.quantity
+                          item.price * item.quantity
                         )}
                       </td>
                     </tr>

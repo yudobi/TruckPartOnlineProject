@@ -197,7 +197,7 @@ export default function OrderDetailPage() {
                         x{item.quantity}
                       </p>
                       <p className="text-white font-bold">
-                        ${parseFloat(item.price).toLocaleString()}
+                        ${item.price.toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -272,7 +272,7 @@ export default function OrderDetailPage() {
                       {t("orders.total")}
                     </span>
                     <span className="text-3xl font-light text-white">
-                      ${parseFloat(order.total).toLocaleString()}
+                      ${order.total.toLocaleString()}
                     </span>
                   </div>
                 </div>

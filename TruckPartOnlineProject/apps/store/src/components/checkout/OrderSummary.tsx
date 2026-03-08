@@ -42,7 +42,7 @@ export function OrderSummary({ items, total }: OrderSummaryProps) {
               <p className="text-xs text-zinc-400 truncate">SKU: {item.sku}</p>
             </div>
             <div className="text-sm font-bold text-white">
-              ${(Number(item.price) * item.quantity).toFixed(2)}
+              ${(item.price * item.quantity).toFixed(2)}
             </div>
           </div>
         ))}
