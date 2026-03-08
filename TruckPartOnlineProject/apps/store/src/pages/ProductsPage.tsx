@@ -174,15 +174,29 @@ export default function ProductsPage() {
 
       // Fabricante
       if (manufacturerParam) {
-        const productBrand = product.brand?.name || "";
+        const productBrandId = product.brand?.id?.toString() || "";
+        const productBrandName = product.brand?.name || "";
         const productManufacturer = product.manufacturer || "";
+        
         const normalize = (s: string) =>
           s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        if (
-          normalize(productBrand) !== normalize(manufacturerParam) &&
-          normalize(productManufacturer) !== normalize(manufacturerParam)
-        ) {
-          return false;
+        
+        // Comparar por ID (si manufacturerParam es un número) o por nombre
+        const isNumericId = /^\d+$/.test(manufacturerParam);
+        
+        if (isNumericId) {
+          // Comparar por ID
+          if (productBrandId !== manufacturerParam) {
+            return false;
+          }
+        } else {
+          // Comparar por nombre (para compatibilidad con filtros antiguos)
+          if (
+            normalize(productBrandName) !== normalize(manufacturerParam) &&
+            normalize(productManufacturer) !== normalize(manufacturerParam)
+          ) {
+            return false;
+          }
         }
       }
 
