@@ -6,7 +6,12 @@ import { orderService } from "@/services/orderService";
 
 // Local type matching the backend GET /api/{order_id}/ response shape
 interface ConfirmationOrderItem {
-  product: string;
+  product: {
+    id: number;
+    name: string;
+    sku?: string;
+    images?: { id: number; image: string; is_main: boolean }[];
+  };
   quantity: number;
   price: number;
 }
@@ -150,7 +155,7 @@ export default function OrderConfirmationPage() {
                 >
                   <div className="flex-1 pr-4">
                     <p className="text-white font-medium line-clamp-1">
-                      {item.product}
+                      {item.product.name}
                     </p>
                     <p className="text-zinc-500 text-xs mt-0.5">
                       Cantidad: {item.quantity}
@@ -198,8 +203,8 @@ export default function OrderConfirmationPage() {
                 {order.payment_method === "cod"
                   ? "Pago contra entrega"
                   : order.payment_method === "card"
-                  ? "Tarjeta de crédito/débito"
-                  : order.payment_method}
+                    ? "Tarjeta de crédito/débito"
+                    : order.payment_method}
               </p>
             </div>
           )}
