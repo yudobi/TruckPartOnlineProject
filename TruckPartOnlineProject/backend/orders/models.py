@@ -62,6 +62,7 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     qb_invoice_id = models.CharField(max_length=50, null=True, blank=True)
+    qb_customer_id = models.CharField(max_length=50, blank=True, null=True)
     qb_sales_receipt_id = models.CharField(max_length=50, null=True, blank=True)
 
     def is_guest(self):
