@@ -34,7 +34,7 @@ export default function OrdersPage() {
       case "completed":
         return "bg-green-600 text-white";
       case "invoiced":
-        return "bg-blue-600 text-white";
+        return "bg-gray-600 text-white";
       case "pending":
         return "bg-yellow-600 text-white";
       case "failed":

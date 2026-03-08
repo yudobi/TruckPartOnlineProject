@@ -74,5 +74,6 @@ export interface PayOrderData {
 export interface PayOrderResponse {
   order_id: number;
   status: OrderStatus;
-  qb_sales_id?: string;
+  qb_invoice_id?: string | null;
+  qb_sales_receipt_id?: string | null;
 }

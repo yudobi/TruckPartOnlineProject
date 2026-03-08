@@ -48,7 +48,7 @@ export default function AuthPage() {
 
     if (isLogin) {
       const valid = loginValidation.validate({
-        email: formData.email,
+        username: formData.username,
         password: formData.password,
       });
       if (!valid) return;
@@ -68,7 +68,7 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await login({
-          username: formData.email,
+          username: formData.username,
           password: formData.password,
         });
         navigate("/");
@@ -252,23 +252,23 @@ export default function AuthPage() {
                   {t("auth.login.username")} *
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                      activeErrors.email ? "border-red-500" : ""
+                      activeErrors.username ? "border-red-500" : ""
                     }`}
-                    type="email"
+                    type="text"
                     placeholder={t("auth.login.username")}
-                    value={formData.email}
+                    value={formData.username}
                     onChange={(e) => {
-                      setFormData({ ...formData, email: e.target.value });
-                      clearFieldError("email");
+                      setFormData({ ...formData, username: e.target.value });
+                      clearFieldError("username");
                     }}
                   />
                 </div>
-                {activeErrors.email && (
+                {activeErrors.username && (
                   <p className="text-red-400 text-xs mt-1">
-                    {activeErrors.email}
+                    {activeErrors.username}
                   </p>
                 )}
               </div>
