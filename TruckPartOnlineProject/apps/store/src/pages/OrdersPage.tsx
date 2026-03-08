@@ -143,7 +143,7 @@ export default function OrdersPage() {
                             order.status,
                           )}`}
                         >
-                          {t(`orders.status.${order.status}`)}
+                          {t(`orders.orderStatus.${order.status}`)}
                         </span>
                       </div>
                       <div className="flex items-center gap-6 text-sm text-gray-500">
