@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from decouple import config
 import dj_database_url
+from dotenv import load_dotenv
+import os  
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+###################### Build paths inside the project like this: BASE_DIR / 'subdir'.##########################
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -24,6 +26,11 @@ STATICFILES_DIRS = [
 ]
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+########################### Configuración para archivos multimedia (imágenes, etc.)######################
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -229,15 +236,15 @@ REDOC_SETTINGS = {
 }
 
 
-import os
+########################################## QuickBooks Settings #########################################################
 
 QB_CLIENT_ID = config("QB_CLIENT_ID")
 QB_CLIENT_SECRET = config("QB_CLIENT_SECRET")
 QB_REDIRECT_URI = config("QB_REDIRECT_URI")
 QB_ENV = config("QB_ENV", "sandbox")
 
-############################### AWS S3 Settings ################################
-
+############################### AWS S3 Settings ########################################################################
+"""
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 AWS_ACCESS_KEY_ID = config("AWS_ACCESS_KEY_ID")
@@ -251,10 +258,10 @@ AWS_DEFAULT_ACL = None
 
 
 MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com/"
-
-###############################
+"""
+#################################################################################################################
 # Clover Settings
-###############################
+##################################################################################################################
 
 CLOVER_ENV = config("CLOVER_ENV", default="sandbox")
 
@@ -278,12 +285,14 @@ CLOVER = CLOVER_CONFIG[CLOVER_ENV]
 
 
 
-
-
+######################################## Configuración para usar S3 como almacenamiento por defecto ##########################
+"""
 # AL FINAL de settings.py agrega:
 from storages.backends.s3boto3 import S3Boto3Storage
 import django.core.files.storage
 
 # Sobrescribe el storage por defecto
 django.core.files.storage.default_storage = S3Boto3Storage()
+"""
 
+#############################################################################################################################
