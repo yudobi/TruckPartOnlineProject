@@ -127,6 +127,7 @@ class RegisterView(generics.CreateAPIView):
         send_verification_email(user)
 
         return Response({
+            "user": UserSerializer(user).data,
             "message": "Revisa tu correo para verificar tu cuenta"
         })
 
@@ -160,6 +161,39 @@ def verify_email(request, uidb64, token):
 
     except Exception as e:
         return Response({"error": "Link inválido"}, status=400)
+
+
+# ============================================
+# REENVIAR EMAIL DE VERIFICACIÓN
+# ============================================
+
+@api_view(["POST"])
+def resend_verification(request):
+    """
+    Reenvía el email de verificación a un usuario no verificado
+    """
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({"error": "Email requerido"}, status=400)
+    
+    try:
+        user = User.objects.get(email=email)
+        
+        if user.is_active:
+            return Response({"error": "Usuario ya verificado"}, status=400)
+        
+        send_verification_email(user)
+        
+        return Response({
+            "message": "Email de verificación enviado"
+        })
+        
+    except User.DoesNotExist:
+        # Por seguridad, no revelar si el email existe o no
+        return Response({
+            "message": "Si el email existe, recibirás un correo de verificación"
+        })
 
 
 # ============================================

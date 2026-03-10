@@ -63,25 +63,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const registerResponse = await authService.register(credentials);
       
-      // Después del registro, configuramos el token y el usuario
-      apiClient.setAuthToken(registerResponse.access);
+      // Después del registro, NO configuramos el token automáticamente
+      // porque el usuario necesita verificar su email primero
       
-      const userData: UserInfo = {
-        ...registerResponse.user,
-        accessToken: registerResponse.access,
-        refreshToken: registerResponse.refresh,
-      };
-
-      setUser(userData);
-
-      // Guardamos en la cookie por 7 días
-      Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
-        expires: 7,
-        secure: window.location.protocol === "https:",
-        sameSite: "strict",
-      });
-
-      toast.success("¡Cuenta creada exitosamente!");
+      toast.success("¡Cuenta creada! Por favor verifica tu email.");
+      
+      // No establecemos el usuario ni guardamos en cookies hasta que verifique el email
+      // El backend debería enviar un email de verificación automáticamente
+      
     } catch (error) {
       console.error("Register Error:", error);
       toast.error("Error al crear la cuenta. Inténtalo de nuevo.");

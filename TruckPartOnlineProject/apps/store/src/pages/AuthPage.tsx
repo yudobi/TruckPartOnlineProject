@@ -80,7 +80,8 @@ export default function AuthPage() {
           phone_number: formData.phone,
           address: formData.address,
         });
-        navigate("/");
+        // Redirigir a la página de éxito con el email
+        navigate("/registration-success", { state: { email: formData.email } });
       }
     } catch (err: unknown) {
       console.error(err);

@@ -20,6 +20,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    is_verified = serializers.SerializerMethodField()
+    
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'address', 'is_staff')
+        fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'address', 'is_staff', 'is_verified')
+    
+    def get_is_verified(self, obj):
+        return obj.is_active
