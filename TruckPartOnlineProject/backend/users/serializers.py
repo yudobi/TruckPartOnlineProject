@@ -24,7 +24,11 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
+<<<<<<< HEAD
+        fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'address', 'is_staff',)
+=======
         fields = ('id', 'username', 'email', 'full_name', 'phone_number', 'address', 'is_staff', 'is_verified')
     
     def get_is_verified(self, obj):
         return obj.is_active
+>>>>>>> 0f7760337b572811537e33f335c3fda73c64a39d
