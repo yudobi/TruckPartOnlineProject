@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 export default function VerifyEmailPage() {
   const { uid, token } = useParams<{ uid: string; token: string }>();
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUserWithTokens } = useAuth();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("");
 
@@ -24,12 +24,8 @@ export default function VerifyEmailPage() {
       try {
         const response = await authService.verifyEmail(uid, token);
         
-        // Guardar tokens en localStorage
-        localStorage.setItem("accessToken", response.access);
-        localStorage.setItem("refreshToken", response.refresh);
-        
-        // Actualizar usuario en el contexto
-        setUser(response.user);
+        // Actualizar usuario en el contexto con los tokens
+        setUserWithTokens(response.user, response.access, response.refresh);
         
         setStatus("success");
         setMessage(response.message || "¡Email verificado exitosamente!");
@@ -48,7 +44,7 @@ export default function VerifyEmailPage() {
     };
 
     verifyEmail();
-  }, [uid, token, navigate, setUser]);
+  }, [uid, token, navigate, setUserWithTokens]);
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-6">
