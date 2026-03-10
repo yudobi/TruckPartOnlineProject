@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterView, MeView, verify_email, resend_verification
+from .views import RegisterView, MeView, verify_email, resend_verification, check_account_status
 from . import views
 
 urlpatterns = [
@@ -11,4 +11,5 @@ urlpatterns = [
     path('admin/get-user-data/<int:user_id>/', views.get_user_data, name='get_user_data'),
     path("verify-email/<uidb64>/<token>/", verify_email),
     path("resend-verification/", resend_verification),
+    path("check-account-status/", check_account_status),
 ]

@@ -69,6 +69,17 @@ class AuthService {
       throw error;
     }
   }
+
+  // Verificar estado de cuenta
+  async checkAccountStatus(email: string): Promise<{ exists: boolean; is_active: boolean; email?: string }> {
+    try {
+      const response = await apiClient.post<{ exists: boolean; is_active: boolean; email?: string }>(`${this.endpoint}/check-account-status/`, { email });
+      return response.data;
+    } catch (error) {
+      console.error(`Error checking account status:`, error);
+      throw error;
+    }
+  }
 }
 
 const authService = new AuthService();

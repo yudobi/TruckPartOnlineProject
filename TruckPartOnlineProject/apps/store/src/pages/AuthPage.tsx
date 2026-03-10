@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2 } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { loginSchema, registerSchema } from "@lib/validations";
 import { useFormValidation } from "@hooks/useFormValidation";
+import authService from "@/services/auth";
 
 function getPasswordStrength(password: string) {
   let score = 0;
@@ -36,6 +37,8 @@ export default function AuthPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const loginValidation = useFormValidation(loginSchema);
   const registerValidation = useFormValidation(registerSchema);
@@ -45,10 +48,11 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setUnverifiedEmail(null);
 
     if (isLogin) {
       const valid = loginValidation.validate({
-        username: formData.username,
+        email: formData.email,
         password: formData.password,
       });
       if (!valid) return;
@@ -68,7 +72,7 @@ export default function AuthPage() {
     try {
       if (isLogin) {
         await login({
-          username: formData.username,
+          email: formData.email,
           password: formData.password,
         });
         navigate("/");
@@ -85,6 +89,24 @@ export default function AuthPage() {
       }
     } catch (err: unknown) {
       console.error(err);
+      
+      // Si es un error de login, verificar si la cuenta existe pero no está verificada
+      if (isLogin) {
+        try {
+          const accountStatus = await authService.checkAccountStatus(formData.email);
+          
+          if (accountStatus.exists && !accountStatus.is_active) {
+            // Usuario existe pero no está verificado
+            setUnverifiedEmail(formData.email);
+            setError("Tu cuenta no ha sido verificada. Por favor, revisa tu correo electrónico.");
+            setLoading(false);
+            return;
+          }
+        } catch (statusError) {
+          console.error("Error checking account status:", statusError);
+        }
+      }
+
       let errorMessage = isLogin
         ? t("auth.login.error_message")
         : t("auth.register.error_message");
@@ -99,9 +121,27 @@ export default function AuthPage() {
     }
   };
 
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    
+    setResendingEmail(true);
+    try {
+      await authService.resendVerification(unverifiedEmail);
+      setError(null);
+      setUnverifiedEmail(null);
+      navigate("/registration-success", { state: { email: unverifiedEmail } });
+    } catch (err) {
+      console.error("Error resending verification:", err);
+      setError("Error al reenviar el correo de verificación. Inténtalo de nuevo.");
+    } finally {
+      setResendingEmail(false);
+    }
+  };
+
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setError(null);
+    setUnverifiedEmail(null);
     loginValidation.clearErrors();
     registerValidation.clearErrors();
     setFormData({
@@ -250,26 +290,26 @@ export default function AuthPage() {
             {isLogin && (
               <div className="space-y-2">
                 <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 ml-1">
-                  {t("auth.login.username")} *
+                  {t("auth.login.email")} *
                 </label>
                 <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                   <Input
                     className={`pl-12 h-14 bg-zinc-900/50 border-white/10 focus:border-red-600 focus:ring-red-600/20 text-white transition-all placeholder:text-gray-600 ${
-                      activeErrors.username ? "border-red-500" : ""
+                      activeErrors.email ? "border-red-500" : ""
                     }`}
-                    type="text"
-                    placeholder={t("auth.login.username")}
-                    value={formData.username}
+                    type="email"
+                    placeholder="tu@email.com"
+                    value={formData.email}
                     onChange={(e) => {
-                      setFormData({ ...formData, username: e.target.value });
-                      clearFieldError("username");
+                      setFormData({ ...formData, email: e.target.value });
+                      clearFieldError("email");
                     }}
                   />
                 </div>
-                {activeErrors.username && (
+                {activeErrors.email && (
                   <p className="text-red-400 text-xs mt-1">
-                    {activeErrors.username}
+                    {activeErrors.email}
                   </p>
                 )}
               </div>
@@ -365,8 +405,46 @@ export default function AuthPage() {
             )}
 
             {error && (
-              <div className="p-3 bg-red-600/10 border border-red-600/20 rounded-sm text-red-500 text-xs font-bold text-center">
-                {error}
+              <div className="space-y-3">
+                <div className="p-3 bg-red-600/10 border border-red-600/20 rounded-sm text-red-500 text-xs font-bold text-center flex items-center justify-center gap-2">
+                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                  <span>{error}</span>
+                </div>
+                
+                {unverifiedEmail && (
+                  <div className="p-4 bg-yellow-600/10 border border-yellow-600/20 rounded-sm space-y-3">
+                    <div className="flex items-start gap-2">
+                      <Mail className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm text-yellow-200 font-semibold mb-1">
+                          Cuenta no verificada
+                        </p>
+                        <p className="text-xs text-yellow-300/80">
+                          Enviamos un correo de verificación a <span className="font-semibold">{unverifiedEmail}</span>. 
+                          Revisa tu bandeja de entrada o spam.
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendingEmail}
+                      className="w-full h-10 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold tracking-wider transition-all"
+                    >
+                      {resendingEmail ? (
+                        <>
+                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                          Reenviando...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Reenviar correo de verificación
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 

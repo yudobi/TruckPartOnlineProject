@@ -197,6 +197,36 @@ def resend_verification(request):
 
 
 # ============================================
+# VERIFICAR ESTADO DE CUENTA
+# ============================================
+
+@api_view(["POST"])
+def check_account_status(request):
+    """
+    Verifica si una cuenta existe y su estado de verificación
+    """
+    email = request.data.get('email')
+    
+    if not email:
+        return Response({"error": "Email requerido"}, status=400)
+    
+    try:
+        user = User.objects.get(email=email)
+        
+        return Response({
+            "exists": True,
+            "is_active": user.is_active,
+            "email": user.email
+        })
+        
+    except User.DoesNotExist:
+        return Response({
+            "exists": False,
+            "is_active": False
+        })
+
+
+# ============================================
 # OBTENER USUARIO ACTUAL
 # ============================================
 
