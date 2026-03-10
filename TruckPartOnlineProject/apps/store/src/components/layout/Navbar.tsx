@@ -84,7 +84,7 @@ const Navbar = memo(function Navbar() {
                   </div>
                   <div className="hidden lg:flex flex-col text-left">
                     <span className="text-sm font-bold text-white group-hover:text-red-500 transition-colors">
-                      {user?.username.split(" ")[0]}
+                      {user?.username?.split(" ")[0] || user?.username || "Usuario"}
                     </span>
                     <span className="text-[10px] text-gray-400 font-medium tracking-wider">
                       {t("common.customer")}

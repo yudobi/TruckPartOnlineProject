@@ -32,8 +32,8 @@ const AdminOrderDetailPage = lazy(() => import("@/pages/admin/AdminOrderDetailPa
 // ---------------------------------------------------------------------------
 function PageLoader() {
   return (
-    <div className="min-h-[60vh] flex items-center justify-center">
-      <span className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-[60vh] flex items-center justify-center bg-black">
+      <span className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full text-primary animate-spin" />
     </div>
   );
 }
