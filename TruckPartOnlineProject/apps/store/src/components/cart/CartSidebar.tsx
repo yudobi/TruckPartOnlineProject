@@ -22,6 +22,7 @@ const CartSidebar = memo(function CartSidebar() {
   const { items, removeItem, updateQuantity, subtotal, itemCount } = useCart();
 
   const handleCheckout = useCallback(() => {
+    // La navegación se ejecutará después de que SheetClose cierre el Sheet
     navigate("/checkout");
   }, [navigate]);
 
@@ -162,12 +163,14 @@ const CartSidebar = memo(function CartSidebar() {
               </div>
               <p className="text-xs text-gray-500">{t("cart.taxNotice")}</p>
             </div>
-            <Button
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6"
-              onClick={handleCheckout}
-            >
-              {t("cart.checkout")}
-            </Button>
+            <SheetClose asChild>
+              <Button
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-6"
+                onClick={handleCheckout}
+              >
+                {t("cart.checkout")}
+              </Button>
+            </SheetClose>
           </div>
         )}
       </SheetContent>

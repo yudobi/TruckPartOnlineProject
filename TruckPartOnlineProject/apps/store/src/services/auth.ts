@@ -1,4 +1,4 @@
-import type { LoginCredentials, LoginResponse, UserInfo, RegisterCredentials, RegisterResponse } from '@/types/auth';
+import type { LoginCredentials, LoginResponse, UserInfo, RegisterCredentials, RegisterResponse, VerifyEmailResponse } from '@/types/auth';
 import apiClient from './apiClient';
 
 class AuthService {
@@ -44,6 +44,28 @@ class AuthService {
       return response.data;
     } catch (error) {
       console.error(`Error updating profile:`, error);
+      throw error;
+    }
+  }
+
+  // Verificar email con token
+  async verifyEmail(uid: string, token: string): Promise<VerifyEmailResponse> {
+    try {
+      const response = await apiClient.get<VerifyEmailResponse>(`${this.endpoint}/verify-email/${uid}/${token}/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error verifying email:`, error);
+      throw error;
+    }
+  }
+
+  // Reenviar email de verificación
+  async resendVerification(email: string): Promise<{ message: string }> {
+    try {
+      const response = await apiClient.post<{ message: string }>(`${this.endpoint}/resend-verification/`, { email });
+      return response.data;
+    } catch (error) {
+      console.error(`Error resending verification:`, error);
       throw error;
     }
   }

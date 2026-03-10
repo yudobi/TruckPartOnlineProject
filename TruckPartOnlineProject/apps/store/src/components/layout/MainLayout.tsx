@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import { CartProvider } from "@/contexts/CartContext";
 import { AuthProvider } from "@/contexts/AuthContext";
+import EmailVerificationBanner from "@/components/auth/EmailVerificationBanner";
 
 export default function MainLayout() {
   return (
@@ -16,6 +17,7 @@ export default function MainLayout() {
             Saltar al contenido principal
           </a>
           <Navbar />
+          <EmailVerificationBanner />
           {/* Added pt-20 to account for fixed navbar */}
           <main id="main-content" tabIndex={-1} className="flex-grow pt-20">
             <Outlet />

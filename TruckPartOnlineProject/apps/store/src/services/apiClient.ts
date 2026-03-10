@@ -9,7 +9,7 @@ import Cookies from 'js-cookie';
 
 // Cargar variables de entorno de Vite
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
-const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000', 10);
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '90000', 10);
 
 const AUTH_COOKIE_NAME = 'auth_user_data';
 const TOKEN_REFRESH_ENDPOINT = '/users/token/refresh/';

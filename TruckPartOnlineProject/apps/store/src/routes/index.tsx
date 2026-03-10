@@ -19,6 +19,9 @@ const CheckoutPage = lazy(() => import("@/pages/CheckoutPage"));
 const OrderConfirmationPage = lazy(() => import("@/pages/OrderConfirmationPage"));
 const UserProfilePage = lazy(() => import("@/pages/UserProfilePage"));
 const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
+const ResendVerificationPage = lazy(() => import("@/pages/ResendVerificationPage"));
+const RegistrationSuccessPage = lazy(() => import("@/pages/RegistrationSuccessPage"));
 
 // Admin pages
 const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
@@ -80,6 +83,21 @@ export const routes: RouteObject[] = [
         // Página de auth (login/registro)
         path: "auth",
         element: <AuthPage />,
+      },
+      {
+        // Página de éxito de registro
+        path: "registration-success",
+        element: <RegistrationSuccessPage />,
+      },
+      {
+        // Página de verificación de email
+        path: "verify-email/:uid/:token",
+        element: <VerifyEmailPage />,
+      },
+      {
+        // Página para reenviar verificación de email
+        path: "resend-verification",
+        element: <ResendVerificationPage />,
       },
       {
         // Página de órdenes — requiere sesión activa
