@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (credentials: RegisterCredentials) => {
     try {
-      const registerResponse = await authService.register(credentials);
+      await authService.register(credentials);
       
       // Después del registro, NO configuramos el token automáticamente
       // porque el usuario necesita verificar su email primero
@@ -111,6 +111,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const setUserWithTokens = (userInfo: UserInfo, accessToken: string, refreshToken: string) => {
+    apiClient.setAuthToken(accessToken);
+    const userData: UserInfo = {
+      ...userInfo,
+      accessToken,
+      refreshToken,
+    };
+    setUser(userData);
+    Cookies.set(AUTH_COOKIE_NAME, JSON.stringify(userData), {
+      expires: 7,
+      secure: window.location.protocol === "https:",
+      sameSite: "strict",
+    });
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -118,6 +133,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     register,
     logout,
     updateUser,
+    setUserWithTokens,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
