@@ -28,3 +28,19 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_is_verified(self, obj):
         return obj.is_active
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers
+from django.contrib.auth import authenticate
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # Aceptar tanto 'email' como 'username'
+        username = attrs.get('username')
+        email = attrs.get('email')
+        password = attrs.get('password')
+        
+        # Si viene email, lo usamos como username
+        if email and not username:
+            attrs['username'] = email
+            
+        return super().validate(attrs)
