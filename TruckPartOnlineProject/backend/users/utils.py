@@ -30,7 +30,7 @@ def send_verification_email(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    verification_url = f"http://localhost:5173/verify-email/{uid}/{token}"
+    verification_url = f"https://tonytruckpart.com/verify-email/{uid}/{token}"
 
     # Enviar email en un thread separado para no bloquear la respuesta
     email_thread = threading.Thread(
