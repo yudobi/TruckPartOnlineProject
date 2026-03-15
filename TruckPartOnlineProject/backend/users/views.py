@@ -20,6 +20,8 @@ from .utils import send_verification_email
 from django.contrib.auth.hashers import make_password
 from .models import PasswordResetRequest
 from .utils import send_password_reset_email
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -279,42 +281,42 @@ def debug_login(request):
 
 ########################################### RESETEO DE CONTRASEÑA ####################################################
 
+from django.utils import timezone
+from datetime import timedelta
 
 @api_view(["POST"])
-def request_password_reset(request):
+def password_reset_request(request):
 
     email = request.data.get("email")
-    new_password = request.data.get("new_password")
 
-    if not email or not new_password:
-        return Response(
-            {"error": "Email y nueva contraseña requeridos"},
-            status=400
-        )
+    if not email:
+        return Response({"error": "Email requerido"}, status=400)
 
     try:
 
         user = User.objects.get(email=email)
 
         reset_request = PasswordResetRequest.objects.create(
-            user=user,
-            new_password=make_password(new_password)
+            user=user
         )
 
         send_password_reset_email(user, reset_request)
 
-        return Response({
-            "message": "Te enviamos un correo para confirmar el cambio de contraseña"
-        })
-
     except User.DoesNotExist:
+        pass
 
-        return Response({
-            "message": "Si el correo existe recibirás instrucciones"
-        })
-    
-@api_view(["GET"])
-def confirm_password_reset(request, uidb64, token, request_id):
+    return Response({
+        "message": "Si el email existe recibirás instrucciones"
+    })
+
+
+@api_view(["POST"])
+def password_reset_confirm(request):
+
+    uidb64 = request.data.get("uid")
+    token = request.data.get("token")
+    request_id = request.data.get("request_id")
+    new_password = request.data.get("new_password")
 
     try:
 
@@ -327,19 +329,22 @@ def confirm_password_reset(request, uidb64, token, request_id):
             is_used=False
         )
 
-        if email_verification_token.check_token(user, token):
+        if not email_verification_token.check_token(user, token):
+            return Response({"error": "Token inválido"}, status=400)
 
-            user.password = reset_request.new_password
-            user.save()
+        # expiración
+        if reset_request.created_at < timezone.now() - timedelta(minutes=15):
+            return Response({"error": "Link expirado"}, status=400)
 
-            reset_request.is_used = True
-            reset_request.save()
+        user.set_password(new_password)
+        user.save()
 
-            return Response({
-                "message": "Contraseña actualizada correctamente"
-            })
+        reset_request.is_used = True
+        reset_request.save()
 
-        return Response({"error": "Token inválido"}, status=400)
+        return Response({
+            "message": "Contraseña actualizada correctamente"
+        })
 
     except Exception:
         return Response({"error": "Link inválido"}, status=400)

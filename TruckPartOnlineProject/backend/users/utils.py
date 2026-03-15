@@ -30,7 +30,7 @@ def send_verification_email(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    verification_url = f"https://tonytruckpart.com/verify-email/{uid}/{token}"
+    verification_url = f"http://127.0.0.1:8000/api/users/verify-email/{uid}/{token}"
 
     # Enviar email en un thread separado para no bloquear la respuesta
     email_thread = threading.Thread(
@@ -54,7 +54,7 @@ def send_password_reset_email(user, reset_request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    reset_url = f"https://tonytruckpart.com/reset-password-confirm/{uid}/{token}/{reset_request.id}"
+    reset_url = f"http://127.0.0.1:8000/api/users/reset-password-confirm/{uid}/{token}/{reset_request.id}"
 
     email_thread = threading.Thread(
         target=_send_email_async,
@@ -65,6 +65,7 @@ def send_password_reset_email(user, reset_request):
             [user.email],
         )
     )
+    print(reset_url)
 
     email_thread.daemon = True
     email_thread.start()
