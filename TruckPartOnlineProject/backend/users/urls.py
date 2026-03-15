@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .views import RegisterView, MeView, verify_email, resend_verification, check_account_status
+from .views import RegisterView, MeView, verify_email, resend_verification, check_account_status, request_password_reset, confirm_password_reset
 from . import views
 
 # Serializer personalizado que acepta email
@@ -26,4 +26,9 @@ urlpatterns = [
     path("verify-email/<uidb64>/<token>/", verify_email),
     path("resend-verification/", resend_verification),
     path("check-account-status/", check_account_status),
+    
+    path("password-reset/", request_password_reset),
+    path("reset-password-confirm/<uidb64>/<token>/<int:request_id>/", confirm_password_reset),
+
+
 ]

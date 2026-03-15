@@ -4,7 +4,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from .tokens import email_verification_token
 import threading
-
+from .models import PasswordResetRequest
 
 def _send_email_async(subject, message, from_email, recipient_list):
     """
@@ -42,5 +42,29 @@ def send_verification_email(user):
             [user.email],
         )
     )
+    email_thread.daemon = True
+    email_thread.start()
+
+
+
+
+
+def send_password_reset_email(user, reset_request):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = email_verification_token.make_token(user)
+
+    reset_url = f"https://tonytruckpart.com/reset-password-confirm/{uid}/{token}/{reset_request.id}"
+
+    email_thread = threading.Thread(
+        target=_send_email_async,
+        args=(
+            "Confirmar cambio de contraseña",
+            f"Confirma el cambio de contraseña aquí:\n{reset_url}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+        )
+    )
+
     email_thread.daemon = True
     email_thread.start()
