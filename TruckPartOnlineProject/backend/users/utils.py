@@ -4,7 +4,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from .tokens import email_verification_token
 import threading
-
+from .models import PasswordResetRequest
 
 def _send_email_async(subject, message, from_email, recipient_list):
     """
@@ -30,7 +30,7 @@ def send_verification_email(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    verification_url = f"https://tonytruckpart.com/verify-email/{uid}/{token}"
+    verification_url = f"http://127.0.0.1:8000/api/users/verify-email/{uid}/{token}"
 
     # Enviar email en un thread separado para no bloquear la respuesta
     email_thread = threading.Thread(
@@ -42,5 +42,30 @@ def send_verification_email(user):
             [user.email],
         )
     )
+    email_thread.daemon = True
+    email_thread.start()
+
+
+
+
+
+def send_password_reset_email(user, reset_request):
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = email_verification_token.make_token(user)
+
+    reset_url = f"http://127.0.0.1:8000/api/users/reset-password-confirm/{uid}/{token}/{reset_request.id}"
+
+    email_thread = threading.Thread(
+        target=_send_email_async,
+        args=(
+            "Confirmar cambio de contraseña",
+            f"Confirma el cambio de contraseña aquí:\n{reset_url}",
+            settings.DEFAULT_FROM_EMAIL,
+            [user.email],
+        )
+    )
+    print(reset_url)
+
     email_thread.daemon = True
     email_thread.start()

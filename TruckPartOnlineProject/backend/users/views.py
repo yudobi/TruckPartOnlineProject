@@ -1,92 +1,3 @@
-"""
-
-from django.shortcuts import render
-
-# Create your views here.
-#vista de autenticacion
-from rest_framework import generics, permissions
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from .serializers import RegisterSerializer, UserSerializer
-
-
-
-User = get_user_model()
-
-#vista de registro
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = RegisterSerializer
-    permission_classes = [permissions.AllowAny]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            "user": UserSerializer(user).data,
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        })
-
-class MeView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
-        return Response(UserSerializer(request.user).data)
-
-    def patch(self, request):
-        allowed_fields = {'full_name', 'phone_number', 'address'}
-        data = {key: value for key, value in request.data.items() if key in allowed_fields}
-        serializer = UserSerializer(request.user, data=data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-########################################################################################################
-
-
-
-
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth import get_user_model
-from users.models import User 
-
-# ============================================
-# VISTA PARA EL ADMIN (autocompletado)
-# ============================================
-def staff_required(user):
-    return user.is_staff and user.is_active
-
-@user_passes_test(staff_required)
-def get_user_data(request, user_id):
-    
-    #Vista para obtener datos de usuario desde el admin
-    
-    try:
-        user = User.objects.get(id=user_id)
-        return JsonResponse({
-            'email': user.email,
-            'full_name': user.full_name,
-            'phone_number': user.phone_number,
-            'address': user.address,
-            'username': user.username,
-            'is_guest': user.is_guest
-        })
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-        """
-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
@@ -105,6 +16,12 @@ from django.utils.encoding import force_str
 from .serializers import RegisterSerializer, UserSerializer
 from .tokens import email_verification_token
 from .utils import send_verification_email
+
+from django.contrib.auth.hashers import make_password
+from .models import PasswordResetRequest
+from .utils import send_password_reset_email
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -354,3 +271,80 @@ def debug_login(request):
         "username_found": username,
         "auth_result": "success" if user else "failed"
     }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+########################################### RESETEO DE CONTRASEÑA ####################################################
+
+from django.utils import timezone
+from datetime import timedelta
+
+@api_view(["POST"])
+def password_reset_request(request):
+
+    email = request.data.get("email")
+
+    if not email:
+        return Response({"error": "Email requerido"}, status=400)
+
+    try:
+
+        user = User.objects.get(email=email)
+
+        reset_request = PasswordResetRequest.objects.create(
+            user=user
+        )
+
+        send_password_reset_email(user, reset_request)
+
+    except User.DoesNotExist:
+        pass
+
+    return Response({
+        "message": "Si el email existe recibirás instrucciones"
+    })
+
+
+@api_view(["POST"])
+def password_reset_confirm(request):
+
+    uidb64 = request.data.get("uid")
+    token = request.data.get("token")
+    request_id = request.data.get("request_id")
+    new_password = request.data.get("new_password")
+
+    try:
+
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+
+        reset_request = PasswordResetRequest.objects.get(
+            id=request_id,
+            user=user,
+            is_used=False
+        )
+
+        if not email_verification_token.check_token(user, token):
+            return Response({"error": "Token inválido"}, status=400)
+
+        # expiración
+        if reset_request.created_at < timezone.now() - timedelta(minutes=15):
+            return Response({"error": "Link expirado"}, status=400)
+
+        user.set_password(new_password)
+        user.save()
+
+        reset_request.is_used = True
+        reset_request.save()
+
+        return Response({
+            "message": "Contraseña actualizada correctamente"
+        })
+
+    except Exception:
+        return Response({"error": "Link inválido"}, status=400)
