@@ -1,4 +1,4 @@
-import type { LoginCredentials, LoginResponse, UserInfo, RegisterCredentials, RegisterResponse, VerifyEmailResponse } from '@/types/auth';
+import type { LoginCredentials, LoginResponse, UserInfo, RegisterCredentials, RegisterResponse, VerifyEmailResponse, PasswordResetRequestResponse, PasswordResetConfirmResponse } from '@/types/auth';
 import apiClient from './apiClient';
 
 class AuthService {
@@ -77,6 +77,33 @@ class AuthService {
       return response.data;
     } catch (error) {
       console.error(`Error checking account status:`, error);
+      throw error;
+    }
+  }
+
+  // Solicitar restablecimiento de contraseña
+  async passwordResetRequest(email: string): Promise<PasswordResetRequestResponse> {
+    try {
+      const response = await apiClient.post<PasswordResetRequestResponse>(`${this.endpoint}/password-reset-request/`, { email });
+      return response.data;
+    } catch (error) {
+      console.error(`Error requesting password reset:`, error);
+      throw error;
+    }
+  }
+
+  // Confirmar restablecimiento de contraseña
+  async passwordResetConfirm(uid: string, token: string, requestId: string, newPassword: string): Promise<PasswordResetConfirmResponse> {
+    try {
+      const response = await apiClient.post<PasswordResetConfirmResponse>(`${this.endpoint}/password-reset-confirm/`, {
+        uid,
+        token,
+        request_id: requestId,
+        new_password: newPassword,
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error confirming password reset:`, error);
       throw error;
     }
   }

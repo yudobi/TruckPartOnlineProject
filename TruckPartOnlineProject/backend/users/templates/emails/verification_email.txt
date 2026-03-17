@@ -1,0 +1,17 @@
+TRUCKPARTONLINE - Verifica tu cuenta
+=====================================
+
+¡Bienvenido a TruckPartOnline!
+
+Para activar tu cuenta, haz clic en el siguiente enlace:
+{{ verification_url }}
+
+---
+
+¿No creaste esta cuenta?
+Si no te registraste en TruckPartOnline, puedes ignorar este correo.
+
+---
+
+Equipo de TruckPartOnline
+Este es un correo automático, por favor no respondas a este mensaje.

@@ -22,6 +22,8 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
 const VerifyEmailPage = lazy(() => import("@/pages/VerifyEmailPage"));
 const ResendVerificationPage = lazy(() => import("@/pages/ResendVerificationPage"));
 const RegistrationSuccessPage = lazy(() => import("@/pages/RegistrationSuccessPage"));
+const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 
 // Admin pages
 const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
@@ -98,6 +100,16 @@ export const routes: RouteObject[] = [
         // Página para reenviar verificación de email
         path: "resend-verification",
         element: <ResendVerificationPage />,
+      },
+      {
+        // Página para recuperar contraseña
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
+      },
+      {
+        // Página para restablecer contraseña con token
+        path: "reset-password/:uid/:token/:requestId",
+        element: <ResetPasswordPage />,
       },
       {
         // Página de órdenes — requiere sesión activa

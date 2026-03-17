@@ -43,7 +43,7 @@ class Category(models.Model):
         ("piece", "Pieza"),
     )
 
-    level = models.CharField(max_length=20, choices=LEVEL_CHOICES)
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="category")
 
     class Meta:
         unique_together = ("name", "parent")

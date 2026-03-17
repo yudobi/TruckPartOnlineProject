@@ -324,6 +324,7 @@ export default function AuthPage() {
                 {isLogin && (
                   <button
                     type="button"
+                    onClick={() => navigate("/forgot-password")}
                     className="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-white transition-colors"
                   >
                     {t("auth.login.forgot")}

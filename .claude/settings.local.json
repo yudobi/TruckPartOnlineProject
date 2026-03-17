@@ -14,7 +14,11 @@
       "Bash(npm run build)",
       "Bash(python manage.py shell -c \":*)",
       "Bash(./venv/Scripts/python.exe manage.py shell -c \":*)",
-      "Bash(where python)"
+      "Bash(where python)",
+      "Bash(python manage.py makemigrations users)",
+      "Bash(python manage.py makemigrations users --no-input)",
+      "Bash(python manage.py makemigrations)",
+      "Bash(python manage.py migrate)"
     ]
   }
 }

@@ -61,3 +61,11 @@ export type ResendVerificationResponse = {
   message: string;
 };
 
+export type PasswordResetRequestResponse = {
+  message: string;
+};
+
+export type PasswordResetConfirmResponse = {
+  message: string;
+};
+

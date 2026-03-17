@@ -30,7 +30,7 @@ class Order(models.Model):
         blank=True,
         related_name='orders'
     )
-    full_name = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=255, default="")
     guest_email = models.EmailField(null=True, blank=True)
     phone = models.CharField(max_length=20, null=True, blank=True)
     shipping_address = models.TextField(null=True, blank=True)

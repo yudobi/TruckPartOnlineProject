@@ -209,8 +209,6 @@ def get_user_data(request, user_id):
 
 
 
-
-
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .serializers import CustomTokenObtainPairSerializer
 
@@ -224,55 +222,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 
-import logging
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-
-logger = logging.getLogger(__name__)
-
-@api_view(['POST'])
-def debug_login(request):
-    """
-    Vista temporal para debug - muestra exactamente qué llega
-    """
-    print("\n" + "="*50)
-    print("🔍 DEBUG LOGIN - DATOS RECIBIDOS:")
-    print("="*50)
-    print(f"Headers: {dict(request.headers)}")
-    print(f"Content-Type: {request.content_type}")
-    print(f"Data: {request.data}")
-    print(f"Body: {request.body.decode('utf-8')}")
-    print("="*50 + "\n")
-    
-    # Intentar autenticar con cualquier campo que llegue
-    from django.contrib.auth import authenticate
-    
-    email = request.data.get('email')
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    print(f"Email extraído: {email}")
-    print(f"Username extraído: {username}")
-    
-    # Probar autenticación
-    user = None
-    if email:
-        user = authenticate(username=email, password=password)
-        print(f"Auth con email: {user}")
-    
-    if not user and username:
-        user = authenticate(username=username, password=password)
-        print(f"Auth con username: {user}")
-    
-    return Response({
-        "received": request.data,
-        "email_found": email,
-        "username_found": username,
-        "auth_result": "success" if user else "failed"
-    }, status=status.HTTP_200_OK)
-
-
 
 
 
@@ -280,9 +229,6 @@ def debug_login(request):
 
 
 ########################################### RESETEO DE CONTRASEÑA ####################################################
-
-from django.utils import timezone
-from datetime import timedelta
 
 @api_view(["POST"])
 def password_reset_request(request):
@@ -318,6 +264,9 @@ def password_reset_confirm(request):
     request_id = request.data.get("request_id")
     new_password = request.data.get("new_password")
 
+    if not all([uidb64, token, request_id, new_password]):
+        return Response({"error": "Todos los campos son requeridos"}, status=400)
+
     try:
 
         uid = force_str(urlsafe_base64_decode(uidb64))
@@ -336,6 +285,13 @@ def password_reset_confirm(request):
         if reset_request.created_at < timezone.now() - timedelta(minutes=15):
             return Response({"error": "Link expirado"}, status=400)
 
+        # Validar contraseña con los validadores de Django
+        from django.contrib.auth.password_validation import validate_password
+        try:
+            validate_password(new_password, user)
+        except Exception as e:
+            return Response({"error": list(e.messages)}, status=400)
+
         user.set_password(new_password)
         user.save()
 
@@ -346,5 +302,7 @@ def password_reset_confirm(request):
             "message": "Contraseña actualizada correctamente"
         })
 
+    except (User.DoesNotExist, PasswordResetRequest.DoesNotExist):
+        return Response({"error": "Link inválido"}, status=400)
     except Exception:
         return Response({"error": "Link inválido"}, status=400)
