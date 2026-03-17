@@ -142,3 +142,4 @@ migrations/
 
 # Exception for store/src/lib (just to be safe)
 !TruckPartOnlineProject/apps/store/src/lib/
+.kiro/
