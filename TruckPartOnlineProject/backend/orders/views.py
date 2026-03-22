@@ -1,107 +1,119 @@
+# orders/views.py
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import transaction
 from django.shortcuts import get_object_or_404
-from orders.services import validate_order_stock
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import stripe
+from django.conf import settings
 
-from products.models import Product
 from .models import Order, OrderItem
-from qb.services import (
-    #get_qb_item_quantity,
-    create_sales_receipt,
-    create_invoice
+from .serializers import (
+    OrderCreateSerializer, 
+    OrderSerializer, 
+    OrderUpdateSerializer,
+    OrderPaymentSerializer,
+    OrderDetailSerializer
 )
+from .services import validate_order_stock
+from inventory.services.inventory import move_inventory
+from products.models import Product
+from qb.services import create_sales_receipt, create_invoice
 
-"""
-1️⃣ GET  /products/              → ver productos + stock QB
-2️⃣ POST /checkout/              → crea orden (pending)
-3️⃣ POST /orders/{id}/pay/       → crea Invoice o SalesReceipt en QB
-4️⃣ GET  /orders/{id}/           → ver detalle
-"""
-
-############################LISTAR PRODUCTOS + STOCK QUICKBOOKS################################
-
-@api_view(["GET"])
-def products_list(request):
-    products = Product.objects.filter(is_active=True)
-    data = []
-
-    for p in products:
-        data.append({
-            "id": p.id,
-            "name": p.name,
-            "price": float(p.price),
-            "brand": p.brand.name if p.brand else None,
-            "category": p.category.name if p.category else None,
-            #"stock": get_qb_item_quantity(p.qb_item_id)
-        })
-
-    return Response(data)
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
-#############################CHECKOUT (CREA ORDEN – NO QUICKBOOKS)############################
 @api_view(["POST"])
 def checkout(request):
-    items = request.data.get("items", [])
-    guest_email = request.data.get("guest_email")
-
-    if not items:
+    """
+    Crear una nueva orden (checkout)
+    """
+    serializer = OrderCreateSerializer(
+        data=request.data,
+        context={'request': request}
+    )
+    
+    if not serializer.is_valid():
         return Response(
-            {"error": "No items provided"},
+            serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
-
-    # 1️⃣ VALIDAR STOCK CON INVENTARIO LOCAL NO CON QUICKBOOKS
-    try:
-        validate_order_stock(items)
-    except ValueError as e:
-        return Response(
-            {"error": str(e)},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Product.DoesNotExist:
-         return Response(
-            {"error": "Uno o más productos no existen"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except KeyError:
-        return Response(
-            {"error": "Faltan datos en los items (product_id o quantity)"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # 2️⃣ CREAR ORDEN
-    try:
+    
+    data = serializer.validated_data
+    
+    with transaction.atomic():
+        items = data["items"]
+        payment_method = data["payment_method"]
+        
+        # 1️⃣ Validar stock
+        try:
+            validate_order_stock(items)
+        except ValueError as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # 2️⃣ Crear la orden
         order = Order.objects.create(
             user=request.user if request.user.is_authenticated else None,
-            full_name=request.data.get("full_name"),
-            guest_email=guest_email,
-            phone=request.data.get("phone"),
-            shipping_address=request.data.get("shipping_address"),
-            city=request.data.get("city"),
-            state=request.data.get("state"),
-            country=request.data.get("country"),
-            postal_code=request.data.get("postal_code"),
-            status="pending"
+            full_name=data["full_name"],
+            guest_email=data.get("guest_email"),
+            phone=data.get("phone", ""),
+            shipping_address=data.get("shipping_address", ""),
+            street=data.get("street", ""),
+            house_number=data.get("house_number", ""),
+            city=data.get("city", ""),
+            state=data.get("state", ""),
+            country=data.get("country", ""),
+            postal_code=data.get("postal_code", ""),
+            status="pending",
+            payment_method=payment_method
         )
-
+        
+        # 3️⃣ Crear items y calcular total
         total = 0
-
         for item in items:
-            product = Product.objects.get(id=item["product_id"]) # validate_order_stock already checked existence mostly, but good to be safe
+            product = Product.objects.get(id=item["product_id"])
             subtotal = product.price * item["quantity"]
             total += subtotal
-
+            
             OrderItem.objects.create(
                 order=order,
                 product=product,
                 quantity=item["quantity"],
                 price=product.price
             )
-
+        
         order.total = total
         order.save()
-
+        
+        # 4️⃣ Si es tarjeta, crear PaymentIntent
+        if payment_method == "card":
+            try:
+                intent = stripe.PaymentIntent.create(
+                    amount=int(total * 100),
+                    currency="usd",
+                    metadata={"order_id": order.id},
+                    automatic_payment_methods={"enabled": True},
+                )
+                order.stripe_payment_intent = intent.id
+                order.stripe_client_secret = intent.client_secret
+                order.save()
+                
+                return Response({
+                    "order_id": order.id,
+                    "client_secret": intent.client_secret,
+                    "status": "requires_payment"
+                }, status=status.HTTP_201_CREATED)
+                
+            except stripe.error.StripeError as e:
+                # Si Stripe falla, la transacción se revierte
+                raise e
+        
+        # 5️⃣ Si es COD, respuesta simple
         return Response(
             {
                 "order_id": order.id,
@@ -110,156 +122,36 @@ def checkout(request):
             },
             status=status.HTTP_201_CREATED
         )
-    except KeyError as e:
-        return Response(
-            {"error": f"Falta el campo {str(e)} en los items"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Product.DoesNotExist:
-        return Response(
-            {"error": "Producto no encontrado durante la creación de la orden"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except Exception as e:
-        return Response(
-            {"error": f"Error al procesar la orden: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
 
 
-
-#############################PAGAR ORDEN (AQUÍ ENTRA QUICKBOOKS)############################
-@api_view(["POST"])
-def pay_order(request, order_id):
-    """
-    {
-      "payment_method": "cod" | "card"
-    }
-    """
-
-    order = get_object_or_404(Order, id=order_id)
-
-    if order.status != "pending":
-        return Response(
-            {"error": "Order already processed"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    payment_method = request.data.get("payment_method")
-
-    if payment_method not in ["cod", "card"]:
-        return Response(
-            {"error": "Invalid payment method"},
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    try:
-        order.payment_method = payment_method
-
-        # 🧾 Pago contra entrega → INVOICE
-        if payment_method == "cod":
-            invoice_id = create_invoice(order)
-            order.qb_invoice_id = invoice_id
-            order.status = "invoiced"
-
-        # 💳 Tarjeta → SALES RECEIPT
-        elif payment_method == "card":
-            receipt_id = create_sales_receipt(order)
-            order.qb_sales_receipt_id = receipt_id
-            order.status = "completed"
-
-        order.save()
-
-        return Response({
-            "order_id": order.id,
-            "status": order.status,
-            "qb_invoice_id": order.qb_invoice_id,
-            "qb_sales_receipt_id": order.qb_sales_receipt_id,
-        })
-
-    except Exception as e:
-        order.status = "failed"
-        order.save()
-        return Response(
-            {"error": str(e)},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
-
-
-#############################DETALLE DE ORDEN############################
 @api_view(["GET"])
 def order_detail(request, order_id):
+    """
+    Obtener detalle de una orden específica
+    """
     order = get_object_or_404(Order, id=order_id)
-
-    # Validar que el usuario solo vea sus propias órdenes
+    
+    # Validar permisos
     if order.user and order.user != request.user:
-        return Response(
-            {"error": "No tiene permiso para acceder a esta orden"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
-    try:
-        items = []
-        for i in order.items.select_related("product").all():
-            product_images = []
-            for img in i.product.images.all():
-                if img.image:
-                    product_images.append({
-                        "id": img.id,
-                        "image": img.image.url,
-                        "is_main": img.is_main,
-                    })
-            items.append({
-                "id": i.id,
-                "product": {
-                    "id": i.product.id,
-                    "name": i.product.name,
-                    "sku": i.product.sku,
-                    "images": product_images,
-                },
-                "quantity": i.quantity,
-                "price": float(i.price)
-            })
-
-        return Response({
-            "id": order.id,
-            "user": {
-                "id": order.user.id,
-                "email": order.user.email,
-                "username": order.user.username,
-            } if order.user else None,
-            "full_name": order.full_name,
-            "guest_email": order.guest_email,
-            "phone": order.phone,
-            "shipping_address": order.shipping_address,
-            "country": order.country,
-            "state": order.state,
-            "city": order.city,
-            "postal_code": order.postal_code,
-            "status": order.status,
-            "payment_method": order.payment_method,
-            "payment_status": order.payment_status,
-            "total": float(order.total),
-            "qb_invoice_id": order.qb_invoice_id,
-            "qb_sales_receipt_id": order.qb_sales_receipt_id,
-            "items": items,
-            "created_at": order.created_at
-        })
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return Response(
-            {"error": f"Error al obtener detalle de orden: {str(e)}"},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+        if not request.user.is_staff:
+            return Response(
+                {"error": "No tienes permiso para ver esta orden"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+    
+    # Usar serializer según permisos
+    if request.user.is_staff:
+        serializer = OrderDetailSerializer(order)
+    else:
+        serializer = OrderSerializer(order)
+    
+    return Response(serializer.data)
 
 
-#############################LISTAR ORDENES DEL USUARIO############################
 @api_view(["GET"])
 def my_orders(request):
     """
-    GET /orders/my-orders/
-    Lista todas las órdenes del usuario autenticado
+    Listar órdenes del usuario autenticado
     """
     if not request.user.is_authenticated:
         return Response(
@@ -268,218 +160,247 @@ def my_orders(request):
         )
     
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
-
-    data = []
-    for order in orders:
-        items = []
-        for i in order.items.select_related("product").all():
-            product_images = [
-                {"id": img.id, "image": img.image.url, "is_main": img.is_main}
-                for img in i.product.images.all() if img.image
-            ]
-            items.append({
-                "id": i.id,
-                "product": {
-                    "id": i.product.id,
-                    "name": i.product.name,
-                    "sku": i.product.sku,
-                    "images": product_images,
-                },
-                "quantity": i.quantity,
-                "price": float(i.price)
-            })
-        
-        data.append({
-            "id": order.id,
-            "status": order.status,
-            "payment_method": order.payment_method,
-            "payment_status": order.payment_status,
-            "total": float(order.total),
-            "shipping_address": order.shipping_address,
-            "city": order.city,
-            "state": order.state,
-            "country": order.country,
-            "postal_code": order.postal_code,
-            "created_at": order.created_at,
-            "items": items
-        })
+    serializer = OrderSerializer(orders, many=True)
     
     return Response({
-        "count": len(data),
-        "results": data
+        "count": len(serializer.data),
+        "results": serializer.data
     })
-####################################################################################
 
 
-#############################ADMIN: LISTAR TODAS LAS ÓRDENES############################
 @api_view(["GET"])
 def admin_orders_list(request):
     """
-    GET /api/admin/orders/
-    Lista todas las órdenes del sistema (solo staff)
+    Listar todas las órdenes (solo admin)
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return Response(
             {"error": "Admin access required"},
             status=status.HTTP_403_FORBIDDEN
         )
-
-    # Soporte de filtros
+    
+    orders = Order.objects.all().order_by('-created_at')
+    
+    # Filtros
     status_filter = request.query_params.get("status")
     payment_status_filter = request.query_params.get("payment_status")
-    search = request.query_params.get("search")  # buscar por id, nombre del cliente o email
-
-    orders = Order.objects.all().order_by('-created_at')
-
+    
     if status_filter:
         orders = orders.filter(status=status_filter)
     if payment_status_filter:
         orders = orders.filter(payment_status=payment_status_filter)
-    if search:
-        from django.db.models import Q
-        orders = orders.filter(
-            Q(id__icontains=search) |
-            Q(full_name__icontains=search) |
-            Q(guest_email__icontains=search) |
-            Q(user__email__icontains=search)
-        )
-
-    # Paginación
+    
+    # Paginación simple
     page = int(request.query_params.get("page", 1))
     page_size = int(request.query_params.get("page_size", 20))
     total = orders.count()
     start = (page - 1) * page_size
     end = start + page_size
     orders = orders[start:end]
-
-    data = []
-    for order in orders:
-        items_count = order.items.count()
-        data.append({
-            "id": order.id,
-            "full_name": order.full_name,
-            "guest_email": order.guest_email,
-            "user_email": order.user.email if order.user else None,
-            "status": order.status,
-            "payment_method": order.payment_method,
-            "payment_status": order.payment_status,
-            "total": float(order.total),
-            "items_count": items_count,
-            "created_at": order.created_at,
-            "shipping_address": order.shipping_address,
-            "city": order.city,
-            "state": order.state,
-        })
-
+    
+    serializer = OrderSerializer(orders, many=True)
+    
     return Response({
         "count": total,
         "page": page,
         "page_size": page_size,
-        "results": data
+        "results": serializer.data
     })
 
 
-#############################ADMIN: DETALLE DE UNA ORDEN############################
 @api_view(["GET"])
 def admin_order_detail(request, order_id):
     """
-    GET /api/admin/orders/{order_id}/
-    Detalle completo de una orden (solo staff)
+    Detalle completo de una orden para admin
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return Response(
             {"error": "Admin access required"},
             status=status.HTTP_403_FORBIDDEN
         )
-
+    
     order = get_object_or_404(Order, id=order_id)
-
-    items = []
-    for i in order.items.select_related("product").all():
-        product_images = [
-            {"id": img.id, "image": img.image.url, "is_main": img.is_main}
-            for img in i.product.images.all() if img.image
-        ]
-        items.append({
-            "id": i.id,
-            "product": {
-                "id": i.product.id,
-                "name": i.product.name,
-                "sku": i.product.sku,
-                "images": product_images,
-            },
-            "quantity": i.quantity,
-            "price": float(i.price)
-        })
-
-    return Response({
-        "id": order.id,
-        "full_name": order.full_name,
-        "guest_email": order.guest_email,
-        "phone": order.phone,
-        "user": {
-            "id": order.user.id,
-            "email": order.user.email,
-            "username": order.user.username,
-        } if order.user else None,
-        "shipping_address": order.shipping_address,
-        "city": order.city,
-        "state": order.state,
-        "country": order.country,
-        "postal_code": order.postal_code,
-        "status": order.status,
-        "payment_method": order.payment_method,
-        "payment_status": order.payment_status,
-        "total": float(order.total),
-        "qb_invoice_id": order.qb_invoice_id,
-        "qb_sales_receipt_id": order.qb_sales_receipt_id,
-        "items": items,
-        "created_at": order.created_at,
-    })
+    serializer = OrderDetailSerializer(order)
+    
+    return Response(serializer.data)
 
 
-#############################ADMIN: ACTUALIZAR STATUS DE UNA ORDEN############################
 @api_view(["PATCH"])
 def admin_update_order_status(request, order_id):
     """
-    PATCH /api/admin/orders/{order_id}/status/
-    Actualizar status de una orden (solo staff)
+    Actualizar estado de una orden (admin)
     """
     if not request.user.is_authenticated or not request.user.is_staff:
         return Response(
             {"error": "Admin access required"},
             status=status.HTTP_403_FORBIDDEN
         )
-
+    
     order = get_object_or_404(Order, id=order_id)
+    serializer = OrderUpdateSerializer(order, data=request.data, partial=True)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return Response({
+            "id": order.id,
+            "status": order.status,
+            "payment_status": order.payment_status,
+            "message": "Orden actualizada exitosamente"
+        })
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    new_status = request.data.get("status")
-    new_payment_status = request.data.get("payment_status")
 
-    valid_statuses = ["pending", "invoiced", "completed", "failed"]
-    valid_payment_statuses = ["pending", "paid", "failed"]
+################# Endpoint para procesar pago de orden COD (descontar stock y crear invoice en QuickBooks)###################
 
-    if new_status:
-        if new_status not in valid_statuses:
-            return Response(
-                {"error": f"Invalid status. Valid: {valid_statuses}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        order.status = new_status
+@api_view(["POST"])
+def pay_order(request, order_id):
+    """
+    Procesar pago de orden COD
+    """
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Validar estado
+    if order.status != "pending":
+        return Response(
+            {"error": "La orden ya fue procesada"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    # Validar método de pago
+    if order.payment_method != "cod":
+        return Response(
+            {"error": "Esta orden no es contra entrega (COD)"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    serializer = OrderPaymentSerializer(data=request.data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        with transaction.atomic():
+            # 1. Descontar stock
+            for item in order.items.all():
+                move_inventory(
+                    product=item.product,
+                    quantity_change=-item.quantity,
+                    reason="Venta COD",
+                    reference=f"Orden #{order.id}"
+                )
+            
+            # 2. Crear invoice en QuickBooks
+            invoice_id = create_invoice(order)
+            
+            # 3. Actualizar orden
+            order.qb_invoice_id = invoice_id
+            order.status = "invoiced"
+            order.payment_status = "pending"
+            order.save()
+            
+            return Response({
+                "order_id": order.id,
+                "status": order.status,
+                "qb_invoice_id": order.qb_invoice_id,
+            })
+            
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
-    if new_payment_status:
-        if new_payment_status not in valid_payment_statuses:
-            return Response(
-                {"error": f"Invalid payment status. Valid: {valid_payment_statuses}"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        order.payment_status = new_payment_status
+#################### Endpoint para listar productos disponibles (para el frontend)###########################################
 
-    order.save()
+@api_view(["GET"])
+def products_list(request):
+    """
+    Listar productos disponibles
+    """
+    from products.models import Product
+    products = Product.objects.filter(is_active=True)
+    
+    data = []
+    for p in products:
+        data.append({
+            "id": p.id,
+            "name": p.name,
+            "price": float(p.price),
+            "brand": p.brand.name if p.brand else None,
+            "category": p.category.name if p.category else None,
+            "stock": getattr(p.inventory, 'quantity', 0) if hasattr(p, 'inventory') else 0
+        })
+    
+    return Response(data)
 
-    return Response({
-        "id": order.id,
-        "status": order.status,
-        "payment_status": order.payment_status,
-        "message": "Order updated successfully"
-    })
+###############################webhook de striper#################################################################
+
+@csrf_exempt
+def stripe_webhook(request):
+    """
+    Webhook de Stripe para procesar eventos de pago
+    """
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload,
+            sig_header,
+            settings.STRIPE_WEBHOOK_SECRET
+        )
+    except Exception:
+        return JsonResponse({"error": "Invalid webhook"}, status=400)
+    
+    if event["type"] == "payment_intent.succeeded":
+        intent = event["data"]["object"]
+        order_id = intent["metadata"]["order_id"]
+        
+        try:
+            with transaction.atomic():
+                order = Order.objects.get(id=order_id)
+                
+                # Verificar idempotencia
+                if order.payment_status == "paid":
+                    return JsonResponse({"status": "already_processed"})
+                
+                # Validar monto
+                if int(order.total * 100) != intent["amount"]:
+                    return JsonResponse({"error": "Amount mismatch"}, status=400)
+                
+                # Descontar stock
+                for item in order.items.all():
+                    move_inventory(
+                        product=item.product,
+                        quantity_change=-item.quantity,
+                        reason="Venta",
+                        reference=f"Orden #{order.id} - Pago Stripe"
+                    )
+                
+                # Crear sales receipt en QuickBooks
+                receipt_id = create_sales_receipt(order)
+                
+                # Actualizar orden
+                order.qb_sales_receipt_id = receipt_id
+                order.status = "completed"
+                order.payment_status = "paid"
+                order.save()
+                
+        except Order.DoesNotExist:
+            pass
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    
+    elif event["type"] == "payment_intent.payment_failed":
+        intent = event["data"]["object"]
+        order_id = intent["metadata"]["order_id"]
+        
+        try:
+            order = Order.objects.get(id=order_id)
+            order.status = "failed"
+            order.payment_status = "failed"
+            order.save()
+        except Order.DoesNotExist:
+            pass
+    
+    return JsonResponse({"status": "ok"})
+
+
+

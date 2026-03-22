@@ -65,6 +65,9 @@ class Order(models.Model):
     qb_customer_id = models.CharField(max_length=50, blank=True, null=True)
     qb_sales_receipt_id = models.CharField(max_length=50, null=True, blank=True)
 
+    stripe_payment_intent = models.CharField(max_length=255, null=True, blank=True)
+    stripe_client_secret = models.CharField(max_length=255, null=True, blank=True)
+
     def is_guest(self):
         return self.user is None
 

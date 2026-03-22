@@ -283,6 +283,11 @@ CLOVER_CONFIG = {
 
 CLOVER = CLOVER_CONFIG[CLOVER_ENV]
 
+########################################## STRIPE SETTINGS ##########################################
+
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = config("STRIPE_PUBLIC_KEY")
+STRIPE_WEBHOOK_SECRET = config("STRIPE_WEBHOOK_SECRET")
 
 
 

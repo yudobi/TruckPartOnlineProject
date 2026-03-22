@@ -8,6 +8,9 @@ urlpatterns = [
     path("checkout/", views.checkout),
     path("<int:order_id>/pay/", views.pay_order),
     path("<int:order_id>/", views.order_detail),
+   
+    # 🔥 STRIPE WEBHOOK (OBLIGATORIO)
+    path("stripe/webhook/", views.stripe_webhook),
 
     # Endpoints de administración
     path("admin/orders/", views.admin_orders_list),
