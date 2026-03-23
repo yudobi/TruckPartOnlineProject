@@ -21,7 +21,10 @@
       "Bash(python manage.py migrate)",
       "Bash(pnpm add:*)",
       "Bash(npx vite:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(python -c \"import stripe; print\\(stripe.VERSION\\); print\\(hasattr\\(stripe, ''error''\\)\\); print\\(hasattr\\(stripe, ''StripeError''\\)\\)\")",
+      "Bash(pip show:*)",
+      "Bash(pip3 show:*)"
     ]
   }
 }

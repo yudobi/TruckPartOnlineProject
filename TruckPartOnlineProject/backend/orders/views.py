@@ -1,5 +1,6 @@
 # orders/views.py
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
@@ -11,8 +12,8 @@ from django.conf import settings
 
 from .models import Order, OrderItem
 from .serializers import (
-    OrderCreateSerializer, 
-    OrderSerializer, 
+    OrderCreateSerializer,
+    OrderSerializer,
     OrderUpdateSerializer,
     OrderPaymentSerializer,
     OrderDetailSerializer
@@ -26,73 +27,75 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def checkout(request):
     """
-    Crear una nueva orden (checkout)
+    Crear una nueva orden (checkout).
+    Soporta usuarios autenticados e invitados.
     """
     serializer = OrderCreateSerializer(
         data=request.data,
         context={'request': request}
     )
-    
+
     if not serializer.is_valid():
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
-    
+
     data = serializer.validated_data
-    
-    with transaction.atomic():
-        items = data["items"]
-        payment_method = data["payment_method"]
-        
-        # 1️⃣ Validar stock
-        try:
-            validate_order_stock(items)
-        except ValueError as e:
-            return Response(
-                {"error": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        # 2️⃣ Crear la orden
-        order = Order.objects.create(
-            user=request.user if request.user.is_authenticated else None,
-            full_name=data["full_name"],
-            guest_email=data.get("guest_email"),
-            phone=data.get("phone", ""),
-            shipping_address=data.get("shipping_address", ""),
-            street=data.get("street", ""),
-            house_number=data.get("house_number", ""),
-            city=data.get("city", ""),
-            state=data.get("state", ""),
-            country=data.get("country", ""),
-            postal_code=data.get("postal_code", ""),
-            status="pending",
-            payment_method=payment_method
-        )
-        
-        # 3️⃣ Crear items y calcular total
-        total = 0
-        for item in items:
-            product = Product.objects.get(id=item["product_id"])
-            subtotal = product.price * item["quantity"]
-            total += subtotal
-            
-            OrderItem.objects.create(
-                order=order,
-                product=product,
-                quantity=item["quantity"],
-                price=product.price
-            )
-        
-        order.total = total
-        order.save()
-        
-        # 4️⃣ Si es tarjeta, crear PaymentIntent
-        if payment_method == "card":
+
+    try:
+        with transaction.atomic():
+            items = data["items"]
+            payment_method = data["payment_method"]
+
+            # 1️⃣ Validar stock
             try:
+                validate_order_stock(items)
+            except ValueError as e:
+                return Response(
+                    {"error": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # 2️⃣ Crear la orden
+            order = Order.objects.create(
+                user=request.user if request.user.is_authenticated else None,
+                full_name=data["full_name"],
+                guest_email=data.get("guest_email"),
+                phone=data.get("phone", ""),
+                shipping_address=data.get("shipping_address", ""),
+                street=data.get("street", ""),
+                house_number=data.get("house_number", ""),
+                city=data.get("city", ""),
+                state=data.get("state", ""),
+                country=data.get("country", ""),
+                postal_code=data.get("postal_code", ""),
+                status="pending",
+                payment_method=payment_method
+            )
+
+            # 3️⃣ Crear items y calcular total
+            total = 0
+            for item in items:
+                product = Product.objects.get(id=item["product_id"])
+                subtotal = product.price * item["quantity"]
+                total += subtotal
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item["quantity"],
+                    price=product.price
+                )
+
+            order.total = total
+            order.save()
+
+            # 4️⃣ Si es tarjeta, crear PaymentIntent en Stripe
+            if payment_method == "card":
                 intent = stripe.PaymentIntent.create(
                     amount=int(total * 100),
                     currency="usd",
@@ -102,26 +105,28 @@ def checkout(request):
                 order.stripe_payment_intent = intent.id
                 order.stripe_client_secret = intent.client_secret
                 order.save()
-                
+
                 return Response({
                     "order_id": order.id,
                     "client_secret": intent.client_secret,
                     "status": "requires_payment",
                     "total": float(order.total)
                 }, status=status.HTTP_201_CREATED)
-                
-            except stripe.error.StripeError as e:
-                # Si Stripe falla, la transacción se revierte
-                raise e
-        
-        # 5️⃣ Si es COD, respuesta simple
+
+            # 5️⃣ Si es COD, respuesta simple
+            return Response(
+                {
+                    "order_id": order.id,
+                    "status": order.status,
+                    "total": float(order.total)
+                },
+                status=status.HTTP_201_CREATED
+            )
+    except stripe.StripeError as e:
+        # stripe.error.StripeError fue eliminado en stripe>=13.0 → usar stripe.StripeError
         return Response(
-            {
-                "order_id": order.id,
-                "status": order.status,
-                "total": float(order.total)
-            },
-            status=status.HTTP_201_CREATED
+            {"error": f"Error al procesar el pago con tarjeta: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST
         )
 
 
@@ -255,6 +260,7 @@ def admin_update_order_status(request, order_id):
 ################# Endpoint para procesar pago de orden COD (descontar stock y crear invoice en QuickBooks)###################
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def pay_order(request, order_id):
     """
     Procesar pago de orden COD

@@ -30,6 +30,7 @@ export default function CheckoutPage() {
     paymentResponse,
     isLoading,
     error,
+    resetState,
   } = useCheckout();
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
@@ -115,7 +116,15 @@ export default function CheckoutPage() {
     }
   };
 
-  const isCardPayment = checkoutData?.client_secret != null;
+  const isCardPayment = selectedPaymentMethod === "card" && checkoutData?.client_secret != null;
+
+  // Si se seleccionó tarjeta pero el backend no devolvió client_secret,
+  // significa que Stripe falló. Resetear para que el usuario pueda reintentar.
+  useEffect(() => {
+    if (selectedPaymentMethod === "card" && checkoutData && !checkoutData.client_secret) {
+      resetState();
+    }
+  }, [checkoutData, selectedPaymentMethod, resetState]);
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-12 px-6">
