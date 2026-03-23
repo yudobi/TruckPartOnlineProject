@@ -31,7 +31,7 @@ export function PaymentMethodSelector({
           <RadioGroupItem value="card" id="card" className="peer sr-only" />
           <Label
             htmlFor="card"
-            className="flex flex-col items-center justify-between rounded-md border-2 border-zinc-700 bg-zinc-800 p-4 hover:bg-zinc-700 peer-data-[state=checked]:border-red-600 peer-data-[state=checked]:text-red-600 cursor-pointer transition-all"
+            className="flex h-full flex-col items-center justify-between rounded-md border-2 border-zinc-700 bg-zinc-800 p-4 hover:bg-zinc-700 peer-data-[state=checked]:border-red-600 peer-data-[state=checked]:text-red-600 cursor-pointer transition-all"
           >
             <CreditCard className="mb-3 h-6 w-6 text-white" />
             <span className="text-white font-bold">
@@ -47,17 +47,17 @@ export function PaymentMethodSelector({
           <RadioGroupItem value="cod" id="cod" className="peer sr-only" disabled />
           <Label
             htmlFor="cod"
-            className="flex flex-col items-center justify-between rounded-md border-2 border-zinc-700 bg-zinc-800 p-4 opacity-50 cursor-not-allowed transition-all"
+            className="relative flex h-full flex-col items-center justify-between rounded-md border-2 border-zinc-800 bg-zinc-800/60 p-4 cursor-not-allowed transition-all"
           >
-            <Banknote className="mb-3 h-6 w-6 text-white" />
-            <span className="text-white font-bold">
+            <span className="absolute -top-2.5 right-2 bg-zinc-700 text-zinc-300 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold">
+              {t("checkout.paymentMethod.codDisabled")}
+            </span>
+            <Banknote className="mb-3 h-6 w-6 text-zinc-500" />
+            <span className="text-zinc-500 font-bold">
               {t("checkout.paymentMethod.cod")}
             </span>
-            <span className="text-xs text-zinc-400 mt-1">
+            <span className="text-xs text-zinc-600 mt-1">
               {t("checkout.paymentMethod.codDesc")}
-            </span>
-            <span className="text-xs text-zinc-500 mt-1">
-              {t("checkout.paymentMethod.codDisabled")}
             </span>
           </Label>
         </div>
