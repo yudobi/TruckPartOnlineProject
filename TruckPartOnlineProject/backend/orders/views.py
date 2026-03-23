@@ -480,7 +480,7 @@ def stripe_webhook(request):
                     return JsonResponse({"status": "amount_mismatch"})
 
                 # 💱 Validar moneda
-                if intent.get("currency") != "mxn":
+                if intent.get("currency") != "usd":
                     print("❌ Moneda incorrecta")
                     return JsonResponse({"status": "currency_error"})
 
