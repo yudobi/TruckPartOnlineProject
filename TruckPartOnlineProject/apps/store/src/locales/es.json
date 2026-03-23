@@ -251,6 +251,8 @@
     "fullNamePlaceholder": "Ej: Juan Pérez",
     "email": "Correo Electrónico",
     "emailPlaceholder": "tu@email.com",
+    "phone": "Teléfono",
+    "phonePlaceholder": "Ej: +1 555 123 4567",
     "shippingAddress": "Dirección de Envío",
     "shippingAddressPlaceholder": "Calle Principal 123",
     "city": "Ciudad",
@@ -268,7 +270,8 @@
       "card": "Tarjeta de Crédito/Débito",
       "cardDesc": "Pago seguro con tarjeta",
       "cod": "Pago Contra Entrega",
-      "codDesc": "Paga cuando recibas tu pedido"
+      "codDesc": "Paga cuando recibas tu pedido",
+      "codDisabled": "No disponible temporalmente"
     },
     "completeOrder": "Completar Pedido",
     "orderSuccess": "¡Pedido completado con éxito!",

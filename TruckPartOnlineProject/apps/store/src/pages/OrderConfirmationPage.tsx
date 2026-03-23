@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { CheckCircle, XCircle, Package, MapPin, CreditCard, Loader2 } from "lucide-react";
@@ -56,6 +56,8 @@ export default function OrderConfirmationPage() {
   const redirectStatus = searchParams.get("redirect_status");
   const isStripeRedirect = paymentIntentClientSecret != null;
 
+  const hasCleared = useRef(false);
+
   // Verify Stripe payment status when redirected from Stripe
   useEffect(() => {
     if (!isStripeRedirect) {
@@ -69,11 +71,12 @@ export default function OrderConfirmationPage() {
         return;
       }
 
-      stripe.retrievePaymentIntent(paymentIntentClientSecret).then(({ paymentIntent }) => {
+      stripe.retrievePaymentIntent(paymentIntentClientSecret!).then(({ paymentIntent }) => {
         const status = (paymentIntent?.status ?? null) as StripePaymentStatus;
         setStripePaymentStatus(status);
 
-        if (status === "succeeded") {
+        if (status === "succeeded" && !hasCleared.current) {
+          hasCleared.current = true;
           clearCart();
         }
 

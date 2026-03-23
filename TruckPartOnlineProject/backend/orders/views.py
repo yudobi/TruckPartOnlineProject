@@ -106,7 +106,8 @@ def checkout(request):
                 return Response({
                     "order_id": order.id,
                     "client_secret": intent.client_secret,
-                    "status": "requires_payment"
+                    "status": "requires_payment",
+                    "total": float(order.total)
                 }, status=status.HTTP_201_CREATED)
                 
             except stripe.error.StripeError as e:

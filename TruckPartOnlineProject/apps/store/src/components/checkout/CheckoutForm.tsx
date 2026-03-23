@@ -9,6 +9,7 @@ import { useFormValidation } from "@hooks/useFormValidation";
 export interface CheckoutFormData {
   fullName: string;
   guestEmail?: string;
+  phone: string;
   shippingAddress: string;
   city: string;
   state: string;
@@ -26,6 +27,7 @@ export function CheckoutForm({ onSubmit, isLoading, paymentMethodSelector }: Che
   const { t } = useTranslation();
   const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: "",
+    phone: "",
     shippingAddress: "",
     city: "",
     state: "",
@@ -97,6 +99,26 @@ export function CheckoutForm({ onSubmit, isLoading, paymentMethodSelector }: Che
         />
         {errors.guestEmail && (
           <p className="text-red-400 text-xs mt-1">{errors.guestEmail}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phone" className="text-zinc-300">
+          {t("checkout.phone")}
+        </Label>
+        <Input
+          id="phone"
+          name="phone"
+          type="tel"
+          placeholder={t("checkout.phonePlaceholder")}
+          value={formData.phone}
+          onChange={handleChange}
+          className={`bg-zinc-800 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-red-600 ${
+            errors.phone ? "border-red-500" : ""
+          }`}
+        />
+        {errors.phone && (
+          <p className="text-red-400 text-xs mt-1">{errors.phone}</p>
         )}
       </div>
 

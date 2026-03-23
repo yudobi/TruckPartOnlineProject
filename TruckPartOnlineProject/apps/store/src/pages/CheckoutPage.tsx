@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useCart } from "@hooks/useCart";
 import { useCheckout } from "@hooks/useCheckout";
@@ -42,13 +42,17 @@ export default function CheckoutPage() {
     }
   }, [items, checkoutData, navigate]);
 
+  const hasProcessedPayment = useRef(false);
+
   // Handle successful COD payment response
   useEffect(() => {
     if (
       paymentResponse &&
+      !hasProcessedPayment.current &&
       (paymentResponse.status === "invoiced" ||
         paymentResponse.status === "completed")
     ) {
+      hasProcessedPayment.current = true;
       clearCart();
       toast.success(t("checkout.orderSuccess"));
       navigate(`/orders/confirmation/${paymentResponse.order_id}`);
@@ -87,6 +91,7 @@ export default function CheckoutPage() {
         country: data.country,
         postal_code: data.postalCode,
         guest_email: data.guestEmail,
+        phone: data.phone,
         payment_method: selectedPaymentMethod,
       };
 

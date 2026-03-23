@@ -44,10 +44,10 @@ export function PaymentMethodSelector({
         </div>
 
         <div>
-          <RadioGroupItem value="cod" id="cod" className="peer sr-only" />
+          <RadioGroupItem value="cod" id="cod" className="peer sr-only" disabled />
           <Label
             htmlFor="cod"
-            className="flex flex-col items-center justify-between rounded-md border-2 border-zinc-700 bg-zinc-800 p-4 hover:bg-zinc-700 peer-data-[state=checked]:border-red-600 peer-data-[state=checked]:text-red-600 cursor-pointer transition-all"
+            className="flex flex-col items-center justify-between rounded-md border-2 border-zinc-700 bg-zinc-800 p-4 opacity-50 cursor-not-allowed transition-all"
           >
             <Banknote className="mb-3 h-6 w-6 text-white" />
             <span className="text-white font-bold">
@@ -55,6 +55,9 @@ export function PaymentMethodSelector({
             </span>
             <span className="text-xs text-zinc-400 mt-1">
               {t("checkout.paymentMethod.codDesc")}
+            </span>
+            <span className="text-xs text-zinc-500 mt-1">
+              {t("checkout.paymentMethod.codDisabled")}
             </span>
           </Label>
         </div>

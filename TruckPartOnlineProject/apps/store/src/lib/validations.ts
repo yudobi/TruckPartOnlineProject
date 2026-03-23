@@ -59,6 +59,12 @@ export const resetPasswordSchema = z
 export const checkoutFormSchema = z.object({
   fullName: z.string().min(2, "El nombre es requerido"),
   guestEmail: z.string().email("Email inválido").optional().or(z.literal("")),
+  phone: z
+    .string()
+    .regex(/^[\d\s\-()+]+$/, "Formato de teléfono inválido")
+    .min(10, "El teléfono debe tener al menos 10 dígitos")
+    .optional()
+    .or(z.literal("")),
   shippingAddress: z.string().min(5, "La dirección es requerida"),
   city: z.string().min(2, "La ciudad es requerida"),
   state: z.string().min(2, "El estado es requerido"),
