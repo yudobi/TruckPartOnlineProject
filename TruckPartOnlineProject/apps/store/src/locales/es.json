@@ -272,6 +272,11 @@
     },
     "completeOrder": "Completar Pedido",
     "orderSuccess": "¡Pedido completado con éxito!",
+    "card": {
+      "title": "Pago con Tarjeta",
+      "payNow": "Pagar Ahora",
+      "genericError": "Ocurrió un error. Por favor intenta de nuevo."
+    },
     "validation": {
       "fullNameRequired": "El nombre completo es requerido",
       "fullNameMin": "El nombre debe tener al menos 3 caracteres",
@@ -287,6 +292,7 @@
   },
   "confirmation": {
     "title": "¡PEDIDO CONFIRMADO!",
+    "orderReceived": "PEDIDO RECIBIDO",
     "orderNumber": "Número de pedido",
     "products": "Productos",
     "quantity": "Cantidad",
@@ -298,6 +304,9 @@
     "loading": "Cargando tu pedido...",
     "error": "No pudimos cargar los detalles de tu pedido.",
     "notFound": "Pedido no encontrado.",
+    "paymentFailed": "Pago Fallido",
+    "paymentFailedDesc": "Tu pago no pudo ser procesado. Por favor intenta de nuevo.",
+    "paymentProcessing": "Tu pago está siendo procesado. Te notificaremos cuando se complete.",
     "paymentMethods": {
       "cod": "Pago contra entrega",
       "card": "Tarjeta de crédito/débito"

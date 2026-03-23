@@ -2,28 +2,23 @@ import { useTranslation } from "react-i18next";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { CreditCard, Banknote } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export type PaymentMethod = "card" | "cod";
 
 interface PaymentMethodSelectorProps {
   selectedMethod: PaymentMethod;
   onSelect: (method: PaymentMethod) => void;
-  onSubmit: () => void;
-  isLoading?: boolean;
 }
 
 export function PaymentMethodSelector({
   selectedMethod,
   onSelect,
-  onSubmit,
-  isLoading,
 }: PaymentMethodSelectorProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="space-y-6 bg-zinc-900 p-6 rounded-lg border border-zinc-800">
-      <h2 className="text-xl font-bold text-white mb-4">
+    <div className="space-y-4">
+      <h2 className="text-base font-bold text-white">
         {t("checkout.selectPaymentMethod")}
       </h2>
 
@@ -64,16 +59,6 @@ export function PaymentMethodSelector({
           </Label>
         </div>
       </RadioGroup>
-
-      <Button
-        onClick={onSubmit}
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 mt-4"
-        disabled={isLoading}
-      >
-        {isLoading
-          ? t("checkout.processing")
-          : t("checkout.completeOrder")}
-      </Button>
     </div>
   );
 }

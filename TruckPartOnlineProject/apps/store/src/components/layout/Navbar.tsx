@@ -8,7 +8,7 @@ import {
   Package,
   Shield,
 } from "lucide-react";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@components/layout/LanguageSwitcher";
 import { useAuth } from "@hooks/useAuth";
@@ -36,6 +36,8 @@ const Navbar = memo(function Navbar() {
   const { t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = useCallback(() => {
     logout();
@@ -156,7 +158,7 @@ const Navbar = memo(function Navbar() {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
             <CartSidebar />
-            <Sheet>
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
                 <button className="text-white hover:text-red-600 transition-colors p-2" aria-label="Abrir menú de navegación">
                   <Menu className="w-8 h-8" aria-hidden="true" />
@@ -179,12 +181,12 @@ const Navbar = memo(function Navbar() {
                 <div className="flex flex-col p-6 space-y-6">
                   {/* Navigation Links */}
                   <div className="flex flex-col space-y-4">
-                    <MobileNavItem to="/">{t("nav.home")}</MobileNavItem>
-                    <MobileNavItem to="/products">
+                    <MobileNavItem to="/" onClick={() => setMobileOpen(false)}>{t("nav.home")}</MobileNavItem>
+                    <MobileNavItem to="/products" onClick={() => setMobileOpen(false)}>
                       {t("nav.catalog")}
                     </MobileNavItem>
-                    <MobileNavItem to="/about">{t("nav.about")}</MobileNavItem>
-                    <MobileNavItem to="/contact">
+                    <MobileNavItem to="/about" onClick={() => setMobileOpen(false)}>{t("nav.about")}</MobileNavItem>
+                    <MobileNavItem to="/contact" onClick={() => setMobileOpen(false)}>
                       {t("nav.contact")}
                     </MobileNavItem>
                   </div>
@@ -220,16 +222,16 @@ const Navbar = memo(function Navbar() {
                             </span>
                           </div>
                         </div>
-                        <MobileNavItem to="/orders">
+                        <MobileNavItem to="/orders" onClick={() => setMobileOpen(false)}>
                           {t("orders.title")}
                         </MobileNavItem>
                         {user?.is_staff && (
-                          <MobileNavItem to="/admin/orders">
+                          <MobileNavItem to="/admin/orders" onClick={() => setMobileOpen(false)}>
                             Admin
                           </MobileNavItem>
                         )}
                         <button
-                          onClick={handleLogout}
+                          onClick={() => { setMobileOpen(false); handleLogout(); }}
                           className="flex items-center gap-2 text-red-500 font-bold text-sm hover:text-red-400 transition-colors"
                         >
                           <LogOut className="w-4 h-4" />
@@ -239,6 +241,7 @@ const Navbar = memo(function Navbar() {
                     ) : (
                       <Link
                         to="/auth"
+                        onClick={() => setMobileOpen(false)}
                         className="flex items-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all text-xs font-bold tracking-widest text-white uppercase justify-center"
                       >
                         <User className="w-4 h-4 text-red-600" />
@@ -276,13 +279,16 @@ function NavItem({ to, children }: { to: string; children: React.ReactNode }) {
 function MobileNavItem({
   to,
   children,
+  onClick,
 }: {
   to: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }) {
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) =>
         `text-lg font-bold tracking-widest hover:text-red-600 transition-colors duration-300 uppercase ${
           isActive ? "text-red-600" : "text-white"

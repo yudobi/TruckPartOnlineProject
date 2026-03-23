@@ -34,9 +34,13 @@ export function useCheckout() {
       }));
       return response;
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
+      const error = err as AxiosError<{ error?: string; message?: string; detail?: string }>;
       const errorMessage =
-        error.response?.data?.message || error.message || "Error al crear la orden";
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        error.message ||
+        "Error al crear la orden";
       setState((prev) => ({
         ...prev,
         isLoading: false,
@@ -57,9 +61,13 @@ export function useCheckout() {
       }));
       return response;
     } catch (err) {
-      const error = err as AxiosError<{ message: string }>;
+      const error = err as AxiosError<{ error?: string; message?: string; detail?: string }>;
       const errorMessage =
-        error.response?.data?.message || error.message || "Error al procesar el pago";
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.response?.data?.detail ||
+        error.message ||
+        "Error al procesar el pago";
       setState((prev) => ({
         ...prev,
         isLoading: false,

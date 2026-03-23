@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2, AlertCircle } from "lucide-react";
+import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { loginSchema, registerSchema } from "@lib/validations";
@@ -36,9 +37,6 @@ export default function AuthPage() {
     confirmPassword: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
-  const [resendingEmail, setResendingEmail] = useState(false);
 
   const loginValidation = useFormValidation(loginSchema);
   const registerValidation = useFormValidation(registerSchema);
@@ -47,8 +45,6 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setUnverifiedEmail(null);
 
     if (isLogin) {
       const valid = loginValidation.validate({
@@ -89,17 +85,15 @@ export default function AuthPage() {
       }
     } catch (err: unknown) {
       console.error(err);
-      
+
       // Si es un error de login, verificar si la cuenta existe pero no está verificada
       if (isLogin) {
         try {
           const accountStatus = await authService.checkAccountStatus(formData.email);
-          
+
           if (accountStatus.exists && !accountStatus.is_active) {
-            // Usuario existe pero no está verificado
-            setUnverifiedEmail(formData.email);
-            setError("Tu cuenta no ha sido verificada. Por favor, revisa tu correo electrónico.");
-            setLoading(false);
+            toast.error("Tu cuenta no ha sido verificada. Revisa tu correo o reenvía la verificación.");
+            navigate("/resend-verification", { state: { email: formData.email } });
             return;
           }
         } catch (statusError) {
@@ -107,41 +101,18 @@ export default function AuthPage() {
         }
       }
 
-      let errorMessage = isLogin
-        ? t("auth.login.error_message")
-        : t("auth.register.error_message");
+      const errorMessage = isLogin
+        ? (err instanceof Error ? err.message : t("auth.login.error_message"))
+        : (err instanceof Error ? err.message : t("auth.register.error_message"));
 
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-
-      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendVerification = async () => {
-    if (!unverifiedEmail) return;
-    
-    setResendingEmail(true);
-    try {
-      await authService.resendVerification(unverifiedEmail);
-      setError(null);
-      setUnverifiedEmail(null);
-      navigate("/registration-success", { state: { email: unverifiedEmail } });
-    } catch (err) {
-      console.error("Error resending verification:", err);
-      setError("Error al reenviar el correo de verificación. Inténtalo de nuevo.");
-    } finally {
-      setResendingEmail(false);
-    }
-  };
-
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    setError(null);
-    setUnverifiedEmail(null);
     loginValidation.clearErrors();
     registerValidation.clearErrors();
     setFormData({
@@ -401,50 +372,6 @@ export default function AuthPage() {
                   <p className="text-red-400 text-xs mt-1">
                     {activeErrors.confirmPassword}
                   </p>
-                )}
-              </div>
-            )}
-
-            {error && (
-              <div className="space-y-3">
-                <div className="p-3 bg-red-600/10 border border-red-600/20 rounded-sm text-red-500 text-xs font-bold text-center flex items-center justify-center gap-2">
-                  <AlertCircle className="h-4 w-4 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-                
-                {unverifiedEmail && (
-                  <div className="p-4 bg-yellow-600/10 border border-yellow-600/20 rounded-sm space-y-3">
-                    <div className="flex items-start gap-2">
-                      <Mail className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm text-yellow-200 font-semibold mb-1">
-                          Cuenta no verificada
-                        </p>
-                        <p className="text-xs text-yellow-300/80">
-                          Enviamos un correo de verificación a <span className="font-semibold">{unverifiedEmail}</span>. 
-                          Revisa tu bandeja de entrada o spam.
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={handleResendVerification}
-                      disabled={resendingEmail}
-                      className="w-full h-10 bg-yellow-600 hover:bg-yellow-700 text-white text-xs font-bold tracking-wider transition-all"
-                    >
-                      {resendingEmail ? (
-                        <>
-                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
-                          Reenviando...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Reenviar correo de verificación
-                        </>
-                      )}
-                    </Button>
-                  </div>
                 )}
               </div>
             )}

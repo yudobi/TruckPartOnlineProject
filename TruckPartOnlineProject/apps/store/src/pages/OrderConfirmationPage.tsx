@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { CheckCircle, Package, MapPin, CreditCard, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Package, MapPin, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
+import { loadStripe } from "@stripe/stripe-js";
+import { useCart } from "@hooks/useCart";
+
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string);
 
 // Local type matching the backend GET /api/{order_id}/ response shape
 interface ConfirmationOrderItem {
@@ -32,15 +36,53 @@ interface ConfirmationOrder {
   payment_method?: string;
 }
 
+type StripePaymentStatus = "succeeded" | "processing" | "requires_payment_method" | null;
+
 export default function OrderConfirmationPage() {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { clearCart } = useCart();
 
   const [order, setOrder] = useState<ConfirmationOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stripePaymentStatus, setStripePaymentStatus] = useState<StripePaymentStatus>(null);
+  const [stripeChecked, setStripeChecked] = useState(false);
 
+  // Check if this is a Stripe redirect
+  const paymentIntentClientSecret = searchParams.get("payment_intent_client_secret");
+  const redirectStatus = searchParams.get("redirect_status");
+  const isStripeRedirect = paymentIntentClientSecret != null;
+
+  // Verify Stripe payment status when redirected from Stripe
+  useEffect(() => {
+    if (!isStripeRedirect) {
+      setStripeChecked(true);
+      return;
+    }
+
+    stripePromise.then((stripe) => {
+      if (!stripe) {
+        setStripeChecked(true);
+        return;
+      }
+
+      stripe.retrievePaymentIntent(paymentIntentClientSecret).then(({ paymentIntent }) => {
+        const status = (paymentIntent?.status ?? null) as StripePaymentStatus;
+        setStripePaymentStatus(status);
+
+        if (status === "succeeded") {
+          clearCart();
+        }
+
+        setStripeChecked(true);
+      });
+    });
+  }, [isStripeRedirect, paymentIntentClientSecret, clearCart]);
+
+  // Load order details
   useEffect(() => {
     if (!id) {
       navigate("/orders");
@@ -59,7 +101,6 @@ export default function OrderConfirmationPage() {
     orderService
       .getOrderById(orderId)
       .then((data) => {
-        // Cast to our local confirmation type since the shapes overlap
         setOrder(data as unknown as ConfirmationOrder);
       })
       .catch(() => {
@@ -68,9 +109,11 @@ export default function OrderConfirmationPage() {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
-  if (isLoading) {
+  const showLoading = isLoading || (isStripeRedirect && !stripeChecked);
+
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-black pt-24 px-6 flex flex-col items-center justify-center">
         <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
@@ -95,6 +138,40 @@ export default function OrderConfirmationPage() {
     );
   }
 
+  // For Stripe redirects that failed
+  if (isStripeRedirect && stripePaymentStatus !== "succeeded" && stripePaymentStatus !== null) {
+    return (
+      <div className="min-h-screen bg-black pt-24 px-6 flex flex-col items-center justify-center gap-4">
+        <div className="w-20 h-20 rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center mb-5">
+          <XCircle className="w-10 h-10 text-red-500" />
+        </div>
+        <h1 className="text-2xl font-black text-white tracking-tighter">
+          {t("confirmation.paymentFailed")}
+        </h1>
+        <p className="text-zinc-400 text-sm text-center max-w-sm">
+          {stripePaymentStatus === "processing"
+            ? t("confirmation.paymentProcessing")
+            : t("confirmation.paymentFailedDesc")}
+        </p>
+        <div className="flex gap-3 mt-4">
+          <Button
+            onClick={() => navigate("/orders")}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/5 bg-transparent"
+          >
+            {t("confirmation.viewOrders")}
+          </Button>
+          <Button
+            onClick={() => navigate("/products")}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold"
+          >
+            {t("confirmation.continueShopping")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const formattedDate = new Date(order.created_at).toLocaleDateString("es-MX", {
     year: "numeric",
     month: "long",
@@ -112,6 +189,12 @@ export default function OrderConfirmationPage() {
   const shippingDisplay =
     shippingParts.length > 0 ? shippingParts.join(", ") : null;
 
+  // Determine if the redirect_status from Stripe indicates success
+  const isPaymentSucceeded =
+    !isStripeRedirect ||
+    stripePaymentStatus === "succeeded" ||
+    redirectStatus === "succeeded";
+
   return (
     <div className="min-h-screen bg-black pt-24 pb-16 px-6">
       <div className="container mx-auto max-w-2xl">
@@ -121,7 +204,9 @@ export default function OrderConfirmationPage() {
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
           <h1 className="text-3xl font-black text-white tracking-tighter mb-1">
-            {t("confirmation.title")}
+            {isPaymentSucceeded
+              ? t("confirmation.title")
+              : t("confirmation.orderReceived")}
           </h1>
           <p className="text-zinc-400 text-sm">{formattedDate}</p>
         </div>

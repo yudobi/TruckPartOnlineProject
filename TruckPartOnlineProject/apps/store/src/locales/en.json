@@ -273,6 +273,11 @@
     },
     "completeOrder": "Complete Order",
     "orderSuccess": "Order completed successfully!",
+    "card": {
+      "title": "Card Payment",
+      "payNow": "Pay Now",
+      "genericError": "An error occurred. Please try again."
+    },
     "validation": {
       "fullNameRequired": "Full name is required",
       "fullNameMin": "Name must be at least 3 characters",
@@ -288,6 +293,7 @@
   },
   "confirmation": {
     "title": "ORDER CONFIRMED!",
+    "orderReceived": "ORDER RECEIVED",
     "orderNumber": "Order number",
     "products": "Products",
     "quantity": "Quantity",
@@ -299,6 +305,9 @@
     "loading": "Loading your order...",
     "error": "We couldn't load your order details.",
     "notFound": "Order not found.",
+    "paymentFailed": "Payment Failed",
+    "paymentFailedDesc": "Your payment could not be processed. Please try again.",
+    "paymentProcessing": "Your payment is being processed. We will update you when it completes.",
     "paymentMethods": {
       "cod": "Cash on delivery",
       "card": "Credit/Debit card"

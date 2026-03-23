@@ -17,11 +17,12 @@ export interface CheckoutFormData {
 }
 
 interface CheckoutFormProps {
-  onSubmit: (data: CheckoutFormData) => void;
+  onSubmit: (data: CheckoutFormData) => void | Promise<void>;
   isLoading?: boolean;
+  paymentMethodSelector?: React.ReactNode;
 }
 
-export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
+export function CheckoutForm({ onSubmit, isLoading, paymentMethodSelector }: CheckoutFormProps) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState<CheckoutFormData>({
     fullName: "",
@@ -41,11 +42,15 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
     clearFieldError(name);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const valid = validate(formData);
     if (!valid) return;
-    onSubmit(formData);
+    try {
+      await onSubmit(formData);
+    } catch {
+      // Error already handled in useCheckout hook
+    }
   };
 
   return (
@@ -191,6 +196,12 @@ export function CheckoutForm({ onSubmit, isLoading }: CheckoutFormProps) {
           )}
         </div>
       </div>
+
+      {paymentMethodSelector && (
+        <div className="pt-2">
+          {paymentMethodSelector}
+        </div>
+      )}
 
       <Button
         type="submit"

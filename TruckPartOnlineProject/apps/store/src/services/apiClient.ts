@@ -104,6 +104,14 @@ class ApiClient {
             return Promise.reject(error);
           }
 
+          // Skip refresh logic for auth endpoints (login, register, etc.)
+          // These don't use tokens, so a 401 means invalid credentials, not an expired token
+          const authEndpoints = ['/users/login/', '/users/register/', '/users/check-account-status/'];
+          const isAuthEndpoint = authEndpoints.some(ep => originalRequest.url?.includes(ep));
+          if (isAuthEndpoint) {
+            return Promise.reject(error);
+          }
+
           const refreshToken = getStoredRefreshToken();
           if (!refreshToken) {
             clearAuthAndRedirect();

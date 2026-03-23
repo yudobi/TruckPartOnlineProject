@@ -10,6 +10,8 @@ import {
   PaymentMethodSelector,
   type PaymentMethod,
 } from "@components/checkout/PaymentMethodSelector";
+import { StripeProvider } from "@components/checkout/StripeProvider";
+import { CardPaymentForm } from "@components/checkout/CardPaymentForm";
 import { OrderSummary } from "@components/checkout/OrderSummary";
 import { useNavigate } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -33,14 +35,14 @@ export default function CheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] =
     useState<PaymentMethod>("card");
 
-  // Si el carrito está vacío y no hay orden creada, redirigir
+  // Redirect to products if cart is empty and no order has been created
   useEffect(() => {
     if (items.length === 0 && !checkoutData) {
       navigate("/products");
     }
   }, [items, checkoutData, navigate]);
 
-  // Manejar éxito de pago
+  // Handle successful COD payment response
   useEffect(() => {
     if (
       paymentResponse &&
@@ -70,6 +72,7 @@ export default function CheckoutPage() {
     );
   }
 
+  // Step 1: Shipping info + payment method selection → creates the order
   const handleShippingSubmit = async (data: CheckoutFormData) => {
     try {
       const orderData: CheckoutData = {
@@ -84,27 +87,30 @@ export default function CheckoutPage() {
         country: data.country,
         postal_code: data.postalCode,
         guest_email: data.guestEmail,
+        payment_method: selectedPaymentMethod,
       };
 
       await createOrder(orderData);
-      // Si la respuesta es exitosa, pasamos al paso de pago automáticamente
     } catch (err) {
       console.error("Checkout failed", err);
     }
   };
 
-  const handlePaymentSubmit = async () => {
+  // Step 2b: COD — call payOrder manually
+  const handleCodPayment = async () => {
     if (!checkoutData) return;
 
     try {
       const paymentData: PayOrderData = {
-        payment_method: selectedPaymentMethod,
+        payment_method: "cod",
       };
       await payOrder(checkoutData.order_id, paymentData);
     } catch (err) {
-      console.error("Payment failed", err);
+      console.error("COD payment failed", err);
     }
   };
+
+  const isCardPayment = checkoutData?.client_secret != null;
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-12 px-6">
@@ -125,19 +131,44 @@ export default function CheckoutPage() {
             )}
 
             {!checkoutData ? (
-              // Paso 1: Dirección
+              // Step 1: Shipping information + payment method selection
               <CheckoutForm
                 onSubmit={handleShippingSubmit}
                 isLoading={isLoading}
+                paymentMethodSelector={
+                  <PaymentMethodSelector
+                    selectedMethod={selectedPaymentMethod}
+                    onSelect={setSelectedPaymentMethod}
+                  />
+                }
               />
+            ) : isCardPayment ? (
+              // Step 2a: Card payment via Stripe
+              <StripeProvider clientSecret={checkoutData.client_secret!}>
+                <CardPaymentForm
+                  orderId={checkoutData.order_id}
+                  isLoading={isLoading}
+                />
+              </StripeProvider>
             ) : (
-              // Paso 2: Pago
-              <PaymentMethodSelector
-                selectedMethod={selectedPaymentMethod}
-                onSelect={setSelectedPaymentMethod}
-                onSubmit={handlePaymentSubmit}
-                isLoading={isLoading}
-              />
+              // Step 2b: Cash on delivery confirmation
+              <div className="space-y-6 bg-zinc-900 p-6 rounded-lg border border-zinc-800">
+                <h2 className="text-xl font-bold text-white">
+                  {t("checkout.paymentMethod.cod")}
+                </h2>
+                <p className="text-zinc-400 text-sm">
+                  {t("checkout.paymentMethod.codDesc")}
+                </p>
+                <Button
+                  onClick={handleCodPayment}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3"
+                  disabled={isLoading}
+                >
+                  {isLoading
+                    ? t("checkout.processing")
+                    : t("checkout.completeOrder")}
+                </Button>
+              </div>
             )}
           </div>
 

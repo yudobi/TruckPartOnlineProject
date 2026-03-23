@@ -63,8 +63,9 @@ export interface CheckoutData {
 
 export interface CheckoutResponse {
   order_id: number;
-  status: OrderStatus;
+  status: string;
   total: number;
+  client_secret?: string; // Present when payment_method is "card"
 }
 
 export interface PayOrderData {

@@ -54,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast.success("¡Sesión iniciada correctamente!");
     } catch (error) {
       console.error("Login Error:", error);
-      toast.error("Error al iniciar sesión. Verifica tus credenciales.");
       throw error;
     }
   };
@@ -73,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
     } catch (error) {
       console.error("Register Error:", error);
-      toast.error("Error al crear la cuenta. Inténtalo de nuevo.");
       throw error;
     }
   };

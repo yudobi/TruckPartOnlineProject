@@ -18,7 +18,10 @@
       "Bash(python manage.py makemigrations users)",
       "Bash(python manage.py makemigrations users --no-input)",
       "Bash(python manage.py makemigrations)",
-      "Bash(python manage.py migrate)"
+      "Bash(python manage.py migrate)",
+      "Bash(pnpm add:*)",
+      "Bash(npx vite:*)",
+      "Bash(pnpm run:*)"
     ]
   }
 }
