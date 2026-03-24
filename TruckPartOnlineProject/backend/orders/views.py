@@ -558,9 +558,9 @@ def stripe_webhook(request):
                 for item in order.items.all():
                     # Obtener producto con lock
                     product = Product.objects.select_for_update().get(id=item.product.id)
-                    if product.quantity < item.quantity:
+                    if product.inventory.quantity < item.quantity:
                         stock_errors.append(
-                            f"{product.name}: disponible {product.quantity}, solicitado {item.quantity}"
+                            f"{product.name}: disponible {product.inventory.quantity}, solicitado {item.quantity}"
                         )
                 
                 if stock_errors:
