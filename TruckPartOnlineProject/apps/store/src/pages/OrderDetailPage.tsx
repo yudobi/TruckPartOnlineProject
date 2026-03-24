@@ -165,28 +165,19 @@ export default function OrderDetailPage() {
                   >
                     {/* Product Image */}
                     <div className="w-20 h-20 bg-zinc-900 rounded-sm overflow-hidden flex-shrink-0">
-                      {item.product.images && item.product.images.length > 0 ? (
-                        <img
-                          src={item.product.images.find((img) => img.is_main)?.image || item.product.images[0].image}
-                          alt={item.product.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Package className="w-8 h-8 text-gray-700" />
-                        </div>
-                      )}
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="w-8 h-8 text-gray-700" />
+                      </div>
                     </div>
 
                     {/* Product Info */}
                     <div className="flex-1">
                       <h3 className="text-white font-medium mb-1">
-                        {item.product.name}
+                        {item.product_name}
                       </h3>
-                      {item.product.sku && (
+                      {item.product_sku && (
                         <p className="text-xs text-gray-500">
-                          SKU: {item.product.sku}
+                          SKU: {item.product_sku}
                         </p>
                       )}
                     </div>

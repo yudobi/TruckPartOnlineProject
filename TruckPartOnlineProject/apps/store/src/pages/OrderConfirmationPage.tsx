@@ -11,12 +11,9 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as 
 
 // Local type matching the backend GET /api/{order_id}/ response shape
 interface ConfirmationOrderItem {
-  product: {
-    id: number;
-    name: string;
-    sku?: string;
-    images?: { id: number; image: string; is_main: boolean }[];
-  };
+  product_id: number;
+  product_name: string;
+  product_sku?: string;
   quantity: number;
   price: number;
 }
@@ -25,7 +22,6 @@ interface ConfirmationOrder {
   id: number;
   status: string;
   total: number;
-  qb_sales_id?: string;
   items: ConfirmationOrderItem[];
   created_at: string;
   shipping_address?: string | null;
@@ -245,7 +241,7 @@ export default function OrderConfirmationPage() {
                 >
                   <div className="flex-1 pr-4">
                     <p className="text-white font-medium line-clamp-1">
-                      {item.product.name}
+                      {item.product_name}
                     </p>
                     <p className="text-zinc-500 text-xs mt-0.5">
                       {t("confirmation.quantity")}: {item.quantity}
