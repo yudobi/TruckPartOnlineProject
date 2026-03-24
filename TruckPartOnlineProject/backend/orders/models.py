@@ -102,3 +102,15 @@ class OrderItem(models.Model):
         return f"{self.product} x {self.quantity}"
 
 
+class StripeEvent(models.Model):
+    """
+    Modelo simple para idempotencia de webhooks de Stripe
+    """
+    event_id = models.CharField(max_length=255, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return self.event_id
