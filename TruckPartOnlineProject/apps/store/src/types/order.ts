@@ -1,13 +1,12 @@
 export interface OrderItem {
   id: number;
-  product: {
-    id: number;
-    name: string;
-    sku?: string;
-    images?: { id: number; image: string; is_main: boolean }[];
-  };
+  product_id: number;
+  product_name: string;
+  product_sku?: string;
   quantity: number;
   price: number;
+  product_price?: number;
+  subtotal?: number;
 }
 
 export type OrderStatus = 'pending' | 'invoiced' | 'completed' | 'failed';

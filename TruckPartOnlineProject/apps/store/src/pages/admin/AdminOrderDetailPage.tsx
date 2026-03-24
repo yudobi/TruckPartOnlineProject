@@ -254,9 +254,6 @@ export default function AdminOrderDetailPage() {
               </thead>
               <tbody>
                 {order.items.map((item) => {
-                  const mainImage = item.product.images?.find(
-                    (img) => img.is_main
-                  );
                   return (
                     <tr
                       key={item.id}
@@ -264,24 +261,16 @@ export default function AdminOrderDetailPage() {
                     >
                       <td className="py-3 pr-4">
                         <div className="flex items-center gap-3">
-                          {mainImage ? (
-                            <img
-                              src={mainImage.image}
-                              alt={item.product.name}
-                              className="w-10 h-10 rounded object-cover bg-zinc-800 border border-white/10"
-                            />
-                          ) : (
-                            <div className="w-10 h-10 rounded bg-zinc-800 border border-white/10 flex items-center justify-center">
-                              <Package className="w-5 h-5 text-zinc-600" />
-                            </div>
-                          )}
+                          <div className="w-10 h-10 rounded bg-zinc-800 border border-white/10 flex items-center justify-center">
+                            <Package className="w-5 h-5 text-zinc-600" />
+                          </div>
                           <span className="text-white font-medium">
-                            {item.product.name}
+                            {item.product_name}
                           </span>
                         </div>
                       </td>
                       <td className="py-3 text-zinc-500 text-xs font-mono">
-                        {item.product.sku ?? "—"}
+                        {item.product_sku ?? "—"}
                       </td>
                       <td className="py-3 text-center text-zinc-300">
                         {item.quantity}
@@ -382,9 +371,7 @@ export default function AdminOrderDetailPage() {
         </Section>
 
         {/* QuickBooks Info */}
-        {(order.qb_invoice_id ||
-          order.qb_sales_receipt_id ||
-          order.qb_sales_id) && (
+        {(order.qb_invoice_id || order.qb_sales_receipt_id) && (
           <Section title={t("admin.orders.quickbooksInfo")}>
             <div className="space-y-3">
               {order.qb_invoice_id && (
@@ -395,9 +382,6 @@ export default function AdminOrderDetailPage() {
                   label={t("admin.orders.salesReceiptId")}
                   value={order.qb_sales_receipt_id}
                 />
-              )}
-              {order.qb_sales_id && (
-                <DetailRow label={t("admin.orders.salesId")} value={order.qb_sales_id} />
               )}
             </div>
           </Section>

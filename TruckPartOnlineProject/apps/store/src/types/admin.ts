@@ -33,7 +33,6 @@ export interface AdminOrderDetail {
   total: number;
   qb_invoice_id: string | null;
   qb_sales_receipt_id: string | null;
-  qb_sales_id: string | null;
   items: OrderItem[];
   created_at: string;
 }
