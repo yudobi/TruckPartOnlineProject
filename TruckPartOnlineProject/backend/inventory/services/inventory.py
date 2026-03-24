@@ -6,6 +6,40 @@ from inventory.models import Inventory, InventoryMovement
 def get_inventory(product):
     return Inventory.objects.select_for_update().get(product=product)
 
+"""
+@transaction.atomic
+def move_inventory(
+    *,
+    product,
+    quantity_change,
+    reason,
+    reference=None
+):
+    
+
+    inventory = get_inventory(product)
+
+    new_quantity = inventory.quantity + quantity_change
+
+    if new_quantity < 0:
+        raise ValidationError(
+            f"Stock insuficiente para {product.name}"
+        )
+    
+    inventory.quantity = new_quantity
+    inventory.save()
+    
+
+    InventoryMovement.objects.create(
+        inventory=inventory,
+        change=quantity_change,
+        reason=reason,
+        reference=reference
+    )
+
+    return inventory.quantity
+
+"""  
 @transaction.atomic
 def move_inventory(
     *,
@@ -19,7 +53,6 @@ def move_inventory(
         +n -> entrada
         -n -> salida
     """
-
     inventory = get_inventory(product)
 
     new_quantity = inventory.quantity + quantity_change
@@ -29,18 +62,19 @@ def move_inventory(
             f"Stock insuficiente para {product.name}"
         )
 
-    inventory.quantity = new_quantity
-    inventory.save()
-
-    InventoryMovement.objects.create(
+    # ✅ Crear movimiento (el signal actualizará el inventario)
+    movement = InventoryMovement.objects.create(
         inventory=inventory,
         change=quantity_change,
         reason=reason,
         reference=reference
     )
-
+    
+    # ✅ Refrescar inventory para obtener el valor actualizado por el signal
+    inventory.refresh_from_db()
+    
+    # ✅ Retornar el stock actual (ahora sí actualizado)
     return inventory.quantity
-
 
 ################################################
 def validate_stock(product, quantity):
