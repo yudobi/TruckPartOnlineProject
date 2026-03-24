@@ -24,6 +24,7 @@ from products.models import Product
 from qb.services import create_sales_receipt, create_invoice
 from .models import StripeEvent
 from django.core.exceptions import ValidationError
+from inventory.models import InventoryMovement
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -711,7 +712,7 @@ def stripe_webhook(request):
     print(f"{'='*80}")
 
     # 🔁 IDEMPOTENCIA con modelo actual
-    from .models import StripeEvent
+    
     
     # Verificar si ya procesamos este evento
     if StripeEvent.objects.filter(event_id=event_id).exists():
@@ -766,7 +767,7 @@ def stripe_webhook(request):
                     return JsonResponse({"status": "already_processed"})
 
                 # 🔴 VALIDACIÓN 3: Verificar si ya tiene inventario descontado
-                from inventory.models import InventoryMovement
+                
                 existing_movements = InventoryMovement.objects.filter(
                     reference__icontains=f"Orden #{order.id}"
                 )
@@ -841,7 +842,7 @@ def stripe_webhook(request):
                     
                     # Descontar
                     try:
-                        from inventory.services import move_inventory
+                        
                         new_quantity = move_inventory(
                             product=item.product,
                             quantity_change=-item.quantity,
@@ -960,7 +961,7 @@ def stripe_webhook(request):
                         print(f"\n🔄 REPONIENDO INVENTARIO:")
                         for item in order.items.all():
                             print(f"   - {item.product.name}: +{item.quantity}")
-                            from inventory.services import move_inventory
+                            
                             move_inventory(
                                 product=item.product,
                                 quantity_change=item.quantity,
