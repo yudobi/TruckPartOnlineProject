@@ -31,7 +31,7 @@ def send_verification_email(user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://tonytruckpart.com')
     verification_url = f"{frontend_url}/verify-email/{uid}/{token}"
 
     context = {'verification_url': verification_url}
@@ -60,7 +60,7 @@ def send_password_reset_email(user, reset_request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = email_verification_token.make_token(user)
 
-    frontend_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://tonytruckpart.com')
     reset_url = f"{frontend_url}/reset-password/{uid}/{token}/{reset_request.id}"
 
     context = {'reset_url': reset_url}

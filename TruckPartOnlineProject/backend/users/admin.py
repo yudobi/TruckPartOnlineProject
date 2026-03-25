@@ -17,11 +17,13 @@ class CustomUserAdmin(UserAdmin):
         'full_name',
         'is_staff',
         'is_active',
+        'email_verified',  # Añadido
     )
 
     list_filter = (
         'is_staff',
         'is_active',
+        'email_verified',  # Añadido para filtrar por verificación de email
     )
 
     search_fields = (
@@ -44,6 +46,10 @@ class CustomUserAdmin(UserAdmin):
                 'phone_number',
                 'address',
             )
+        }),
+        ('Verificación', {  # Nueva sección para verificación
+            'fields': ('email_verified',),
+            'classes': ('collapse',),  # Opcional: colapsable
         }),
         ('Permissions', {
             'fields': (
