@@ -2,8 +2,18 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen grid md:grid-cols-2">
       {/* Left: Info */}
-      <div className="bg-zinc-900 p-12 md:p-24 flex flex-col justify-center">
-        <div className="max-w-md">
+      <div className="bg-zinc-900 p-12 md:p-24 flex flex-col justify-center relative overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/backgraund_outside.jpg.jpeg"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/80"></div>
+        </div>
+        <div className="max-w-md relative z-10">
           <h1 className="text-5xl font-black text-white mb-8 tracking-tighter">
             CONTACTO
           </h1>
