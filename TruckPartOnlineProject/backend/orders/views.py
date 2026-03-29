@@ -342,157 +342,6 @@ def products_list(request):
 
 ###############################webhook de striper#################################################################
 
-"""
-
-
-
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-
-    # 🔐 1. Verificar firma (CRÍTICO)
-    try:
-        event = stripe.Webhook.construct_event(
-            payload,
-            sig_header,
-            settings.STRIPE_WEBHOOK_SECRET
-        )
-    except stripe.error.SignatureVerificationError as e:
-        print("❌ Firma inválida:", e)
-        return JsonResponse({"error": "Invalid signature"}, status=400)
-    except Exception as e:
-        print("❌ Error webhook:", e)
-        return JsonResponse({"error": "Invalid payload"}, status=400)
-
-    event_id = event.get("id")
-    event_type = event.get("type")
-
-    print(f"📩 Evento recibido: {event_type} ({event_id})")
-
-    # 🔁 2. IDEMPOTENCIA (EVITA PROCESAR 2 VECES)
-   
-    if StripeEvent.objects.filter(event_id=event_id).exists():
-        print("⚠️ Evento ya procesado")
-        return JsonResponse({"status": "already_processed"})
-
-    StripeEvent.objects.create(event_id=event_id)
-    
-
-    try:
-        # 🎯 3. MANEJO DE EVENTOS
-
-        if event_type == "payment_intent.succeeded":
-            intent = event["data"]["object"]
-
-            metadata = intent.get("metadata", {})
-            order_id = metadata.get("order_id")
-
-            if not order_id:
-                print("⚠️ Sin order_id (evento ignorado)")
-                return JsonResponse({"status": "ignored"})
-
-            with transaction.atomic():
-                try:
-                    order = Order.objects.select_for_update().get(id=order_id)
-                except Order.DoesNotExist:
-                    print("⚠️ Orden no encontrada")
-                    return JsonResponse({"status": "ignored"})
-
-                # 🔁 Idempotencia por estado
-                if order.payment_status == "paid":
-                    print("⚠️ Orden ya pagada")
-                    return JsonResponse({"status": "already_processed"})
-
-                # 💰 Validar monto
-                stripe_amount = intent.get("amount")
-                expected_amount = int(order.total * 100)
-
-                if stripe_amount != expected_amount:
-                    print("❌ Monto no coincide")
-                    return JsonResponse({"status": "amount_mismatch"})
-
-                # 💱 Validar moneda
-                if intent.get("currency") != "usd":
-                    print("❌ Moneda incorrecta")
-                    return JsonResponse({"status": "currency_error"})
-
-                # 📦 Descontar inventario
-                for item in order.items.all():
-                    move_inventory(
-                        product=item.product,
-                        quantity_change=-item.quantity,
-                        reason="Venta",
-                        reference=f"Orden #{order.id} - Stripe"
-                    )
-
-                # 🧾 Integración externa (QuickBooks)
-                try:
-                    receipt_id = create_sales_receipt(order)
-                except Exception as e:
-                    print("⚠️ Error QuickBooks:", e)
-                    receipt_id = None
-
-                # 🧾 Actualizar orden
-                order.qb_sales_receipt_id = receipt_id
-                order.status = "completed"
-                order.payment_status = "paid"
-                order.stripe_payment_intent = intent.get("id")
-                order.save()
-
-                print("✅ Orden completada correctamente")
-
-        # ❌ Pago fallido
-        elif event_type == "payment_intent.payment_failed":
-            intent = event["data"]["object"]
-
-            metadata = intent.get("metadata", {})
-            order_id = metadata.get("order_id")
-
-            if not order_id:
-                return JsonResponse({"status": "ignored"})
-
-            try:
-                order = Order.objects.get(id=order_id)
-                order.status = "failed"
-                order.payment_status = "failed"
-                order.save()
-                print("❌ Orden marcada como fallida")
-            except Order.DoesNotExist:
-                pass
-
-        # 💸 Reembolsos (extra PRO)
-        elif event_type == "charge.refunded":
-            charge = event["data"]["object"]
-
-            payment_intent_id = charge.get("payment_intent")
-
-            try:
-                order = Order.objects.get(
-                    stripe_payment_intent=payment_intent_id
-                )
-                order.status = "refunded"
-                order.payment_status = "refunded"
-                order.save()
-
-                print("💸 Orden reembolsada")
-            except Order.DoesNotExist:
-                pass
-
-        else:
-            print(f"ℹ️ Evento no manejado: {event_type}")
-
-    except Exception as e:
-        print("🔥 Error crítico:", str(e))
-        return JsonResponse({"error": "Server error"}, status=500)
-
-    # ✅ SIEMPRE responder 200 para evitar reintentos innecesarios
-    return JsonResponse({"status": "ok"})
-
-
-    ###################################################################################################################3
-
-
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -507,216 +356,17 @@ def stripe_webhook(request):
             settings.STRIPE_WEBHOOK_SECRET
         )
     except stripe.error.SignatureVerificationError as e:
-        print("❌ Firma inválida:", e)
         return JsonResponse({"error": "Invalid signature"}, status=400)
     except Exception as e:
-        print("❌ Error webhook:", e)
         return JsonResponse({"error": "Invalid payload"}, status=400)
 
     event_id = event.get("id")
     event_type = event.get("type")
-
-    print(f"📩 Evento recibido: {event_type} ({event_id})")
-
-    # 🔁 2. VERIFICAR idempotencia (solo verificar, NO crear aún)
-    if StripeEvent.objects.filter(event_id=event_id).exists():
-        print("⚠️ Evento ya procesado exitosamente")
-        return JsonResponse({"status": "already_processed"})
-
-    try:
-        # 🎯 3. MANEJO DE EVENTOS
-        if event_type == "payment_intent.succeeded":
-            intent = event["data"]["object"]
-
-            metadata = intent.get("metadata", {})
-            order_id = metadata.get("order_id")
-            
-            print(f"\n{'='*70}")
-            print(f"📦 PROCESANDO WEBHOOK PARA ORDEN #{order_id}")
-            print(f"{'='*70}")
-
-
-            if not order_id:
-                print("⚠️ Sin order_id (evento ignorado)")
-                return JsonResponse({"status": "ignored"})
-
-            with transaction.atomic():
-                try:
-                    order = Order.objects.select_for_update().get(id=order_id)
-                except Order.DoesNotExist:
-                    print("⚠️ Orden no encontrada")
-                    return JsonResponse({"status": "ignored"})
-
-                # 🔁 Idempotencia por estado
-                if order.payment_status == "paid":
-                    print("⚠️ Orden ya pagada")
-                    return JsonResponse({"status": "already_processed"})
-
-                # 💰 Validar monto
-                stripe_amount = intent.get("amount")
-                expected_amount = int(order.total * 100)
-
-                if stripe_amount != expected_amount:
-                    print(f"❌ Monto no coincide. Stripe: {stripe_amount}, Esperado: {expected_amount}")
-                    return JsonResponse({"status": "amount_mismatch"}, status=400)
-
-                # 💱 Validar moneda
-                if intent.get("currency") != "usd":
-                    print("❌ Moneda incorrecta")
-                    return JsonResponse({"status": "currency_error"}, status=400)
-
-                # 🔥 VALIDAR STOCK ANTES DE DESCONTAR (CRÍTICO)
-                stock_errors = []
-                for item in order.items.all():
-                    # Obtener producto con lock
-                    product = Product.objects.select_for_update().get(id=item.product.id)
-                    if product.inventory.quantity < item.quantity:
-                        stock_errors.append(
-                            f"{product.name}: disponible {product.inventory.quantity}, solicitado {item.quantity}"
-                        )
-                
-                if stock_errors:
-                    error_msg = f"Stock insuficiente: {', '.join(stock_errors)}"
-                    print(f"❌ {error_msg}")
-                    
-                    # Marcar orden como fallida
-                    order.status = "failed"
-                    order.payment_status = "failed"
-                    order.save()
-                    
-                    # Devolver 422 para que Stripe NO reintente automáticamente
-                    return JsonResponse(
-                        {"error": error_msg, "order_id": order.id},
-                        status=422
-                    )
-
-                # 📦 Descontar inventario (ahora sí seguro)
-                for item in order.items.all():
-                    move_inventory(
-                        product=item.product,
-                        quantity_change=-item.quantity,
-                        reason="Venta",
-                        reference=f"Orden #{order.id} - Stripe"
-                    )
-
-                # 🧾 Integración externa (QuickBooks)
-                try:
-                    receipt_id = create_sales_receipt(order)
-                    print(f"✅ Sales receipt creado: {receipt_id}")
-                except Exception as e:
-                    print("⚠️ Error QuickBooks:", e)
-                    receipt_id = None
-
-                # 🧾 Actualizar orden
-                order.qb_sales_receipt_id = receipt_id
-                order.status = "completed"
-                order.payment_status = "paid"
-                order.stripe_payment_intent = intent.get("id")
-                order.save()
-
-                # ✅ SOLO DESPUÉS DE TODO EXITOSO, guardar evento procesado
-                StripeEvent.objects.create(event_id=event_id)
-
-                print(f"✅ Orden #{order.id} completada correctamente")
-
-        # ❌ Pago fallido
-        elif event_type == "payment_intent.payment_failed":
-            intent = event["data"]["object"]
-
-            metadata = intent.get("metadata", {})
-            order_id = metadata.get("order_id")
-
-            if not order_id:
-                return JsonResponse({"status": "ignored"})
-
-            try:
-                with transaction.atomic():
-                    order = Order.objects.select_for_update().get(id=order_id)
-                    order.status = "failed"
-                    order.payment_status = "failed"
-                    order.save()
-                    print(f"❌ Orden #{order.id} marcada como fallida")
-                    
-                    # Guardar evento fallido para no procesarlo después
-                    StripeEvent.objects.create(event_id=event_id)
-                    
-            except Order.DoesNotExist:
-                print(f"⚠️ Orden {order_id} no encontrada")
-                pass
-
-        # 💸 Reembolsos
-        elif event_type == "charge.refunded":
-            charge = event["data"]["object"]
-            payment_intent_id = charge.get("payment_intent")
-
-            if payment_intent_id:
-                try:
-                    with transaction.atomic():
-                        order = Order.objects.select_for_update().get(
-                            stripe_payment_intent=payment_intent_id
-                        )
-                        order.status = "refunded"
-                        order.payment_status = "refunded"
-                        order.save()
-                        print(f"💸 Orden #{order.id} reembolsada")
-                        
-                        # Guardar evento de reembolso
-                        StripeEvent.objects.create(event_id=event_id)
-                        
-                except Order.DoesNotExist:
-                    print(f"⚠️ Orden con payment_intent {payment_intent_id} no encontrada")
-
-        else:
-            print(f"ℹ️ Evento no manejado: {event_type}")
-            # Para eventos no manejados, también guardamos para no procesarlos después
-            StripeEvent.objects.create(event_id=event_id)
-
-    except Exception as e:
-        print("🔥 Error crítico:", str(e))
-        import traceback
-        traceback.print_exc()
-        # NO guardar StripeEvent aquí para permitir reintento
-        return JsonResponse({"error": "Server error"}, status=500)
-
-    # ✅ SIEMPRE responder 200 para eventos procesados
-    return JsonResponse({"status": "ok"})
-    """
-
-@csrf_exempt
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE")
-
-    # 🔐 1. Verificar firma
-    try:
-        event = stripe.Webhook.construct_event(
-            payload,
-            sig_header,
-            settings.STRIPE_WEBHOOK_SECRET
-        )
-    except stripe.error.SignatureVerificationError as e:
-        print("❌ Firma inválida:", e)
-        return JsonResponse({"error": "Invalid signature"}, status=400)
-    except Exception as e:
-        print("❌ Error webhook:", e)
-        return JsonResponse({"error": "Invalid payload"}, status=400)
-
-    event_id = event.get("id")
-    event_type = event.get("type")
-
-    print(f"\n{'='*80}")
-    print(f"📩 EVENTO RECIBIDO DE STRIPE")
-    print(f"{'='*80}")
-    print(f"   Event ID: {event_id}")
-    print(f"   Event Type: {event_type}")
-    print(f"{'='*80}")
 
     # 🔁 IDEMPOTENCIA con modelo actual
     
-    
     # Verificar si ya procesamos este evento
     if StripeEvent.objects.filter(event_id=event_id).exists():
-        print(f"⚠️ Evento {event_id} ya procesado anteriormente")
         return JsonResponse({"status": "already_processed"})
 
     try:
@@ -725,49 +375,30 @@ def stripe_webhook(request):
             metadata = intent.get("metadata", {})
             order_id = metadata.get("order_id")
 
-            print(f"\n{'='*80}")
-            print(f"💳 PROCESANDO PAGO EXITOSO")
-            print(f"{'='*80}")
-            print(f"   Order ID: {order_id}")
-            print(f"   Payment Intent ID: {intent.get('id')}")
-            print(f"   Amount: {intent.get('amount') / 100} {intent.get('currency')}")
-            print(f"{'='*80}")
-
             if not order_id:
-                print("⚠️ Sin order_id en metadata, evento ignorado")
                 # Registrar evento ignorado
                 StripeEvent.objects.create(event_id=event_id)
                 return JsonResponse({"status": "ignored"})
 
             with transaction.atomic():
-                print(f"\n📦 BUSCANDO ORDEN #{order_id}...")
                 try:
                     order = Order.objects.select_for_update().get(id=order_id)
-                    print(f"   ✅ Orden encontrada")
-                    print(f"   - Método pago: {order.payment_method}")
-                    print(f"   - Estado actual: {order.status}")
-                    print(f"   - Payment status: {order.payment_status}")
-                    print(f"   - Total: ${order.total}")
+                   
                 except Order.DoesNotExist:
-                    print(f"   ❌ Orden #{order_id} NO encontrada")
                     StripeEvent.objects.create(event_id=event_id)
                     return JsonResponse({"status": "ignored"})
 
                 # 🔴 VALIDACIÓN 1: Solo tarjeta
                 if order.payment_method != "card":
-                    print(f"   ⚠️ Orden no es pago con tarjeta (es {order.payment_method})")
                     StripeEvent.objects.create(event_id=event_id)
                     return JsonResponse({"status": "ignored", "reason": "not_card_payment"})
 
                 # 🔴 VALIDACIÓN 2: No procesar si ya está pagada
                 if order.payment_status == "paid":
-                    print(f"   ⚠️ Orden #{order.id} YA ESTÁ PAGADA")
-                    print(f"   Inventario ya descontado previamente")
                     StripeEvent.objects.create(event_id=event_id)
                     return JsonResponse({"status": "already_processed"})
 
                 # 🔴 VALIDACIÓN 3: Verificar si ya tiene inventario descontado
-                
                 existing_movements = InventoryMovement.objects.filter(
                     reference__icontains=f"Orden #{order.id}"
                 )
@@ -797,9 +428,6 @@ def stripe_webhook(request):
                 expected_amount = int(order.total * 100)
 
                 if stripe_amount != expected_amount:
-                    print(f"   ❌ Monto no coincide:")
-                    print(f"      - Pagado en Stripe: {stripe_amount / 100} {intent.get('currency')}")
-                    print(f"      - Esperado: {expected_amount / 100} USD")
                     return JsonResponse({"status": "amount_mismatch"}, status=400)
 
                 # 💱 Validar moneda
