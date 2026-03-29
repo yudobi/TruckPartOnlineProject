@@ -1,6 +1,6 @@
 export default function ContactPage() {
   return (
-    <div className="min-h-screen grid md:grid-cols-2">
+    <div className="min-h-screen grid">
       {/* Left: Info */}
       <div className="bg-zinc-900 p-12 md:p-24 flex flex-col justify-center relative overflow-hidden">
         {/* Background Image */}
@@ -92,47 +92,7 @@ export default function ContactPage() {
         </div>
       </div>
 
-      {/* Right: Form */}
-      <div className="bg-black p-12 md:p-24 flex items-center">
-        <form className="w-full max-w-md space-y-6">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
-              Nombre
-            </label>
-            <input
-              type="text"
-              className="w-full bg-zinc-900 border-b-2 border-zinc-800 focus:border-red-600 text-white p-4 outline-none transition-colors"
-              placeholder="Tu nombre completo"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
-              Email
-            </label>
-            <input
-              type="email"
-              className="w-full bg-zinc-900 border-b-2 border-zinc-800 focus:border-red-600 text-white p-4 outline-none transition-colors"
-              placeholder="correo@ejemplo.com"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-gray-500 tracking-widest uppercase">
-              Mensaje
-            </label>
-            <textarea
-              rows={4}
-              className="w-full bg-zinc-900 border-b-2 border-zinc-800 focus:border-red-600 text-white p-4 outline-none transition-colors resize-none"
-              placeholder="Detalles de tu consulta..."
-            />
-          </div>
-
-          <button className="w-full bg-white text-black font-bold py-4 px-8 mt-4 hover:bg-red-600 hover:text-white transition-all tracking-wider uppercase">
-            Enviar Mensaje
-          </button>
-        </form>
-      </div>
+      
     </div>
   );
 }
