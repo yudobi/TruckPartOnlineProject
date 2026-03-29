@@ -92,13 +92,16 @@ export default function HomePage() {
             </div>
 
             <div className="relative">
-              <div className="aspect-square bg-linear-to-br from-zinc-800 to-black border border-white/10 rounded-2xl p-8 flex items-center justify-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-red-600/10 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
-                <div className="text-center relative z-10">
-                  <div className="text-9xl mb-4 group-hover:scale-110 transition-transform duration-300" aria-hidden="true">
-                    ⚙️
-                  </div>
-                  <div className="text-xl font-bold tracking-widest text-gray-500 group-hover:text-white transition-colors">
+              <div className="aspect-square border border-white/10 rounded-2xl relative overflow-hidden group">
+                <img
+                  src="/background_inside.jpg.jpeg"
+                  alt="Interior de Tony Truck Parts"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute bottom-8 left-8 z-10">
+                  <div className="text-xl font-bold tracking-widest text-white">
                     {t("home.systems")}
                   </div>
                 </div>

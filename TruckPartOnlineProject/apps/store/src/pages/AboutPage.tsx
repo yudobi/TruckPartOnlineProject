@@ -21,7 +21,7 @@ export default function AboutPage() {
           </div>
           <div className="text-gray-500 space-y-4 font-mono text-sm border-l border-red-600 pl-6">
             <p>FUNDADA: 2005</p>
-            <p>SEDE: NEW YORK</p>
+            <p>SEDE: LONGWOOD, FLORIDA</p>
             <p>ALCANCE: GLOBAL</p>
           </div>
         </div>
