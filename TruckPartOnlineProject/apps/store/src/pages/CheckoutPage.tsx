@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
 import { useCart } from "@hooks/useCart";
 import { useCheckout } from "@hooks/useCheckout";
@@ -128,6 +129,10 @@ export default function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-12 px-6">
+      <Helmet>
+        <title>{t("checkout.title")} | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="container mx-auto max-w-6xl">
         <h1 className="text-3xl font-black text-white mb-8 tracking-tighter">
           {checkoutData

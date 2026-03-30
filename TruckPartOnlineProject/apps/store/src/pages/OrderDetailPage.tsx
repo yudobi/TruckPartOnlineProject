@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate, useParams } from "react-router";
 import {
   Package,
@@ -118,6 +119,10 @@ export default function OrderDetailPage() {
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20">
+      <Helmet>
+        <title>{t("orders.orderDetail")} #{id} | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="container mx-auto px-6">
         {/* Back Button */}
         <Link to="/orders" className="inline-flex items-center text-gray-400 hover:text-white mb-8 transition-colors">

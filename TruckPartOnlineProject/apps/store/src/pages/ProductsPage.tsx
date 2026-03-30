@@ -10,6 +10,7 @@ import {
   ArrowUpAZ,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import {
   type CategoryFilterValue,
   type CategoryFilterNode,
@@ -355,6 +356,15 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-black pt-20 scroll-smooth">
+      <Helmet>
+        <title>Catálogo de Refacciones para Camiones | Tony Truck Parts</title>
+        <meta name="description" content="Encuentra piezas y refacciones para camiones: motores, frenos, transmisiones y más. Marcas como Kenworth, Peterbilt, Freightliner." />
+        <link rel="canonical" href="https://tonytruckpart.com/products" />
+        <meta property="og:title" content="Catálogo de Refacciones para Camiones | Tony Truck Parts" />
+        <meta property="og:description" content="Encuentra piezas y refacciones para camiones: motores, frenos, transmisiones y más." />
+        <meta property="og:url" content="https://tonytruckpart.com/products" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="container mx-auto px-6 py-12">
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Mobile Filter Toggle */}

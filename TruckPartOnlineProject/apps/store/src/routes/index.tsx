@@ -24,6 +24,8 @@ const ResendVerificationPage = lazy(() => import("@/pages/ResendVerificationPage
 const RegistrationSuccessPage = lazy(() => import("@/pages/RegistrationSuccessPage"));
 const ForgotPasswordPage = lazy(() => import("@/pages/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
+const PrivacyPolicyPage = lazy(() => import("@/pages/PrivacyPolicyPage"));
+const TermsPage = lazy(() => import("@/pages/TermsPage"));
 
 // Admin pages
 const AdminOrdersPage = lazy(() => import("@/pages/admin/AdminOrdersPage"));
@@ -110,6 +112,16 @@ export const routes: RouteObject[] = [
         // Página para restablecer contraseña con token
         path: "reset-password/:uid/:token/:requestId",
         element: <ResetPasswordPage />,
+      },
+      {
+        // Política de privacidad
+        path: "privacy",
+        element: <PrivacyPolicyPage />,
+      },
+      {
+        // Términos y condiciones
+        path: "terms",
+        element: <TermsPage />,
       },
       {
         // Página de órdenes — requiere sesión activa
