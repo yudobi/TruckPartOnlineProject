@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { CheckCircle, XCircle, Package, MapPin, CreditCard, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { orderService } from "@/services/orderService";
@@ -196,6 +197,10 @@ export default function OrderConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-16 px-6">
+      <Helmet>
+        <title>{t("confirmation.title")} | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="container mx-auto max-w-2xl">
         {/* Success header */}
         <div className="flex flex-col items-center text-center mb-10">

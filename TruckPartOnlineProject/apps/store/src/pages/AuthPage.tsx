@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { User, Mail, Lock, ArrowRight, Phone, MapPin, Loader2 } from "lucide-react";
@@ -135,6 +136,11 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-6">
+      <Helmet>
+        <title>{isLogin ? "Iniciar Sesión" : "Crear Cuenta"} | Tony Truck Parts</title>
+        <meta name="description" content={isLogin ? "Inicia sesión en tu cuenta de Tony Truck Parts para gestionar tus pedidos de refacciones." : "Crea tu cuenta en Tony Truck Parts y accede a las mejores refacciones para camiones."} />
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="inline-block px-3 py-1 bg-red-600/10 border border-red-600/20 rounded-full mb-6 text-red-500 text-xs font-bold tracking-widest uppercase">

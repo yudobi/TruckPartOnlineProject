@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { Link, useNavigate } from "react-router";
 import { Package, ChevronRight, Calendar } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -94,6 +95,10 @@ export default function OrdersPage() {
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20">
+      <Helmet>
+        <title>{t("orders.title")} | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="container mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-12">

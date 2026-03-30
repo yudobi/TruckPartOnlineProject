@@ -1,8 +1,13 @@
 import { Link } from "react-router";
+import { Helmet } from "react-helmet-async";
 
 export default function NotFoundPage() {
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 text-center">
+      <Helmet>
+        <title>Página No Encontrada | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <h1 className="text-[12rem] font-black text-zinc-900 leading-none select-none">
         404
       </h1>

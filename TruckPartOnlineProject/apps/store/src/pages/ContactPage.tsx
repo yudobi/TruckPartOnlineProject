@@ -1,16 +1,30 @@
+import { Helmet } from "react-helmet-async";
+
 export default function ContactPage() {
   return (
     <div className="min-h-screen grid">
+      <Helmet>
+        <title>Contacto | Tony Truck Parts</title>
+        <meta name="description" content="Contáctanos para pedidos y consultas sobre refacciones de camiones. Llámanos al +1 (321) 316-9859 o visítanos en Longwood, FL." />
+        <link rel="canonical" href="https://tonytruckpart.com/contact" />
+        <meta property="og:title" content="Contacto | Tony Truck Parts" />
+        <meta property="og:description" content="Contáctanos para pedidos y consultas sobre refacciones de camiones." />
+        <meta property="og:url" content="https://tonytruckpart.com/contact" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Left: Info */}
       <div className="bg-zinc-900 p-12 md:p-24 flex flex-col justify-center relative overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
-          <img
-            src="/backgraund_outside.jpg.jpeg"
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover"
-          />
+          <picture>
+            <source srcSet="/background_outside.webp" type="image/webp" />
+            <img
+              src="/backgraund_outside.jpg.jpeg"
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover"
+            />
+          </picture>
           <div className="absolute inset-0 bg-black/80"></div>
         </div>
         <div className="max-w-md relative z-10">

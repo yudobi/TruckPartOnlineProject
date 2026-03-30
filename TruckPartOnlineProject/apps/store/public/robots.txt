@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /auth
+Disallow: /admin
+Disallow: /checkout
+Disallow: /orders
+Disallow: /profile
+Disallow: /verify-email
+Disallow: /resend-verification
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://tonytruckpart.com/sitemap.xml

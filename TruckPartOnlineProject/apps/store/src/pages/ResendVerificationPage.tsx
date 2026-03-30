@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router";
+import { Helmet } from "react-helmet-async";
 import { Mail, ArrowRight, Loader2, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +90,10 @@ export default function ResendVerificationPage() {
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20 flex items-center justify-center px-6">
+      <Helmet>
+        <title>Reenviar Verificación | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
           <div className="inline-block px-3 py-1 bg-red-600/10 border border-red-600/20 rounded-full mb-6 text-red-500 text-xs font-bold tracking-widest uppercase">

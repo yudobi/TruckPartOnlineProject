@@ -1,6 +1,17 @@
+import { Helmet } from "react-helmet-async";
+
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-6 py-20">
+      <Helmet>
+        <title>Sobre Nosotros | Tony Truck Parts</title>
+        <meta name="description" content="Conoce Tony Truck Parts, tu proveedor confiable de refacciones para camiones en USA desde 2005. Sede en Longwood, Florida." />
+        <link rel="canonical" href="https://tonytruckpart.com/about" />
+        <meta property="og:title" content="Sobre Nosotros | Tony Truck Parts" />
+        <meta property="og:description" content="Conoce Tony Truck Parts, tu proveedor confiable de refacciones para camiones en USA desde 2005." />
+        <meta property="og:url" content="https://tonytruckpart.com/about" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="max-w-4xl">
         <span className="text-red-600 font-bold tracking-widest uppercase mb-4 block">
           Nuestra Historia

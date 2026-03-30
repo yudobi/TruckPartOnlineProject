@@ -14,6 +14,7 @@
 
     <!-- HREFLANG -->
     <link rel="alternate" hreflang="es-us" href="https://tonytruckpart.com/" />
+    <link rel="alternate" hreflang="en-us" href="https://tonytruckpart.com/" />
     <link rel="alternate" hreflang="x-default" href="https://tonytruckpart.com/" />
 
     <!-- FAVICONS -->
@@ -25,15 +26,86 @@
     <!-- PRECONNECT -->
     <link rel="preconnect" href="https://tonytruckparts.s3.amazonaws.com" crossorigin>
     <link rel="dns-prefetch" href="https://tonytruckparts.s3.amazonaws.com">
+
+    <!-- STRUCTURED DATA (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Tony Truck Parts",
+          "url": "https://tonytruckpart.com",
+          "logo": "https://tonytruckpart.com/logo/full-logo.svg",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+1-321-316-9859",
+            "contactType": "sales",
+            "availableLanguage": ["Spanish", "English"]
+          },
+          "sameAs": [
+            "https://www.facebook.com/share/1bzbWvadhB/",
+            "https://www.tiktok.com/@toni_truckparts0"
+          ]
+        },
+        {
+          "@type": "LocalBusiness",
+          "name": "Tony Truck Parts",
+          "image": "https://tonytruckpart.com/logo/full-logo.svg",
+          "url": "https://tonytruckpart.com",
+          "telephone": "+1-321-316-9859",
+          "email": "solutionstony20@gmail.com",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "1040 Alameda Dr",
+            "addressLocality": "Longwood",
+            "addressRegion": "FL",
+            "postalCode": "32750",
+            "addressCountry": "US"
+          },
+          "description": "Proveedor de refacciones para camiones en Estados Unidos. Piezas originales para Kenworth, Peterbilt, Freightliner, Mack, International, Volvo y más."
+        },
+        {
+          "@type": "WebSite",
+          "name": "Tony Truck Parts",
+          "url": "https://tonytruckpart.com",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://tonytruckpart.com/products?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }
+      ]
+    }
+    </script>
   </head>
 
   <body>
-    <!-- CONTENIDO PARA SEO (IMPORTANTE EN REACT) -->
+    <!-- CONTENIDO SEO PARA BOTS QUE NO EJECUTAN JS -->
     <noscript>
-      <h1>Refacciones para camiones en Estados Unidos</h1>
-      <p>
-        Encuentra las mejores piezas para camiones, refacciones originales y accesorios para transporte pesado.
-      </p>
+      <div>
+        <h1>Refacciones para Camiones en Estados Unidos | Tony Truck Parts</h1>
+        <p>Compra refacciones para camiones en Estados Unidos. Piezas originales, envío rápido y los mejores precios para transporte pesado.</p>
+
+        <h2>Catálogo de Refacciones</h2>
+        <p>Encuentra piezas para camiones de las mejores marcas: Kenworth, Peterbilt, Freightliner, Mack, International, Western Star, Volvo y Caterpillar. Motores, frenos, transmisiones, suspensión y más.</p>
+
+        <h2>Sobre Nosotros</h2>
+        <p>Tony Truck Parts es tu proveedor confiable de refacciones para camiones desde 2005. Sede en Longwood, Florida, con alcance en todo Estados Unidos.</p>
+
+        <h2>Contacto</h2>
+        <p>Dirección: 1040 Alameda Dr, Longwood, FL 32750</p>
+        <p>Teléfono: <a href="tel:+13213169859">+1 (321) 316-9859</a></p>
+        <p>Email: <a href="mailto:solutionstony20@gmail.com">solutionstony20@gmail.com</a></p>
+
+        <nav>
+          <a href="/products">Catálogo de Productos</a> |
+          <a href="/about">Sobre Nosotros</a> |
+          <a href="/contact">Contacto</a> |
+          <a href="/privacy">Privacidad</a> |
+          <a href="/terms">Términos</a>
+        </nav>
+      </div>
     </noscript>
 
     <!-- ROOT DE REACT -->
