@@ -355,7 +355,7 @@ export default function ProductsPage() {
   }, [selectedCategoryIds, apiCategories]);
 
   return (
-    <div className="min-h-screen bg-black pt-20 scroll-smooth">
+    <div className="min-h-screen bg-black pt-10 scroll-smooth">
       <Helmet>
         <title>Catálogo de Refacciones para Camiones | Tony Truck Parts</title>
         <meta name="description" content="Encuentra piezas y refacciones para camiones: motores, frenos, transmisiones y más. Marcas como Kenworth, Peterbilt, Freightliner." />
