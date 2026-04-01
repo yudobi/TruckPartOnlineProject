@@ -1,23 +1,37 @@
 import { Link } from "react-router";
 import { useTranslation, Trans } from "react-i18next";
-import heroBg from "../assets/peterbilt-hero.png";
+import { Helmet } from "react-helmet-async";
+import heroBgWebp from "../assets/peterbilt-hero.webp";
+import heroBgFallback from "../assets/peterbilt-hero.png";
 
 export default function HomePage() {
   const { t } = useTranslation();
   return (
     <div className="min-h-screen">
+      <Helmet>
+        <title>Refacciones para Camiones en USA | Tony Truck Parts</title>
+        <meta name="description" content="Compra refacciones para camiones en Estados Unidos. Piezas originales, envío rápido y los mejores precios para transporte pesado." />
+        <link rel="canonical" href="https://tonytruckpart.com/" />
+        <meta property="og:title" content="Refacciones para Camiones en USA | Tony Truck Parts" />
+        <meta property="og:description" content="Compra refacciones para camiones en Estados Unidos. Piezas originales, envío rápido y los mejores precios para transporte pesado." />
+        <meta property="og:url" content="https://tonytruckpart.com/" />
+        <meta property="og:type" content="website" />
+      </Helmet>
       {/* Hero Section */}
       <section className="relative h-[90vh] flex items-center justify-center overflow-hidden border-b border-white/10">
         {/* Background Image */}
         <div className="absolute inset-0 z-0" role="img" aria-label="Imagen de fondo: camión Peterbilt en carretera">
-          <img
-            src={heroBg}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover object-center scale-105"
-          />
-          <div className="absolute inset-0 bg-linear-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true"></div>
-          <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/60" aria-hidden="true"></div>
+          <picture>
+            <source srcSet={heroBgWebp} type="image/webp" />
+            <img
+              src={heroBgFallback}
+              alt=""
+              aria-hidden="true"
+              className="w-full h-full object-cover object-center scale-105"
+            />
+          </picture>
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" aria-hidden="true"></div>
         </div>
 
         {/* Abstract Red Shape - decorative */}
@@ -93,11 +107,14 @@ export default function HomePage() {
 
             <div className="relative">
               <div className="aspect-square border border-white/10 rounded-2xl relative overflow-hidden group">
-                <img
-                  src="/background_inside.jpg.jpeg"
-                  alt="Interior de Tony Truck Parts"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                <picture>
+                  <source srcSet="/background_inside.webp" type="image/webp" />
+                  <img
+                    src="/background_inside.jpg.jpeg"
+                    alt="Interior de Tony Truck Parts"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </picture>
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500"></div>
                 <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent"></div>
                 <div className="absolute bottom-8 left-8 z-10">
@@ -128,7 +145,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <BrandCard name="Kenworth" logo="/logo/kenworth_logo.svg" />
-            <BrandCard name="Peterbilt" logo="/logo/peterbilt_logo.svg" />
+            <BrandCard name="Peterbilt" logo="/logo/Peterbilt_logo.svg" />
             <BrandCard name="Freightliner" logo="/logo/freightliner_logo.svg" />
             <BrandCard name="Mack" logo="/logo/mack_logo.svg" />
             <BrandCard name="International" logo="/logo/international_logo.svg" />

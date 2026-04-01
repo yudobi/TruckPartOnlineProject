@@ -137,12 +137,12 @@ const Footer = memo(function Footer() {
           </p>
           <nav aria-label="Legal">
           <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">
+            <Link to="/privacy" className="hover:text-white transition-colors">
               {t("footer.privacy")}
-            </a>
-            <a href="#" className="hover:text-white transition-colors">
+            </Link>
+            <Link to="/terms" className="hover:text-white transition-colors">
               {t("footer.terms")}
-            </a>
+            </Link>
           </div>
           </nav>
         </div>

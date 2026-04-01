@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Helmet } from "react-helmet-async";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router";
 import { useState, useCallback } from "react";
@@ -71,6 +72,10 @@ export default function UserProfilePage() {
 
   return (
     <div className="min-h-screen bg-black pt-32 pb-20">
+      <Helmet>
+        <title>{t("user.profile")} | Tony Truck Parts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div className="container mx-auto px-6 max-w-2xl">
         {/* Header */}
         <div className="bg-zinc-950 border border-white/5 rounded-sm p-8 mb-6">
