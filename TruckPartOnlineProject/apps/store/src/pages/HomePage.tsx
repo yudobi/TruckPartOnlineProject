@@ -16,12 +16,12 @@ export default function HomePage() {
             aria-hidden="true"
             className="w-full h-full object-cover object-center scale-105"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60" aria-hidden="true"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-black/90 via-black/70 to-black/30" aria-hidden="true"></div>
+          <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-black/60" aria-hidden="true"></div>
         </div>
 
         {/* Abstract Red Shape - decorative */}
-        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-600/10 rounded-full blur-3xl z-0 mix-blend-overlay" aria-hidden="true"></div>
+        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-red-600/10 rounded-full blur-3xl z-0 mix-blend-overlay" aria-hidden="true"></div>
 
         <div className="container mx-auto px-6 relative z-10 text-center">
           <span className="inline-block py-1 px-3 border border-red-600/30 rounded-full text-red-500 text-xs tracking-[0.2em] font-bold mb-8 uppercase">
@@ -99,7 +99,7 @@ export default function HomePage() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent"></div>
                 <div className="absolute bottom-8 left-8 z-10">
                   <div className="text-xl font-bold tracking-widest text-white">
                     {t("home.systems")}

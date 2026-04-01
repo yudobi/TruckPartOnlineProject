@@ -12,14 +12,14 @@ export default function MainLayout() {
         <div className="flex flex-col min-h-screen bg-black text-white antialiased selection:bg-red-600 selection:text-white">
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:bg-red-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:outline-none"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-100 focus:bg-red-600 focus:text-white focus:px-4 focus:py-2 focus:rounded-md focus:outline-none"
           >
             Saltar al contenido principal
           </a>
           <Navbar />
           <EmailVerificationBanner />
           {/* Added pt-20 to account for fixed navbar */}
-          <main id="main-content" tabIndex={-1} className="flex-grow pt-20">
+          <main id="main-content" tabIndex={-1} className="grow pt-10">
             <Outlet />
           </main>
           <Footer />
