@@ -8,7 +8,6 @@ import {
   ArrowUp01,
   ArrowDownAZ,
   ArrowUpAZ,
-  ChevronLeft,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet-async";
@@ -84,16 +83,9 @@ export default function ProductsPage() {
   const pageParam = searchParams.get("page");
   const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
 
-  const PER_PAGE_OPTIONS = [12, 24, 48, 96] as const;
-  type PerPageOption = (typeof PER_PAGE_OPTIONS)[number];
-  const perPageParam = searchParams.get("per_page");
-  const itemsPerPage: PerPageOption =
-    PER_PAGE_OPTIONS.find((n) => n === Number(perPageParam)) ?? 12;
-
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isChangingPage, setIsChangingPage] = useState(false);
   const [sortBy, setSortBy] = useState<string>("recent");
 
@@ -265,12 +257,13 @@ export default function ProductsPage() {
   ]);
 
   // Paginación
+  const ITEMS_PER_PAGE = 12;
   const totalCount = filteredAndSortedProducts.length;
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedProducts = filteredAndSortedProducts.slice(
     startIndex,
-    startIndex + itemsPerPage,
+    startIndex + ITEMS_PER_PAGE,
   );
 
   const handleFilterChange = useCallback(
@@ -319,18 +312,6 @@ export default function ProductsPage() {
         return newParams;
       });
       setTimeout(() => setIsChangingPage(false), 500);
-    },
-    [setSearchParams],
-  );
-
-  const handlePerPageChange = useCallback(
-    (value: string) => {
-      setSearchParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set("per_page", value);
-        newParams.delete("page");
-        return newParams;
-      });
     },
     [setSearchParams],
   );
@@ -393,7 +374,7 @@ export default function ProductsPage() {
             </h1>
             <Button
               variant="outline"
-              className="bg-zinc-900 border-white/10 text-gray-300 hover:bg-white/10 hover:border-white/20 hover:text-white"
+              className="border-white/10 text-white"
               onClick={() => setIsSidebarOpen(true)}
             >
               <Filter className="w-4 h-4 mr-2" />
@@ -401,16 +382,20 @@ export default function ProductsPage() {
             </Button>
           </div>
 
-          {/* Mobile Sidebar Overlay */}
+          {/* Sidebar */}
           <aside
-            className={`fixed inset-0 z-50 lg:hidden ${isSidebarOpen ? "block" : "hidden"}`}
+            className={`
+              fixed inset-0 z-50 lg:sticky lg:top-24 lg:z-0 lg:block lg:self-start
+              ${isSidebarOpen ? "block" : "hidden"}
+              lg:w-80 transition-all duration-300
+            `}
           >
             <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm lg:hidden"
               onClick={() => setIsSidebarOpen(false)}
             />
-            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 overflow-y-auto max-h-screen sidebar-scroll">
-              <div className="flex items-center justify-between mb-8">
+            <div className="absolute right-0 top-0 bottom-0 w-80 bg-zinc-950 border-l border-white/10 p-8 lg:bg-transparent lg:border-l-0 lg:p-0 lg:relative overflow-y-auto max-h-screen lg:max-h-[calc(100vh-10rem)] sidebar-scroll">
+              <div className="flex items-center justify-between mb-8 lg:hidden">
                 <span className="text-xl font-bold text-white">
                   {t("catalog.filters.title")}
                 </span>
@@ -419,6 +404,7 @@ export default function ProductsPage() {
                   onClick={() => setIsSidebarOpen(false)}
                 />
               </div>
+
               <ProductFilters
                 searchTerm={searchParam || ""}
                 onSearchChange={(value) => handleFilterChange("search", value)}
@@ -448,65 +434,6 @@ export default function ProductsPage() {
               />
             </div>
           </aside>
-
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start shrink-0">
-            {/* Toggle button — encima del scroll, sin superposición */}
-            <div
-              className={`flex items-center mb-3 transition-all duration-300 ease-in-out ${
-                isSidebarCollapsed ? "justify-center w-8" : "justify-end w-80"
-              }`}
-            >
-              <button
-                onClick={() => setIsSidebarCollapsed((v) => !v)}
-                className="w-6 h-6 bg-zinc-900 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-red-600 hover:border-red-600 transition-colors duration-200 shadow-md shrink-0"
-                aria-label={isSidebarCollapsed ? "Expandir filtros" : "Colapsar filtros"}
-              >
-                <ChevronLeft
-                  className={`w-3 h-3 transition-transform duration-300 ease-in-out ${
-                    isSidebarCollapsed ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                isSidebarCollapsed ? "w-0 opacity-0 pointer-events-none" : "w-80 opacity-100"
-              }`}
-            >
-              <div className="overflow-y-auto max-h-[calc(100vh-12rem)] sidebar-scroll">
-                <ProductFilters
-                  searchTerm={searchParam || ""}
-                  onSearchChange={(value) => handleFilterChange("search", value)}
-                  apiCategories={apiCategories}
-                  isCategoriesLoading={isCategoriesLoading}
-                  isCategoriesError={isCategoriesError}
-                  onCategoryFilterChange={handleCategoryFilterChange}
-                  brands={brands}
-                  isBrandsLoading={isBrandsLoading}
-                  isBrandsError={isBrandsError}
-                  selectedBrand={manufacturerParam}
-                  onBrandChange={(brandId) =>
-                    handleFilterChange("manufacturer", brandId)
-                  }
-                  onBrandClear={() =>
-                    handleFilterChange("manufacturer", undefined)
-                  }
-                  minPrice={minPriceParam || ""}
-                  maxPrice={maxPriceParam || ""}
-                  onMinPriceChange={(value) =>
-                    handleFilterChange("minPrice", value)
-                  }
-                  onMaxPriceChange={(value) =>
-                    handleFilterChange("maxPrice", value)
-                  }
-                  onClearAll={clearFilters}
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Main Content */}
           <main className="flex-1">
@@ -673,23 +600,7 @@ export default function ProductsPage() {
 
             {/* Pagination */}
             {totalCount > 0 && (
-              <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
-                  <span>Mostrar:</span>
-                  <Select value={String(itemsPerPage)} onValueChange={handlePerPageChange}>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-white w-20" aria-label="Productos por página">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-950 border-white/10 text-white">
-                      {PER_PAGE_OPTIONS.map((n) => (
-                        <SelectItem key={n} value={String(n)} className="cursor-pointer hover:bg-red-600 hover:text-white focus:bg-red-600 focus:text-white">
-                          {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <span>por página</span>
-                </div>
+              <div className="mt-12 flex justify-center">
                 <ProductPagination
                   currentPage={currentPage}
                   totalPages={totalPages}
