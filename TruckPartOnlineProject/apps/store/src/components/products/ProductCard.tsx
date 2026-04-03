@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
@@ -35,6 +35,7 @@ export const ProductCard = memo(function ProductCard({
   const imageUrl =
     images?.find((img) => img.is_main)?.image || images?.[0]?.image;
   const numericPrice = parseFloat(price || "0");
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   return (
     <div
@@ -52,8 +53,9 @@ export const ProductCard = memo(function ProductCard({
             src={imageUrl}
             alt={name}
             loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 will-change-transform"
+            decoding="auto"
+            onLoad={() => setImgLoaded(true)}
+            className={`w-full h-full object-cover group-hover:scale-110 transition-all duration-700 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
           />
         ) : (
           <Package
