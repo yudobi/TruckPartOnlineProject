@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Product, ProductImage, Brand, Category
 from inventory.serializers import InventorySerializer
-from decimal import Decimal
+
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -44,7 +44,7 @@ class ProductSerializer(serializers.ModelSerializer):
     category = CategorySerializer(read_only=True)
     brand = BrandSerializer(read_only=True)
 
-    precio_total = serializers.SerializerMethodField(read_only=True)
+  
 
     class Meta:
         model = Product
@@ -53,7 +53,6 @@ class ProductSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "price",
-            "precio_total",
             "sku",
             "is_active",
             "inventory",
@@ -64,9 +63,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_precio_total(self, obj):
-        tax_rate = Decimal('0.07')  # 7%
-        return obj.price + (obj.price * tax_rate)
+    
 
 
 class ProductSearchSerializer(serializers.ModelSerializer):

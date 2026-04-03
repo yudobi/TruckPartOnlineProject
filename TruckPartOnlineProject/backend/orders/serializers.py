@@ -1,47 +1,3 @@
-"""
-from .models import Order,OrderItem
-from rest_framework import serializers
-
-class OrderSerializer(serializers.ModelSerializer):
-    items = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Order
-        fields = [
-            "id",
-            #Datos del cliente (si es guest, se llenan con la info del checkout)
-            "full_name",
-            "guest_email",
-            "phone",
-            #Datos de envío
-            "street",
-            "house_number",
-            "state",
-            "city",
-            "postal_code",
-            #Datos de la orden
-            "status",
-            "payment_method",
-            "payment_status",
-            "qb_invoice_id",
-            "qb_sales_receipt_id",
-            "items",
-            "total",
-            "created_at"
-        ]
-
-    def get_items(self, obj):
-        items = obj.items.all()
-        return [
-            {
-                "product": item.product.name,
-                "quantity": item.quantity,
-                "price": float(item.price)
-            }
-            for item in items
-        ]
-"""
-
 # orders/serializers.py
 from .models import Order, OrderItem
 from rest_framework import serializers
@@ -82,8 +38,12 @@ class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True, read_only=True)
     user_email = serializers.EmailField(source='user.email', read_only=True)
     items_count = serializers.SerializerMethodField()
-    total_formatted = serializers.SerializerMethodField()
+
     created_at_formatted = serializers.SerializerMethodField()
+
+    subtotal = serializers.ReadOnlyField()
+    tax = serializers.ReadOnlyField()
+    total = serializers.ReadOnlyField()
     
     class Meta:
         model = Order
@@ -108,8 +68,13 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "payment_method",
             "payment_status",
+
+            "subtotal",
+            "tax",
+            
             "total",
-            "total_formatted",
+           
+
             "items_count",
             "items",
             # QuickBooks
@@ -124,16 +89,14 @@ class OrderSerializer(serializers.ModelSerializer):
             "created_at_formatted"
         ]
         read_only_fields = [
-            'id', 'user', 'status', 'payment_status', 'total',
+            'id', 'user', 'status', 'payment_status',
+            'subtotal', 'tax', 'total',
             'qb_invoice_id', 'qb_sales_receipt_id', 'stripe_payment_intent',
             'stripe_client_secret', 'created_at'
         ]
     
     def get_items_count(self, obj):
         return obj.items.count()
-    
-    def get_total_formatted(self, obj):
-        return f"${float(obj.total):.2f}"
     
     def get_created_at_formatted(self, obj):
         return obj.created_at.strftime("%Y-%m-%d %H:%M:%S")

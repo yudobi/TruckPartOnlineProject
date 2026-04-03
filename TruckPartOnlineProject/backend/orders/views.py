@@ -28,6 +28,7 @@ from inventory.models import InventoryMovement
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+from decimal import Decimal, ROUND_HALF_UP
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -81,11 +82,18 @@ def checkout(request):
             )
 
             # 3️⃣ Crear items y calcular total
-            total = 0
+            subtotal = Decimal('0.00')
+            tax_total = Decimal('0.00')
+            tax_rate = Decimal('0.07')
+
             for item in items:
                 product = Product.objects.get(id=item["product_id"])
-                subtotal = product.price * item["quantity"]
-                total += subtotal
+
+                item_subtotal = (product.price * item["quantity"]).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+                item_tax = (item_subtotal * tax_rate).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+                subtotal += item_subtotal
+                tax_total += item_tax
 
                 OrderItem.objects.create(
                     order=order,
@@ -93,14 +101,15 @@ def checkout(request):
                     quantity=item["quantity"],
                     price=product.price
                 )
-
-            order.total = total
+            order.subtotal = subtotal.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            order.tax = tax_total
             order.save()
+
 
             # 4️⃣ Si es tarjeta, crear PaymentIntent en Stripe
             if payment_method == "card":
                 intent = stripe.PaymentIntent.create(
-                    amount=int(total * 100),
+                    amount = int(order.total * 100),
                     currency="usd",
                     metadata={"order_id": order.id},
                     automatic_payment_methods={"enabled": True},

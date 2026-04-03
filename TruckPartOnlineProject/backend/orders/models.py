@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from products.models import Product
 from django.conf import settings
+from decimal import Decimal, ROUND_HALF_UP
 
 
 class Order(models.Model):
@@ -58,8 +59,12 @@ class Order(models.Model):
         default="pending"
     )
 
-    
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    @property
+    def total(self):
+        return (self.subtotal + self.tax).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
     qb_invoice_id = models.CharField(max_length=50, null=True, blank=True)
     qb_customer_id = models.CharField(max_length=50, blank=True, null=True)
