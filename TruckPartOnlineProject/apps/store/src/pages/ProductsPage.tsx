@@ -17,7 +17,7 @@ import {
   type CategoryFilterNode,
 } from "@/components/category/category-filter";
 
-import { type Product } from "@app-types/product";
+import { type Product, type ProductFilters as ProductFiltersType } from "@app-types/product";
 import { useProducts } from "@hooks/useProducts";
 import { useState, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router";
@@ -39,37 +39,15 @@ import { ProductFilters } from "@/components/products/ProductFilters";
 import { ProductPagination } from "@/components/products/ProductPagination";
 import { ProductDetailDrawer } from "@/components/products/ProductDetailDrawer";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Mapping sortBy → ordering param del backend ──────────────────────────────
 
-/**
- * Construye un mapa: nodeId → Set de todos sus IDs descendientes (incluyéndose a sí mismo).
- * Así podemos saber rápidamente si un producto con category.id=X pertenece
- * a un nodo padre seleccionado con id=Y.
- *
- * Ejemplo: nodo 22 (Aceites) → { 22, 23, 24, 33 }
- */
-function buildDescendantMap(
-  nodes: CategoryFilterNode[],
-  map: Map<number, Set<number>> = new Map(),
-): Map<number, Set<number>> {
-  for (const node of nodes) {
-    // Recopilar todos los IDs descendientes de este nodo
-    const descendants = new Set<number>();
-    collectIds(node, descendants);
-    map.set(node.id, descendants);
-
-    // Recursivo para los hijos
-    if (node.children?.length) {
-      buildDescendantMap(node.children, map);
-    }
-  }
-  return map;
-}
-
-function collectIds(node: CategoryFilterNode, acc: Set<number>): void {
-  acc.add(node.id);
-  node.children?.forEach((c) => collectIds(c, acc));
-}
+const sortByToOrdering: Record<string, string> = {
+  recent: "-created_at",
+  "price-asc": "price",
+  "price-desc": "-price",
+  "name-asc": "name",
+  "name-desc": "-name",
+};
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -94,11 +72,8 @@ export default function ProductsPage() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isChangingPage, setIsChangingPage] = useState(false);
   const [sortBy, setSortBy] = useState<string>("recent");
 
-  // ── Filtro de categorías vive en estado React, NO en la URL ────────────────
-  // Esto evita serializar/deserializar IDs y hace el filtrado directo y correcto.
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilterValue>({
     category_ids: [],
     subcategory_ids: [],
@@ -106,7 +81,26 @@ export default function ProductsPage() {
     piece_ids: [],
   });
 
-  const { data: productsData, isLoading, isError } = useProducts();
+  // ── Construir filtros para el backend ─────────────────────────────────────
+  const filters: ProductFiltersType = {
+    ...(searchParam        ? { search: searchParam }               : {}),
+    ...(manufacturerParam  ? { manufacturer: manufacturerParam }   : {}),
+    ...(minPriceParam      ? { min_price: Number(minPriceParam) }  : {}),
+    ...(maxPriceParam      ? { max_price: Number(maxPriceParam) }  : {}),
+    ...(categoryFilter.piece_ids.length
+        ? { piece: categoryFilter.piece_ids.join(",") }            : {}),
+    ...(categoryFilter.system_ids.length
+        ? { system: categoryFilter.system_ids.join(",") }          : {}),
+    ...(categoryFilter.subcategory_ids.length
+        ? { subcategory: categoryFilter.subcategory_ids.join(",") }: {}),
+    ...(categoryFilter.category_ids.length
+        ? { category: categoryFilter.category_ids.join(",") }      : {}),
+    ordering: sortByToOrdering[sortBy] ?? "-created_at",
+    page: currentPage,
+    page_size: itemsPerPage,
+  };
+
+  const { data: productsData, isLoading, isError, isPlaceholderData } = useProducts(filters);
   const {
     data: apiCategories,
     isLoading: isCategoriesLoading,
@@ -118,20 +112,12 @@ export default function ProductsPage() {
     isError: isBrandsError,
   } = useBrands();
 
-  /**
-   * Mapa precalculado: cada nodo del árbol → Set de todos sus descendientes.
-   * Se recalcula solo cuando cambian las categorías del API.
-   */
-  const descendantMap = useMemo(
-    () => buildDescendantMap(apiCategories ?? []),
-    [apiCategories],
-  );
+  // ── Paginación server-side ────────────────────────────────────────────────
+  const totalCount = productsData?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const paginatedProducts = productsData?.results ?? [];
 
-  /**
-   * Set unificado de todos los IDs de categoria seleccionados en el filtro
-   * (de cualquier nivel). Un producto pasa el filtro si su category.id está
-   * en los descendientes de ALGUNO de estos IDs.
-   */
+  // ── IDs de categorías seleccionadas (solo para el chip de label activo) ──
   const selectedCategoryIds = useMemo(() => {
     return new Set([
       ...categoryFilter.category_ids,
@@ -140,138 +126,6 @@ export default function ProductsPage() {
       ...categoryFilter.piece_ids,
     ]);
   }, [categoryFilter]);
-
-  // Filtrado y ordenamiento en el cliente
-  const filteredAndSortedProducts = useMemo(() => {
-    if (!productsData?.results) return [];
-
-    const isCategoryFilterActive = selectedCategoryIds.size > 0;
-
-    const filtered = productsData.results.filter((product) => {
-      // ── Filtro de categoría (via árbol jerárquico) ─────────────────────────
-      // FIX: Antes se descartaban todos los productos cuya category era string,
-      // ahora se resuelve el string a un ID numérico antes de comparar.
-      if (isCategoryFilterActive) {
-        const cat = product.category;
-        if (!cat) return false;
-
-        let productCategoryId: number | undefined;
-
-        if (typeof cat === "object") {
-          // Caso normal: la API devolvió el objeto completo { id, name, ... }
-          productCategoryId = cat.id;
-        } else if (typeof cat === "string") {
-          // La API devolvió solo un string — intentar parsearlo como ID numérico
-          const parsed = parseInt(cat, 10);
-          if (!isNaN(parsed)) {
-            productCategoryId = parsed;
-          }
-          // Si es un slug no resoluble a número, el producto no pasa el filtro
-        }
-
-        if (productCategoryId === undefined) return false;
-
-        let matched = false;
-        for (const selectedId of selectedCategoryIds) {
-          if (descendantMap.get(selectedId)?.has(productCategoryId)) {
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) return false;
-      }
-
-      // Fabricante
-      if (manufacturerParam) {
-        const productBrandId = product.brand?.id?.toString() || "";
-        const productBrandName = product.brand?.name || "";
-        const productManufacturer = product.manufacturer || "";
-        
-        const normalize = (s: string) =>
-          s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        
-        // Comparar por ID (si manufacturerParam es un número) o por nombre
-        const isNumericId = /^\d+$/.test(manufacturerParam);
-        
-        if (isNumericId) {
-          // Comparar por ID
-          if (productBrandId !== manufacturerParam) {
-            return false;
-          }
-        } else {
-          // Comparar por nombre (para compatibilidad con filtros antiguos)
-          if (
-            normalize(productBrandName) !== normalize(manufacturerParam) &&
-            normalize(productManufacturer) !== normalize(manufacturerParam)
-          ) {
-            return false;
-          }
-        }
-      }
-
-      // Búsqueda por texto
-      if (searchParam) {
-        const q = searchParam.toLowerCase();
-        if (
-          !product.name?.toLowerCase().includes(q) &&
-          !product.description?.toLowerCase().includes(q) &&
-          !product.sku?.toLowerCase().includes(q)
-        ) {
-          return false;
-        }
-      }
-
-      // Precio mínimo
-      if (minPriceParam && Number(product.price) < Number(minPriceParam)) {
-        return false;
-      }
-
-      // Precio máximo
-      if (maxPriceParam && Number(product.price) > Number(maxPriceParam)) {
-        return false;
-      }
-
-      return true;
-    });
-
-    // Ordenamiento
-    switch (sortBy) {
-      case "price-asc":
-        filtered.sort((a, b) => Number(a.price) - Number(b.price));
-        break;
-      case "price-desc":
-        filtered.sort((a, b) => Number(b.price) - Number(a.price));
-        break;
-      case "name-asc":
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case "name-desc":
-        filtered.sort((a, b) => b.name.localeCompare(a.name));
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
-  }, [
-    productsData,
-    selectedCategoryIds,
-    descendantMap,
-    manufacturerParam,
-    searchParam,
-    minPriceParam,
-    maxPriceParam,
-    sortBy,
-  ]);
-
-  // Paginación
-  const totalCount = filteredAndSortedProducts.length;
-  const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = filteredAndSortedProducts.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
 
   const handleFilterChange = useCallback(
     (key: string, value: string | undefined) => {
@@ -287,7 +141,6 @@ export default function ProductsPage() {
   const handleCategoryFilterChange = useCallback(
     (value: CategoryFilterValue) => {
       setCategoryFilter(value);
-      // Resetear página al cambiar categoría
       const newParams = new URLSearchParams(searchParams);
       newParams.delete("page");
       setSearchParams(newParams);
@@ -312,13 +165,11 @@ export default function ProductsPage() {
 
   const handlePageChange = useCallback(
     (page: number) => {
-      setIsChangingPage(true);
       setSearchParams((prev) => {
         const newParams = new URLSearchParams(prev);
         newParams.set("page", page.toString());
         return newParams;
       });
-      setTimeout(() => setIsChangingPage(false), 500);
     },
     [setSearchParams],
   );
@@ -360,7 +211,6 @@ export default function ProductsPage() {
     return count === 1
       ? (() => {
           const id = [...selectedCategoryIds][0];
-          // Buscar nombre en el árbol
           const flat = (nodes: CategoryFilterNode[]): CategoryFilterNode | undefined => {
             for (const n of nodes) {
               if (n.id === id) return n;
@@ -624,12 +474,12 @@ export default function ProductsPage() {
 
             {/* Grid */}
             <div
-              className={`grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-300 ${isChangingPage ? "opacity-50" : ""}`}
+              className={`grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 transition-opacity duration-300 ${isPlaceholderData ? "opacity-50" : ""}`}
               style={{ contain: "layout style paint" }}
               role="list"
               aria-label="Lista de productos"
             >
-              {isLoading || isChangingPage ? (
+              {isLoading || isPlaceholderData ? (
                 Array.from({ length: 6 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))

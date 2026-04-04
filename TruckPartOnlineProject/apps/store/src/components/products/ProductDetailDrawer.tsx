@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Package } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AddToCart } from "@/components/products/AddToCart";
@@ -45,6 +46,11 @@ export function ProductDetailDrawer({
   onImageChange,
 }: ProductDetailDrawerProps) {
   const { t } = useTranslation();
+  const [mainImgLoaded, setMainImgLoaded] = useState(false);
+
+  useEffect(() => {
+    setMainImgLoaded(false);
+  }, [activeImage]);
 
   return (
     <Drawer
@@ -65,8 +71,9 @@ export function ProductDetailDrawer({
                         src={activeImage}
                         alt={product.name}
                         loading="lazy"
-                        decoding="async"
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        decoding="auto"
+                        onLoad={() => setMainImgLoaded(true)}
+                        className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${mainImgLoaded ? "opacity-100" : "opacity-0"}`}
                       />
                     ) : (
                       <Package size={100} className="text-white/5" />
@@ -90,7 +97,7 @@ export function ProductDetailDrawer({
                           src={img.image}
                           alt=""
                           loading="lazy"
-                          decoding="async"
+                          decoding="auto"
                           className="w-full h-full object-cover"
                         />
                       </div>

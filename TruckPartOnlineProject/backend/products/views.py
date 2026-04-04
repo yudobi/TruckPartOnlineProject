@@ -1,5 +1,7 @@
 
-from rest_framework.viewsets import ModelViewSet
+from decimal import Decimal, InvalidOperation
+
+from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -7,11 +9,18 @@ from rest_framework.parsers import MultiPartParser, FormParser
 
 from .models import Product, ProductImage, Brand, Category
 from .serializers import ProductSerializer, ProductImageSerializer, ProductSearchSerializer, BrandSerializer, CategorySerializer
-from rest_framework.viewsets import ReadOnlyModelViewSet
 from products.pagination import StandardResultsSetPagination
 
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
+ALLOWED_ORDERINGS = {
+    "price": "price",
+    "-price": "-price",
+    "name": "name",
+    "-name": "-name",
+    "-created_at": "-created_at",
+}
 
 
 class ProductViewSet(ModelViewSet):
@@ -54,36 +63,49 @@ class ProductViewSet(ModelViewSet):
 
             
 
-        # Filtro por Pieza
+        # Filtro por Pieza (soporta múltiples IDs separados por coma)
         if "piece" in params:
-          queryset = queryset.filter(
-            category_id=params["piece"],
-            category__level="piece"
-        )
+            piece_ids = params["piece"].split(",")
+            queryset = queryset.filter(
+                category_id__in=piece_ids,
+                category__level="piece",
+            )
 
-        # Filtro por Sistema
+        # Filtro por Sistema (soporta múltiples IDs separados por coma)
         if "system" in params:
-          queryset = queryset.filter(
-            category__parent_id=params["system"]
-        )
+            system_ids = params["system"].split(",")
+            queryset = queryset.filter(category__parent_id__in=system_ids)
 
-        # Filtro por Subcategoría
+        # Filtro por Subcategoría (soporta múltiples IDs separados por coma)
         if "subcategory" in params:
-          queryset = queryset.filter(
-            category__parent__parent_id=params["subcategory"]
-        )
+            sub_ids = params["subcategory"].split(",")
+            queryset = queryset.filter(category__parent__parent_id__in=sub_ids)
 
-        # Filtro por Subcategoría
-        if "subcategory" in params:
-          queryset = queryset.filter(
-            category__parent__parent_id=params["subcategory"]
-        )
-
-        # Filtro por Categoría principal
+        # Filtro por Categoría principal (soporta múltiples IDs separados por coma)
         if "category" in params:
-         queryset = queryset.filter(
-            category__parent__parent__parent_id=params["category"]
-        )
+            cat_ids = params["category"].split(",")
+            queryset = queryset.filter(category__parent__parent__parent_id__in=cat_ids)
+
+        # Filtro por Precio mínimo
+        if "min_price" in params:
+            try:
+                queryset = queryset.filter(price__gte=Decimal(params["min_price"]))
+            except InvalidOperation:
+                pass
+
+        # Filtro por Precio máximo
+        if "max_price" in params:
+            try:
+                queryset = queryset.filter(price__lte=Decimal(params["max_price"]))
+            except InvalidOperation:
+                pass
+
+        # Ordenamiento (whitelist para evitar inyección de campos)
+        ordering_param = params.get("ordering")
+        if ordering_param and ordering_param in ALLOWED_ORDERINGS:
+            queryset = queryset.order_by(ALLOWED_ORDERINGS[ordering_param])
+        else:
+            queryset = queryset.order_by("-created_at")
 
         return queryset.distinct()
 

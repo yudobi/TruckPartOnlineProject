@@ -165,11 +165,6 @@ export default function AdminOrderDetailPage() {
     );
   }
 
-  const subtotal = order.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
@@ -296,9 +291,13 @@ export default function AdminOrderDetailPage() {
           <div className="space-y-2 max-w-xs ml-auto">
             <div className="flex justify-between text-sm text-zinc-400">
               <span>{t("admin.orders.subtotal")}</span>
-              <span>{formatCurrency(subtotal)}</span>
+              <span>{formatCurrency(order.subtotal)}</span>
             </div>
-            <div className="flex justify-between text-base font-bold text-white border-t border-white/10 pt-2 mt-2">
+            <div className="flex justify-between text-sm text-zinc-400 border-b border-white/10 pb-2">
+              <span>{t("admin.orders.tax")}</span>
+              <span>{formatCurrency(order.tax)}</span>
+            </div>
+            <div className="flex justify-between text-base font-bold text-white pt-2">
               <span>{t("admin.orders.total")}</span>
               <span className="text-red-500">{formatCurrency(order.total)}</span>
             </div>

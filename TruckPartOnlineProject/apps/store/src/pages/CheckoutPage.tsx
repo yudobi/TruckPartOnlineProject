@@ -195,7 +195,8 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <OrderSummary
               items={items}
-              total={checkoutData ? checkoutData.total : subtotal}
+              subtotal={checkoutData ? checkoutData.subtotal : subtotal}
+              tax={checkoutData ? checkoutData.tax : undefined}
             />
           </div>
         </div>

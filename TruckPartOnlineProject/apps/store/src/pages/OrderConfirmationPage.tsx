@@ -23,6 +23,8 @@ interface ConfirmationOrder {
   id: number;
   status: string;
   total: number;
+  subtotal?: number;
+  tax?: number;
   items: ConfirmationOrderItem[];
   created_at: string;
   shipping_address?: string | null;
@@ -260,12 +262,30 @@ export default function OrderConfirmationPage() {
             </ul>
           </div>
 
-          {/* Total */}
-          <div className="p-5 flex items-center justify-between">
-            <p className="text-sm font-semibold text-zinc-300">{t("confirmation.total")}</p>
-            <p className="text-xl font-black text-red-500">
-              ${order.total.toLocaleString()}
-            </p>
+          {/* Totals */}
+          <div className="p-5 space-y-2">
+            {order.subtotal != null && (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-zinc-400">{t("confirmation.subtotal", "Subtotal")}</p>
+                <p className="text-sm font-semibold text-white">
+                  ${order.subtotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+            {order.tax != null && (
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-zinc-400">{t("confirmation.tax", "Impuesto (7%)")}</p>
+                <p className="text-sm font-semibold text-white">
+                  ${order.tax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+            <div className="flex items-center justify-between border-t border-white/10 pt-2 mt-1">
+              <p className="text-sm font-semibold text-zinc-300">{t("confirmation.total")}</p>
+              <p className="text-xl font-black text-red-500">
+                ${order.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
           </div>
 
           {/* Shipping address */}

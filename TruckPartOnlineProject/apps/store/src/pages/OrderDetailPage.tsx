@@ -298,14 +298,34 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
 
-                {/* Total */}
-                <div className="pt-4 border-t border-white/5">
-                  <div className="flex justify-between items-end">
+                {/* Totals */}
+                <div className="pt-4 border-t border-white/5 space-y-2">
+                  {order.subtotal != null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">
+                        {t("orders.subtotal", "Subtotal")}
+                      </span>
+                      <span className="text-sm text-white font-medium">
+                        ${Number(order.subtotal).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
+                  {order.tax != null && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-400">
+                        {t("orders.tax", "Impuesto (7%)")}
+                      </span>
+                      <span className="text-sm text-white font-medium">
+                        ${Number(order.tax).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-end border-t border-white/5 pt-2 mt-1">
                     <span className="text-gray-400">
                       {t("orders.total")}
                     </span>
                     <span className="text-3xl font-light text-white">
-                      ${order.total.toLocaleString()}
+                      ${Number(order.total).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>

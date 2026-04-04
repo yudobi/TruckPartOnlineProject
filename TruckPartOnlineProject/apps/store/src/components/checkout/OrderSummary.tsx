@@ -4,11 +4,14 @@ import { Separator } from "@/components/ui/separator";
 
 interface OrderSummaryProps {
   items: CartItem[];
-  total: number;
+  subtotal: number;
+  tax?: number;
 }
 
-export function OrderSummary({ items, total }: OrderSummaryProps) {
+export function OrderSummary({ items, subtotal, tax }: OrderSummaryProps) {
   const { t } = useTranslation();
+  const displayTax = tax ?? subtotal * 0.07;
+  const total = subtotal + displayTax;
 
   return (
     <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 sticky top-24">
@@ -53,7 +56,11 @@ export function OrderSummary({ items, total }: OrderSummaryProps) {
       <div className="space-y-2">
         <div className="flex justify-between text-zinc-400 text-sm">
           <span>{t("checkout.subtotal", "Subtotal")}</span>
-          <span>${total.toFixed(2)}</span>
+          <span>${subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between text-zinc-400 text-sm">
+          <span>{t("checkout.tax", "Impuesto (7%)")}</span>
+          <span>${displayTax.toFixed(2)}</span>
         </div>
         <div className="flex justify-between text-zinc-400 text-sm">
           <span>{t("checkout.shipping", "Envío")}</span>

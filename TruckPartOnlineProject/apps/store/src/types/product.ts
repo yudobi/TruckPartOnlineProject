@@ -57,14 +57,22 @@ export interface PaginatedResponse<T> {
 }
 
 export interface ProductFilters {
+  // Jerarquía de categorías (IDs separados por coma)
   category?: string;
   subcategory?: string;
+  system?: string;
+  piece?: string;
+  // Marca / fabricante (ID o IDs separados por coma)
   manufacturer?: string;
-  minPrice?: number;
-  maxPrice?: number;
+  // Rango de precio (snake_case para coincidir con el backend Django)
+  min_price?: number;
+  max_price?: number;
+  // Búsqueda por texto
   search?: string;
+  // Paginación
   page?: number;
   page_size?: number;
+  // Ordenamiento: "price" | "-price" | "name" | "-name" | "-created_at"
   ordering?: string;
 }
 
