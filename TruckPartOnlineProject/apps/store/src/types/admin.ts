@@ -31,6 +31,8 @@ export interface AdminOrderDetail {
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
   total: number;
+  subtotal: number;
+  tax: number;
   qb_invoice_id: string | null;
   qb_sales_receipt_id: string | null;
   items: OrderItem[];
