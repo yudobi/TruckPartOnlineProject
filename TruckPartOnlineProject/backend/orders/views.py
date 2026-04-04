@@ -122,7 +122,9 @@ def checkout(request):
                     "order_id": order.id,
                     "client_secret": intent.client_secret,
                     "status": "requires_payment",
-                    "total": float(order.total)
+                    "subtotal": str(order.subtotal),
+                    "tax": str(order.tax),
+                    "total": str(order.total)
                 }, status=status.HTTP_201_CREATED)
 
             # 5️⃣ Si es COD, respuesta simple
